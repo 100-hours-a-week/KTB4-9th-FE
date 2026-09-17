@@ -1,9 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { createProblem, USE_MOCKS } from "../api/problemApi.js";
 import PageHeader from "../components/common/PageHeader.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
-import { setCurrentProblem } from "../store";
+import { useProblemGenerationPage } from "../features/problem-generation/useProblemGenerationPage.js";
 const DIFFICULTIES = [
 	"LV1",
 	"LV2",
@@ -174,40 +171,20 @@ function getProblem(difficulty, category) {
 	};
 }
 export default function ProblemGenerationPage() {
-	const navigate = useNavigate();
-	const [difficulty, setDifficulty] = useState("LV3");
-	const [category, setCategory] = useState("랜덤");
-	const [stage, setStage] = useState("config");
-	const [dots, setDots] = useState(0);
-	async function handleGenerate() {
-		setStage("loading");
-		let d = 0;
-		const iv = setInterval(() => {
-			d = (d + 1) % 4;
-			setDots(d);
-		}, 400);
-		try {
-			let problem;
-			if (USE_MOCKS) {
-				await new Promise((r) => setTimeout(r, 2600));
-				problem = getProblem(difficulty, category);
-			} else {
-				const result = await createProblem({ difficulty, category });
-				problem = result.problem;
-			}
-			setCurrentProblem(problem);
-			setStage("done");
-			setTimeout(() => {
-				navigate(`/problems/${problem.id}`);
-				setStage("config");
-			}, 400);
-		} catch (error) {
-			console.error("문제 생성에 실패했습니다.", error);
-			setStage("config");
-		} finally {
-			clearInterval(iv);
-		}
-	}
+	const {
+		category,
+		categoryOptions,
+		difficulty,
+		dots,
+		handleGenerate,
+		setCategory,
+		setDifficulty,
+		stage
+	} = useProblemGenerationPage({
+		categories: CATEGORIES_WITH_RANDOM,
+		createMockProblem: getProblem,
+		mockCategories: MOCK_CATEGORIES
+	});
 	return <div className="h-full flex flex-col overflow-y-auto bg-[#05050F]">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%)" }} />
 
@@ -259,7 +236,7 @@ export default function ProblemGenerationPage() {
         <div className="mb-6">
           <label className="block text-xs font-medium text-[#6B6890] mb-3 tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>카테고리</label>
           <div className="flex flex-wrap gap-2">
-	            {(USE_MOCKS ? ["랜덤", ...MOCK_CATEGORIES] : CATEGORIES_WITH_RANDOM).map((c) => <button key={c} onClick={() => setCategory(c)} className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${category === c ? "bg-[#7C3AED]/25 text-[#C084FC] border-[#7C3AED]/50" : "bg-[#0D0D1F] text-[#6B6890] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
+	            {categoryOptions.map((c) => <button key={c} onClick={() => setCategory(c)} className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${category === c ? "bg-[#7C3AED]/25 text-[#C084FC] border-[#7C3AED]/50" : "bg-[#0D0D1F] text-[#6B6890] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
                 {c}
               </button>)}
           </div>

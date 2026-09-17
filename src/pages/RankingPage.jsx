@@ -1,6 +1,5 @@
-import { useState } from "react";
 import PageHeader from "../components/common/PageHeader.jsx";
-import { getStoredUser } from "../services/auth.js";
+import { useRankingPage } from "../features/ranking/useRankingPage.js";
 const RANK_DATA = [
 	{
 		rank: 1,
@@ -804,9 +803,7 @@ const RANK_DATA = [
 	}
 ];
 export default function RankingPage() {
-	const [rankTab, setRankTab] = useState("난이도");
-	const [rankFilter, setRankFilter] = useState("전체");
-	const user = getStoredUser() || {};
+	const { rankFilter, rankTab, selectRankTab, setRankFilter, user } = useRankingPage();
 	return <div className="h-full flex flex-col bg-[#05050F] overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-44 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 50% 0%, rgba(124,58,237,0.1) 0%, transparent 65%)" }} />
 
@@ -817,10 +814,7 @@ export default function RankingPage() {
         {/* Tabs */}
         <div className="mb-3">
           <div className="flex rounded-xl overflow-hidden border border-[#1E1D35]" style={{ background: "#08081A" }}>
-            {["난이도", "카테고리"].map((tab) => <button key={tab} onClick={() => {
-		setRankTab(tab);
-		setRankFilter("전체");
-	}} className="flex-1 py-2.5 text-sm font-semibold transition-all duration-150" style={{
+            {["난이도", "카테고리"].map((tab) => <button key={tab} onClick={() => selectRankTab(tab)} className="flex-1 py-2.5 text-sm font-semibold transition-all duration-150" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: rankTab === tab ? "linear-gradient(135deg, #7C3AED, #A855F7)" : "transparent",
 		color: rankTab === tab ? "white" : "#4A4870",
@@ -877,7 +871,7 @@ export default function RankingPage() {
 		color: "white",
 		fontFamily: "'Outfit', sans-serif"
 	}}>
-            {(user.name || "나")[0]}
+            {user.profileImageUrl ? <img src={user.profileImageUrl} alt={`${user.name || "사용자"} 프로필`} className="h-full w-full rounded-xl object-cover" /> : (user.name || "나")[0]}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>내 순위</p>

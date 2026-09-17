@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
+import { useBattlePage } from "../features/battle/useBattlePage.js";
 import { getStoredUser } from "../services/auth.js";
 // ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function seeded(n) {
@@ -162,6 +162,7 @@ function getMockBoard(userTime) {
 			rank: 0,
 			name: user.name || "나",
 			avatar: (user.name || "나")[0],
+			profileImageUrl: user.profileImageUrl || null,
 			time: userTime,
 			isMe: true
 		});
@@ -201,92 +202,21 @@ const DIFF_BADGE = {
 };
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function BattlePage() {
-	const problem = getDailyProblem();
-	const { start } = getBattleWindow();
-	const [state, setState] = useState("active");
-	const [countdown, setCountdown] = useState(Math.max(0, start.getTime() - Date.now()));
-	const [elapsed, setElapsed] = useState(0);
-	const [answers, setAnswers] = useState(problem.testCases.map(() => ""));
-	const [userTime, setUserTime] = useState(null);
-	const [board, setBoard] = useState([]);
-	const [gradingDots, setGradingDots] = useState(0);
-	const [pendingLeft, setPendingLeft] = useState(0);
-	const elapsedRef = useRef(0);
-	// Countdown timer
-	useEffect(() => {
-		if (state !== "waiting") return;
-		const iv = setInterval(() => {
-			const left = start.getTime() - Date.now();
-			if (left <= 0) {
-				clearInterval(iv);
-				sessionStorage.removeItem("battle_preview");
-				setState("active");
-				setCountdown(0);
-			} else {
-				setCountdown(left);
-			}
-		}, 1e3);
-		return () => clearInterval(iv);
-	}, [state, start]);
-	// Elapsed timer
-	useEffect(() => {
-		if (state !== "active") return;
-		const base = Date.now();
-		const iv = setInterval(() => {
-			const e = Math.floor((Date.now() - base) / 1e3);
-			elapsedRef.current = e;
-			setElapsed(e);
-			// Auto-end after 10 min
-			if (e >= 600) {
-				clearInterval(iv);
-				finishBattle(e);
-			}
-		}, 1e3);
-		return () => clearInterval(iv);
-	}, [state]);
-	// Grading dots animation
-	useEffect(() => {
-		if (state !== "submitted") return;
-		let d = 0;
-		const iv = setInterval(() => {
-			d = (d + 1) % 4;
-			setGradingDots(d);
-		}, 350);
-		return () => clearInterval(iv);
-	}, [state]);
-	// Pending countdown
-	useEffect(() => {
-		if (state !== "pending") return;
-		const iv = setInterval(() => {
-			setPendingLeft((s) => {
-				if (s <= 1) {
-					clearInterval(iv);
-					setState("ended");
-					return 0;
-				}
-				return s - 1;
-			});
-		}, 1e3);
-		return () => clearInterval(iv);
-	}, [state]);
-	function finishBattle(time) {
-		const remaining = Math.max(0, 600 - time);
-		setUserTime(time);
-		setBoard(getMockBoard(time));
-		setPendingLeft(remaining);
-		setState(remaining > 0 ? "pending" : "ended");
-		sessionStorage.removeItem("battle_preview");
-	}
-	async function handleSubmit() {
-		if (state !== "active") return;
-		setState("submitted");
-		await new Promise((r) => setTimeout(r, 2e3));
-		finishBattle(elapsedRef.current);
-	}
-	function handleForfeit() {
-		if (state !== "active") return;
-		finishBattle(elapsedRef.current);
-	}
+	const {
+		answers,
+		board,
+		countdown,
+		elapsed,
+		gradingDots,
+		handleAnswerChange,
+		handleForfeit,
+		handleSubmit,
+		pendingLeft,
+		problem,
+		start,
+		state,
+		userTime
+	} = useBattlePage({ getBattleWindow, getDailyProblem, getMockBoard });
 	// ── Waiting ─────────────────────────────────────────────────────────────────
 	if (state === "waiting") {
 		const battleHour = start.getHours().toString().padStart(2, "0");
@@ -462,12 +392,7 @@ export default function BattlePage() {
                     {/* Output input */}
                     <div className="rounded-xl bg-[#06060E] border border-[#1E1D35] focus-within:border-[#7C3AED]/50 transition-colors p-2.5">
                       <p className="text-[10px] text-[#4A4870] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>OUTPUT</p>
-                      <input value={answers[i]} onChange={(e) => {
-			if (isSubmitting) return;
-			const next = [...answers];
-			next[i] = e.target.value;
-			setAnswers(next);
-		}} readOnly={isSubmitting} placeholder="정답 출력값 입력..." className="w-full bg-transparent text-xs text-[#E2E0F0] placeholder:text-[#2A2845] outline-none" style={{
+                      <input value={answers[i]} onChange={(e) => handleAnswerChange(i, e.target.value)} readOnly={isSubmitting} placeholder="정답 출력값 입력..." className="w-full bg-transparent text-xs text-[#E2E0F0] placeholder:text-[#2A2845] outline-none" style={{
 			fontFamily: "'JetBrains Mono', monospace",
 			caretColor: "#A855F7"
 		}} />
@@ -588,7 +513,7 @@ export default function BattlePage() {
                 </div>
                 {/* Avatar */}
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${entry.isMe ? "bg-[#7C3AED]/30 text-[#C084FC]" : "bg-[#1A1A2E] text-[#6B6890]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
-                  {entry.avatar}
+                  {entry.profileImageUrl ? <img src={entry.profileImageUrl} alt={`${entry.name} 프로필`} className="h-full w-full rounded-xl object-cover" /> : entry.avatar}
                 </div>
                 {/* Name */}
                 <span className={`flex-1 text-sm font-medium ${entry.isMe ? "text-[#C084FC]" : "text-[#B0A8D0]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>

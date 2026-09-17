@@ -1,9 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
-import { getStoredUser } from "../services/auth.js";
-import { setCurrentProblem } from "../store";
+import { useHomePage } from "../features/home/useHomePage.js";
 // ─── Daily problem pool ───────────────────────────────────────────────────────
 const POOL = [
 	{
@@ -267,29 +264,23 @@ function todayDateLabel() {
 const SOLVED_KEY = `cosmos_solved_${todaySeed()}`;
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
-	const navigate = useNavigate();
-	const problems = getDailyProblems();
-	const heatmap = getHeatmapData();
-	const user = getStoredUser() || {};
-	const [solved] = useState(() => {
-		try {
-			return new Set(JSON.parse(localStorage.getItem(SOLVED_KEY) || "[]"));
-		} catch {
-			return new Set();
-		}
-	});
-	const [cardIndex, setCardIndex] = useState(0);
-	const [heatTip, setHeatTip] = useState(null);
-	const solvedCount = problems.filter((p) => solved.has(p.id)).length;
-	const currentProblem = problems[cardIndex];
+	const {
+		cardIndex,
+		currentProblem,
+		handleSolve,
+		heatmap,
+		heatTip,
+		isSolved,
+		problems,
+		setCardIndex,
+		setHeatTip,
+		solved,
+		solvedCount,
+		user
+	} = useHomePage({ getDailyProblems, getHeatmapData, solvedKey: SOLVED_KEY });
 	const ds = DIFF_STYLE[currentProblem.difficulty] || DIFF_STYLE["LV1"];
 	const catStyle = CAT_COLORS[currentProblem.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";
-	const isSolved = solved.has(currentProblem.id);
 	const circumference = 2 * Math.PI * 14;
-	function handleSolve() {
-		setCurrentProblem(currentProblem);
-		navigate("/solve");
-	}
 	return <div className="h-full flex flex-col bg-[#05050F] overflow-y-auto">
       {/* Ambient glow */}
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 28% at 50% 0%, rgba(124,58,237,0.11) 0%, transparent 60%)" }} />

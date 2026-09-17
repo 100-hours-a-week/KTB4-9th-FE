@@ -1,15 +1,10 @@
-import { useNavigate } from "react-router";
 import { useEffect, useRef } from "react";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
-import { getStoredUser, storeUser } from "../services/auth.js";
+import kakaoLoginButton from "../assets/kakao_login_medium_wide.png";
+import { useLoginPage } from "../features/auth/useLoginPage.js";
 export default function LoginPage() {
-	const navigate = useNavigate();
+	const { handleKakaoLogin } = useLoginPage();
 	const canvasRef = useRef(null);
-	useEffect(() => {
-		if (getStoredUser()) {
-			navigate("/", { replace: true });
-		}
-	}, [navigate]);
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		if (!canvas) return;
@@ -156,13 +151,6 @@ export default function LoginPage() {
 			window.removeEventListener("resize", resize);
 		};
 	}, []);
-	function handleKakao() {
-		storeUser({
-			name: "개발자",
-			email: "dev@cosmos.ai"
-		});
-		navigate("/", { replace: true });
-	}
 	return <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[#05050F]">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
 
@@ -191,14 +179,14 @@ export default function LoginPage() {
           AI가 실력에 맞는 코딩 테스트 문제를<br />무제한으로 생성해 드립니다
         </p>
 
-        <button onClick={handleKakao} className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl active:scale-95 transition-all duration-150" style={{
-		background: "#FEE500",
-		boxShadow: "0 4px 20px rgba(254,229,0,0.25)"
-	}}>
-          <KakaoIcon />
-          <span className="text-[15px] font-semibold text-[#191919]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-            카카오로 계속하기
-          </span>
+        <button
+          type="button"
+          onClick={handleKakaoLogin}
+          aria-label="카카오 로그인"
+          className="w-full max-w-[300px] overflow-hidden rounded-xl transition-transform duration-150 active:scale-95"
+          style={{ boxShadow: "0 4px 20px rgba(254,229,0,0.18)" }}
+        >
+          <img src={kakaoLoginButton} alt="카카오 로그인" className="block h-auto w-full" />
         </button>
 
         <p className="mt-6 text-xs text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>
@@ -213,10 +201,4 @@ export default function LoginPage() {
 	}} />)}
       </div>
     </div>;
-}
-function KakaoIcon() {
-	return <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-      <ellipse cx="11" cy="10" rx="9" ry="8" fill="#191919" />
-      <path d="M11 4C7.134 4 4 6.462 4 9.5c0 1.924 1.21 3.617 3.04 4.636L6.3 17l3.42-2.263C10.13 14.907 10.56 14.95 11 14.95c3.866 0 7-2.462 7-5.45S14.866 4 11 4z" fill="#FEE500" />
-    </svg>;
 }
