@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { createProblem, USE_MOCKS } from "../api/problemApi.js";
 import PageHeader from "../components/common/PageHeader.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import { setCurrentProblem } from "../store";
@@ -157,9 +158,11 @@ const MOCK = {
 		constraints: ["1 ≤ N ≤ 10⁵", "0 ≤ 시작 < 종료 ≤ 10⁹"]
 	}]
 };
+const MOCK_CATEGORIES = Object.keys(MOCK);
 function getProblem(difficulty, category) {
-	const resolvedCat = category === "랜덤" ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)] : category;
-	const pool = MOCK[resolvedCat] || MOCK["Array"];
+	const requestedCat = category === "랜덤" ? MOCK_CATEGORIES[Math.floor(Math.random() * MOCK_CATEGORIES.length)] : category;
+	const resolvedCat = MOCK[requestedCat] ? requestedCat : "Array";
+	const pool = MOCK[resolvedCat];
 	const byDiff = pool.filter((p) => p.difficulty === difficulty);
 	const src = byDiff.length ? byDiff[Math.floor(Math.random() * byDiff.length)] : pool[Math.floor(Math.random() * pool.length)];
 	return {
@@ -183,15 +186,27 @@ export default function ProblemGenerationPage() {
 			d = (d + 1) % 4;
 			setDots(d);
 		}, 400);
-		await new Promise((r) => setTimeout(r, 2600));
-		clearInterval(iv);
-		const problem = getProblem(difficulty, category);
-		setCurrentProblem(problem);
-		setStage("done");
-		setTimeout(() => {
-			navigate("/solve");
+		try {
+			let problem;
+			if (USE_MOCKS) {
+				await new Promise((r) => setTimeout(r, 2600));
+				problem = getProblem(difficulty, category);
+			} else {
+				const result = await createProblem({ difficulty, category });
+				problem = result.problem;
+			}
+			setCurrentProblem(problem);
+			setStage("done");
+			setTimeout(() => {
+				navigate(`/problems/${problem.id}`);
+				setStage("config");
+			}, 400);
+		} catch (error) {
+			console.error("문제 생성에 실패했습니다.", error);
 			setStage("config");
-		}, 400);
+		} finally {
+			clearInterval(iv);
+		}
 	}
 	return <div className="h-full flex flex-col overflow-y-auto bg-[#05050F]">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%)" }} />
@@ -244,7 +259,7 @@ export default function ProblemGenerationPage() {
         <div className="mb-6">
           <label className="block text-xs font-medium text-[#6B6890] mb-3 tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>카테고리</label>
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES_WITH_RANDOM.map((c) => <button key={c} onClick={() => setCategory(c)} className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${category === c ? "bg-[#7C3AED]/25 text-[#C084FC] border-[#7C3AED]/50" : "bg-[#0D0D1F] text-[#6B6890] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
+	            {(USE_MOCKS ? ["랜덤", ...MOCK_CATEGORIES] : CATEGORIES_WITH_RANDOM).map((c) => <button key={c} onClick={() => setCategory(c)} className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all duration-150 ${category === c ? "bg-[#7C3AED]/25 text-[#C084FC] border-[#7C3AED]/50" : "bg-[#0D0D1F] text-[#6B6890] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
                 {c}
               </button>)}
           </div>

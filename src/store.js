@@ -11,3 +11,7 @@ export function getCurrentProblem() {
     return null;
   }
 }
+
+export function clearCurrentProblem() {
+  localStorage.removeItem(CURRENT_PROBLEM_KEY);
+}
