@@ -1,0 +1,40 @@
+name: Frontend (React) CI Pipeline
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+concurrency:
+  group: frontend-ci-${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-frontend:
+    name: React Lint & Build Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies (Strict)
+        run: npm ci
+
+      # 1. ESLint 정적 분석 검사
+      - name: Run ESLint
+        run: npm run lint
+
+      # 2. 프로덕션 빌드 무결성 검사
+      - name: Build Verification
+        env:
+          VITE_API_BASE_URL: https://api.example.com
+        run: npm run build

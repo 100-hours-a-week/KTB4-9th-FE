@@ -1,0 +1,68 @@
+name: Frontend CD Pipeline (S3 + CloudFront)
+
+on:
+  workflow_run:
+    workflows: ["Frontend (React) CI Pipeline"] 
+    branches: [ main ]                        
+    types: [ completed ]
+
+concurrency:
+  group: frontend-cd-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Build, Deploy to S3 & Invalidate CDN
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # CI가 검증을 마친 바로 그 커밋(SHA)의 소스코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies (Strict)
+        run: npm ci
+
+      # 1. 실제 프로덕션 환경변수 주입하여 빌드
+      - name: Production Build
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+        run: npm run build
+
+      # 2. AWS 인증 (us-west-2 리전)
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2
+
+      # 3. [1단계] 정적 애셋(JS/CSS/이미지) 선행 업로드 (1달 캐싱, 무중단 보장)
+      - name: Upload Static Assets to S3
+        run: |
+          aws s3 sync dist/ s3://${{ vars.S3_BUCKET_NAME }}/ \
+            --exclude "index.html" \
+            --cache-control "public, max-age=2592000, immutable"
+
+      # 4. [2단계] index.html 업로드 (새 버전 스위치 전환)
+      - name: Upload index.html to S3
+        run: |
+          aws s3 cp dist/index.html s3://${{ vars.S3_BUCKET_NAME }}/index.html \
+            --cache-control "no-cache, no-store, must-revalidate"
+
+      # 5. [3단계] CloudFront 캐시 무효화 (/index.html 즉시 갱신)
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }} \
+            --paths "/index.html"
