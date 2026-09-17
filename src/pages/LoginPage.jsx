@@ -7,7 +7,7 @@ export default function LoginPage() {
 	const canvasRef = useRef(null);
 	useEffect(() => {
 		if (getStoredUser()) {
-			navigate("/home", { replace: true });
+			navigate("/", { replace: true });
 		}
 	}, [navigate]);
 	useEffect(() => {
@@ -161,7 +161,7 @@ export default function LoginPage() {
 			name: "개발자",
 			email: "dev@cosmos.ai"
 		});
-		navigate("/home", { replace: true });
+		navigate("/", { replace: true });
 	}
 	return <div className="fixed inset-0 flex flex-col items-center justify-center overflow-hidden bg-[#05050F]">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />

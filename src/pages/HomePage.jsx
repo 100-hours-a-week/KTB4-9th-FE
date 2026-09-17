@@ -1,270 +1,529 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import PageHeader from "../components/common/PageHeader.jsx";
+import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
+import { getStoredUser } from "../services/auth.js";
 import { setCurrentProblem } from "../store";
-const DIFFICULTIES = [
-	"LV1",
-	"LV2",
-	"LV3",
-	"LV4",
-	"LV5"
-];
-const ALL_CATEGORIES = [
-	"Array",
-	"String",
-	"DP",
-	"Graph",
-	"Tree",
-	"Stack/Queue",
-	"Binary Search",
-	"Greedy",
-	"Backtracking",
-	"Two Pointer"
-];
-const CATEGORIES_WITH_RANDOM = ["랜덤", ...ALL_CATEGORIES];
-const DIFF_COLORS = {
-	LV1: {
-		bg: "bg-sky-500/15",
-		text: "text-sky-400",
-		border: "border-sky-500/30"
-	},
-	LV2: {
-		bg: "bg-emerald-500/15",
-		text: "text-emerald-400",
-		border: "border-emerald-500/30"
-	},
-	LV3: {
-		bg: "bg-amber-500/15",
-		text: "text-amber-400",
-		border: "border-amber-500/30"
-	},
-	LV4: {
-		bg: "bg-orange-500/15",
-		text: "text-orange-400",
-		border: "border-orange-500/30"
-	},
-	LV5: {
-		bg: "bg-rose-500/15",
-		text: "text-rose-400",
-		border: "border-rose-500/30"
-	}
-};
-const MOCK = {
-	DP: [{
-		id: "",
-		title: "여행 경비 최적화",
-		difficulty: "LV3",
-		category: "DP",
-		description: `A씨는 N개의 도시를 순서대로 여행할 계획이다. 각 도시 i에는 숙박비 cost[i]가 있으며, 한 번에 1칸 또는 2칸씩 이동할 수 있다. 단, 마지막 도시(N-1번)에 반드시 도착해야 한다.
-
-여행을 시작할 때 0번 또는 1번 도시에서 출발할 수 있으며, 방문한 도시의 숙박비를 모두 지불해야 한다. A씨가 지불해야 하는 최소 총 숙박비를 구하시오.
-
-단, 도시의 수 N은 2 이상 1,000 이하이며, 각 도시의 숙박비는 0 이상 999 이하의 정수이다.`,
-		examples: [{
-			input: "cost = [10, 15, 20]",
-			output: "15",
-			explanation: "1번 도시에서 출발해 2칸 점프로 바로 마지막 도시 도착"
-		}, {
-			input: "cost = [1, 100, 1, 1, 1, 100, 1, 1, 100, 1]",
-			output: "6"
-		}],
-		constraints: ["2 ≤ N ≤ 1000", "0 ≤ cost[i] ≤ 999"]
-	}, {
-		id: "",
-		title: "최장 증가 부분수열 (LIS)",
-		difficulty: "LV4",
-		category: "DP",
-		description: `정수로 이루어진 수열 A가 주어졌을 때, 그 수열의 부분수열 중에서 원소가 엄격하게 증가하는 가장 긴 부분수열의 길이를 구하여라.
-
-부분수열이란 수열에서 일부 원소를 제거하고 나머지를 원래 순서대로 나열한 수열이다. 예를 들어 [3, 1, 4, 1, 5, 9] 에서 [1, 4, 5, 9]는 부분수열이지만 [5, 4]는 부분수열이 아니다.
-
-단순히 O(n²)으로도 풀 수 있지만, 이분탐색을 활용하면 O(n log n)으로 해결 가능하다.`,
-		examples: [{
-			input: "A = [10, 9, 2, 5, 3, 7, 101, 18]",
-			output: "4",
-			explanation: "[2, 3, 7, 101]"
-		}, {
-			input: "A = [0, 1, 0, 3, 2, 3]",
-			output: "4"
-		}],
-		constraints: ["1 ≤ N ≤ 2500", "-10⁴ ≤ A[i] ≤ 10⁴"]
-	}],
-	Graph: [{
-		id: "",
-		title: "도시 간 최단 배송 경로",
-		difficulty: "LV3",
-		category: "Graph",
-		description: `물류 회사에서 N개의 도시 네트워크를 관리한다. 각 도시 사이에는 단방향 도로가 있으며 이동 시간(가중치)이 주어진다. 출발 도시 S에서 모든 도시까지의 최단 이동 시간을 구하시오.
-
-도달할 수 없는 도시는 -1로 표시한다. 간선의 가중치는 항상 양수이며, 같은 도시 쌍에 여러 간선이 존재할 수 있다. 효율적인 알고리즘을 사용하여 O((V+E) log V) 이내로 해결하시오.`,
-		examples: [{
-			input: "N=4, edges=[[0,1,1],[0,2,4],[1,2,2],[2,3,1]], S=0",
-			output: "[0, 1, 3, 4]"
-		}],
-		constraints: ["1 ≤ N ≤ 10⁴", "1 ≤ 가중치 ≤ 10⁶"]
-	}],
-	Array: [{
-		id: "",
-		title: "회전 배열 최댓값의 곱",
-		difficulty: "LV4",
+// ─── Daily problem pool ───────────────────────────────────────────────────────
+const POOL = [
+	{
+		title: "두 수의 합",
+		difficulty: "LV1",
 		category: "Array",
-		description: `정수 배열 nums가 주어진다. 이 배열에서 연속된 부분 배열의 곱이 최대가 되는 값을 구하시오.
-
-배열에는 음수가 포함될 수 있어 누적 곱의 부호가 바뀔 수 있음을 주의하라. 예를 들어 [2, 3, -2, 4]에서 최대 곱 부분배열은 [2, 3]이므로 답은 6이다. 단, 부분배열은 최소 1개의 원소를 포함해야 한다.`,
+		description: "정수 배열 nums와 정수 target이 주어진다. 합이 target이 되는 두 수의 인덱스를 반환하시오.",
 		examples: [{
-			input: "nums = [2, 3, -2, 4]",
-			output: "6",
-			explanation: "[2, 3]의 곱"
-		}, {
-			input: "nums = [-2, 0, -1]",
-			output: "0"
+			input: "nums=[2,7,11,15], target=9",
+			output: "[0,1]"
 		}],
-		constraints: ["1 ≤ nums.length ≤ 2×10⁴", "-10 ≤ nums[i] ≤ 10"]
-	}],
-	"Binary Search": [{
-		id: "",
-		title: "도서관 좌석 배치",
-		difficulty: "LV3",
-		category: "Binary Search",
-		description: `도서관에 N개의 좌석이 일렬로 배치되어 있고, M명의 학생이 입장한다. 학생들은 서로 가장 멀리 떨어져 앉으려 한다. 학생들 사이의 최소 거리를 최대화했을 때 그 값을 구하시오.
-
-좌석 위치는 오름차순으로 정렬된 배열로 주어진다. 이 문제는 이분탐색의 매개변수 탐색 기법으로 풀 수 있다.`,
-		examples: [{
-			input: "seats=[1,2,8,4,9], M=3",
-			output: "3",
-			explanation: "1, 4, 9에 앉으면 최소 간격 3"
-		}],
-		constraints: ["2 ≤ N ≤ 2×10⁵", "2 ≤ M ≤ N"]
-	}],
-	Greedy: [{
-		id: "",
+		constraints: ["2 ≤ nums.length ≤ 10⁴", "각 입력에 정확히 하나의 답이 존재"],
+		categoryKnown: true
+	},
+	{
 		title: "회의실 최대 예약",
 		difficulty: "LV2",
 		category: "Greedy",
-		description: `하나의 회의실에 N개의 회의 신청이 들어왔다. 각 회의는 시작 시간과 종료 시간이 주어지며, 동시에 두 개의 회의를 진행할 수 없다. 단, 한 회의가 끝나는 시간에 다른 회의를 시작하는 것은 가능하다.
-
-최대한 많은 회의를 진행하려 할 때 최대 회의 수를 구하시오. 탐욕적 접근법으로 O(N log N)에 해결 가능하다.`,
+		description: "하나의 회의실에서 겹치지 않게 진행할 수 있는 최대 회의 수를 구하시오.",
 		examples: [{
-			input: "meetings=[[1,4],[3,5],[0,6],[5,7],[3,9],[5,9],[6,10],[8,11],[8,12],[2,14],[12,16]]",
-			output: "4"
+			input: "meetings=[[1,4],[3,5],[0,6],[5,7]]",
+			output: "2"
 		}],
-		constraints: ["1 ≤ N ≤ 10⁵", "0 ≤ 시작 < 종료 ≤ 10⁹"]
-	}]
-};
-function getProblem(difficulty, category) {
-	const resolvedCat = category === "랜덤" ? ALL_CATEGORIES[Math.floor(Math.random() * ALL_CATEGORIES.length)] : category;
-	const pool = MOCK[resolvedCat] || MOCK["Array"];
-	const byDiff = pool.filter((p) => p.difficulty === difficulty);
-	const src = byDiff.length ? byDiff[Math.floor(Math.random() * byDiff.length)] : pool[Math.floor(Math.random() * pool.length)];
-	return {
-		...src,
-		id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
-		difficulty,
-		categoryKnown: category !== "랜덤"
-	};
+		constraints: ["1 ≤ N ≤ 10⁵"],
+		categoryKnown: true
+	},
+	{
+		title: "괄호 유효성 검사",
+		difficulty: "LV2",
+		category: "Stack/Queue",
+		description: "주어진 괄호 문자열이 올바른 괄호 쌍으로 이루어져 있는지 판별하시오.",
+		examples: [{
+			input: "s = \"(())\"",
+			output: "false"
+		}],
+		constraints: ["1 ≤ s.length ≤ 10⁵"],
+		categoryKnown: true
+	},
+	{
+		title: "소수 판별",
+		difficulty: "LV1",
+		category: "Math",
+		description: "정수 N이 주어질 때 소수이면 true, 아니면 false를 반환하시오.",
+		examples: [{
+			input: "N = 7",
+			output: "true"
+		}],
+		constraints: ["2 ≤ N ≤ 10⁶"],
+		categoryKnown: true
+	},
+	{
+		title: "부분 배열 최대합",
+		difficulty: "LV2",
+		category: "Array",
+		description: "정수 배열에서 합이 최대인 연속 부분 배열의 합을 구하시오 (카데인 알고리즘).",
+		examples: [{
+			input: "nums=[-2,1,-3,4,-1,2,1,-5,4]",
+			output: "6"
+		}],
+		constraints: ["1 ≤ nums.length ≤ 10⁵"],
+		categoryKnown: true
+	},
+	{
+		title: "아나그램 판별",
+		difficulty: "LV1",
+		category: "String",
+		description: "두 문자열 s와 t가 서로 아나그램인지 판별하시오.",
+		examples: [{
+			input: "s=\"anagram\", t=\"nagaram\"",
+			output: "true"
+		}],
+		constraints: ["1 ≤ s.length ≤ 5×10⁴"],
+		categoryKnown: true
+	},
+	{
+		title: "이진 트리 최대 깊이",
+		difficulty: "LV2",
+		category: "Tree",
+		description: "이진 트리의 루트가 주어질 때, 루트에서 가장 깊은 리프 노드까지의 깊이를 구하시오.",
+		examples: [{
+			input: "root=[3,9,20,null,null,15,7]",
+			output: "3"
+		}],
+		constraints: ["0 ≤ 노드 수 ≤ 10⁴"],
+		categoryKnown: true
+	},
+	{
+		title: "피보나치 수",
+		difficulty: "LV1",
+		category: "DP",
+		description: "F(n) = F(n-1) + F(n-2), F(0)=0, F(1)=1 일 때 F(n)을 구하시오.",
+		examples: [{
+			input: "n = 10",
+			output: "55"
+		}],
+		constraints: ["0 ≤ n ≤ 30"],
+		categoryKnown: true
+	},
+	{
+		title: "배열 회전",
+		difficulty: "LV1",
+		category: "Array",
+		description: "정수 배열을 오른쪽으로 k번 회전한 결과를 반환하시오.",
+		examples: [{
+			input: "nums=[1,2,3,4,5], k=2",
+			output: "[4,5,1,2,3]"
+		}],
+		constraints: ["1 ≤ nums.length ≤ 10⁵"],
+		categoryKnown: true
+	},
+	{
+		title: "두 포인터 합",
+		difficulty: "LV2",
+		category: "Two Pointer",
+		description: "정렬된 배열에서 합이 target이 되는 두 수가 존재하면 true를 반환하시오.",
+		examples: [{
+			input: "nums=[1,2,3,4,6], target=6",
+			output: "true"
+		}],
+		constraints: ["2 ≤ nums.length ≤ 10⁴"],
+		categoryKnown: true
+	}
+];
+function seeded(n) {
+	const x = Math.sin(n + 1) * 43758.5453;
+	return x - Math.floor(x);
 }
+function todaySeed() {
+	const d = new Date();
+	return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+function getDailyProblems() {
+	const seed = todaySeed();
+	const picked = [];
+	let s = seed;
+	while (picked.length < 5) {
+		const idx = Math.floor(seeded(s++) * POOL.length);
+		if (!picked.includes(idx)) picked.push(idx);
+	}
+	return picked.map((idx, i) => ({
+		...POOL[idx],
+		id: `daily_${seed}_${i}`
+	}));
+}
+// ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
+const WEEKS = 20;
+const TOTAL_CELLS = WEEKS * 7;
+function getHeatmapData() {
+	const seed = todaySeed();
+	return Array.from({ length: TOTAL_CELLS }, (_, i) => {
+		const v = seeded(seed + i * 7);
+		if (v < .45) return 0;
+		if (v < .65) return 1;
+		if (v < .8) return 2;
+		if (v < .92) return 3;
+		return 4;
+	});
+}
+function cellDate(cellIndex) {
+	// cellIndex 0 = oldest cell (top-left), TOTAL_CELLS-1 = today or close
+	const daysAgo = TOTAL_CELLS - 1 - cellIndex;
+	const d = new Date();
+	d.setDate(d.getDate() - daysAgo);
+	return d;
+}
+// Returns month label per column (week): { col, label } only when month changes
+function getMonthLabels() {
+	const MONTH_SHORT = [
+		"JAN",
+		"FEB",
+		"MAR",
+		"APR",
+		"MAY",
+		"JUN",
+		"JUL",
+		"AUG",
+		"SEP",
+		"OCT",
+		"NOV",
+		"DEC"
+	];
+	const labels = [];
+	let lastMonth = -1;
+	for (let col = 0; col < WEEKS; col++) {
+		const d = cellDate(col * 7);
+		const m = d.getMonth();
+		if (m !== lastMonth) {
+			labels.push({
+				col,
+				label: MONTH_SHORT[m]
+			});
+			lastMonth = m;
+		}
+	}
+	return labels;
+}
+const HEAT_BG = [
+	"#1A1A2E",
+	"rgba(124,58,237,0.22)",
+	"rgba(124,58,237,0.45)",
+	"rgba(168,85,247,0.68)",
+	"#A855F7"
+];
+// ─── Diff / cat ───────────────────────────────────────────────────────────────
+const DIFF_STYLE = {
+	LV1: {
+		text: "text-sky-400",
+		bg: "bg-sky-500/15",
+		border: "border-sky-500/30",
+		dot: "#38bdf8"
+	},
+	LV2: {
+		text: "text-emerald-400",
+		bg: "bg-emerald-500/15",
+		border: "border-emerald-500/30",
+		dot: "#34d399"
+	},
+	LV3: {
+		text: "text-amber-400",
+		bg: "bg-amber-500/15",
+		border: "border-amber-500/30",
+		dot: "#fbbf24"
+	},
+	LV4: {
+		text: "text-orange-400",
+		bg: "bg-orange-500/15",
+		border: "border-orange-500/30",
+		dot: "#fb923c"
+	},
+	LV5: {
+		text: "text-rose-400",
+		bg: "bg-rose-500/15",
+		border: "border-rose-500/30",
+		dot: "#fb7185"
+	}
+};
+const CAT_COLORS = {
+	Array: "bg-violet-500/15 text-violet-300 border-violet-500/25",
+	String: "bg-sky-500/15 text-sky-300 border-sky-500/25",
+	DP: "bg-amber-500/15 text-amber-300 border-amber-500/25",
+	Graph: "bg-teal-500/15 text-teal-300 border-teal-500/25",
+	Tree: "bg-green-500/15 text-green-300 border-green-500/25",
+	Greedy: "bg-orange-500/15 text-orange-300 border-orange-500/25",
+	"Stack/Queue": "bg-pink-500/15 text-pink-300 border-pink-500/25",
+	"Two Pointer": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
+	Math: "bg-rose-500/15 text-rose-300 border-rose-500/25"
+};
+function todayDateLabel() {
+	const d = new Date();
+	const days = [
+		"일",
+		"월",
+		"화",
+		"수",
+		"목",
+		"금",
+		"토"
+	];
+	return `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+}
+const SOLVED_KEY = `cosmos_solved_${todaySeed()}`;
+// ─── Main ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
 	const navigate = useNavigate();
-	const [difficulty, setDifficulty] = useState("LV3");
-	const [category, setCategory] = useState("랜덤");
-	const [stage, setStage] = useState("config");
-	const [dots, setDots] = useState(0);
-	async function handleGenerate() {
-		setStage("loading");
-		let d = 0;
-		const iv = setInterval(() => {
-			d = (d + 1) % 4;
-			setDots(d);
-		}, 400);
-		await new Promise((r) => setTimeout(r, 2600));
-		clearInterval(iv);
-		const problem = getProblem(difficulty, category);
-		setCurrentProblem(problem);
-		setStage("done");
-		setTimeout(() => {
-			navigate("/solve");
-			setStage("config");
-		}, 400);
+	const problems = getDailyProblems();
+	const heatmap = getHeatmapData();
+	const user = getStoredUser() || {};
+	const [solved] = useState(() => {
+		try {
+			return new Set(JSON.parse(localStorage.getItem(SOLVED_KEY) || "[]"));
+		} catch {
+			return new Set();
+		}
+	});
+	const [cardIndex, setCardIndex] = useState(0);
+	const [heatTip, setHeatTip] = useState(null);
+	const solvedCount = problems.filter((p) => solved.has(p.id)).length;
+	const currentProblem = problems[cardIndex];
+	const ds = DIFF_STYLE[currentProblem.difficulty] || DIFF_STYLE["LV1"];
+	const catStyle = CAT_COLORS[currentProblem.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";
+	const isSolved = solved.has(currentProblem.id);
+	const circumference = 2 * Math.PI * 14;
+	function handleSolve() {
+		setCurrentProblem(currentProblem);
+		navigate("/solve");
 	}
-	return <div className="h-full flex flex-col overflow-y-auto bg-[#05050F]">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%)" }} />
+	return <div className="h-full flex flex-col bg-[#05050F] overflow-y-auto">
+      {/* Ambient glow */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 80% 28% at 50% 0%, rgba(124,58,237,0.11) 0%, transparent 60%)" }} />
 
-      {stage === "loading" && <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#05050F]">
-          <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(124,58,237,0.15) 0%, transparent 70%)" }} />
-          <div className="relative w-28 h-28 mb-10">
-            <div className="absolute inset-0 rounded-full border-2 border-[#7C3AED]/30" style={{ animation: "spin 3s linear infinite" }} />
-            <div className="absolute inset-2 rounded-full border border-[#A855F7]/20" style={{ animation: "spin 2s linear infinite reverse" }} />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg width="40" height="40" viewBox="0 0 44 44" fill="none">
-                <circle cx="22" cy="22" r="9" stroke="#A855F7" strokeWidth="2" />
-                <circle cx="22" cy="22" r="3" fill="#A855F7" />
-                {[
-		0,
-		45,
-		90,
-		135,
-		180,
-		225,
-		270,
-		315
-	].map((deg, i) => {
-		const r = deg * Math.PI / 180;
-		return <line key={i} x1={22 + 12 * Math.cos(r)} y1={22 + 12 * Math.sin(r)} x2={22 + 16 * Math.cos(r)} y2={22 + 16 * Math.sin(r)} stroke="#7C3AED" strokeWidth="1.5" strokeLinecap="round" />;
-	})}
-              </svg>
+      {/* ── Header ──────────────────────────────────────────────────────────── */}
+      <div className="relative z-50 px-5 pt-10 pb-3 shrink-0">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <CosmosLogo size={34} color="#C084FC" className="shrink-0" />
+            <div className="min-w-0">
+            <p className="text-[11px] text-[#4A4870] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {todayDateLabel()}
+            </p>
+            <h1 className="truncate text-xl font-bold leading-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>
+              <span className="text-[#8B7FC4]">안녕하세요, </span>
+              <span className="text-[#C084FC]">{user.name || "코스모스"}님</span>
+            </h1>
             </div>
           </div>
-          <p className="text-[#A855F7] text-base font-semibold mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>문제 생성 중{".".repeat(dots)}</p>
-          <p className="text-[#4A4870] text-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>{difficulty} · {category === "랜덤" ? "랜덤 카테고리" : category}</p>
-          <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
-        </div>}
 
-      <PageHeader eyebrow="AI Problem Generator" title="문제 생성" subtitle="난이도와 카테고리를 선택해 맞춤 문제를 만들어보세요" action={<UserMenu rounded="rounded-full" />} />
+          <div className="flex items-center gap-3">
+            {/* Progress ring */}
+            <div className="flex flex-col items-center gap-0.5">
+              <div className="relative w-11 h-11">
+                <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }}>
+                  <circle cx="22" cy="22" r="14" stroke="#1E1D35" strokeWidth="3.5" fill="none" />
+                  <circle cx="22" cy="22" r="14" stroke="url(#pr)" strokeWidth="3.5" fill="none" strokeDasharray={`${solvedCount / 5 * circumference} ${circumference}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s ease" }} />
+                  <defs>
+                    <linearGradient id="pr" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="#7C3AED" />
+                      <stop offset="100%" stopColor="#A855F7" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-[#E2E0F0]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  {solvedCount}/5
+                </span>
+              </div>
+              <span className="text-[9px] text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 진행</span>
+            </div>
 
-      <div className="relative z-10 px-5 flex-1">
-        <div className="mb-6">
-          <label className="block text-xs font-medium text-[#6B6890] mb-3 tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>난이도</label>
-          <div className="grid grid-cols-5 gap-2">
-            {DIFFICULTIES.map((d) => {
-		const c = DIFF_COLORS[d];
-		return <button key={d} onClick={() => setDifficulty(d)} className={`py-3 rounded-xl border text-sm font-semibold transition-all duration-150 ${difficulty === d ? `${c.bg} ${c.text} ${c.border} scale-105` : "bg-[#0D0D1F] text-[#4A4870] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
-                  {d}
-                </button>;
-	})}
+            <UserMenu />
           </div>
         </div>
-
-        <div className="mb-6">
-          <label className="block text-xs font-medium text-[#6B6890] mb-3 tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>카테고리</label>
-          <div className="flex flex-wrap gap-2">
-            {CATEGORIES_WITH_RANDOM.map((c) => <button key={c} onClick={() => setCategory(c)} className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-150 ${category === c ? "bg-[#7C3AED]/25 text-[#C084FC] border-[#7C3AED]/50" : "bg-[#0D0D1F] text-[#6B6890] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
-                {c}
-              </button>)}
-          </div>
-        </div>
-
-        <div className="mb-7 rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4 flex items-start gap-4">
-          <div className="w-10 h-10 rounded-xl bg-[#7C3AED]/20 flex items-center justify-center shrink-0 mt-0.5">
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
-              <path d="M10 2l1.8 5.4H17l-4.4 3.2 1.7 5.2L10 13l-4.3 2.8 1.7-5.2L3 7.4h5.2L10 2z" fill="#A855F7" fillOpacity="0.8" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-[#E2E0F0] mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>접근 방식 + 코드 통합 풀이</p>
-            <p className="text-xs text-[#6B6890] leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
-              AI가 문제를 생성하면 알고리즘 카테고리 선택 → 자연어 접근 방식 작성 → 채점 순으로 진행됩니다. 원하면 코드 에디터로도 풀어볼 수 있어요.
-            </p>
-          </div>
-        </div>
-
-        <button onClick={handleGenerate} disabled={stage !== "config"} className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all duration-200 active:scale-95 disabled:opacity-50 mb-8" style={{
-		fontFamily: "'Outfit', sans-serif",
-		background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
-		boxShadow: "0 4px 24px rgba(124,58,237,0.4)"
-	}}>
-          문제 생성하기
-        </button>
       </div>
+
+      {/* ── Heatmap ─────────────────────────────────────────────────────────── */}
+      <div className="relative z-10 mx-5 mb-4 shrink-0">
+        <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-medium text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+              학습 기록
+            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>적게</span>
+              {HEAT_BG.map((c, i) => <div key={i} className="w-2.5 h-2.5 rounded-[3px]" style={{
+		background: c,
+		border: "1px solid rgba(255,255,255,0.04)"
+	}} />)}
+              <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>많이</span>
+            </div>
+          </div>
+          {/* Grid: 20 cols × 7 rows */}
+          <div className="flex gap-[3px]">
+            {Array.from({ length: WEEKS }, (_, col) => <div key={col} className="flex flex-col gap-[3px] flex-1">
+                {Array.from({ length: 7 }, (_, row) => {
+		const i = col * 7 + row;
+		const v = heatmap[i];
+		const d = cellDate(i);
+		const label = `${d.getMonth() + 1}월 ${d.getDate()}일`;
+		const count = v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : v === 3 ? 6 : 10;
+		return <button key={row} onClick={(e) => {
+			e.stopPropagation();
+			const rect = e.target.getBoundingClientRect();
+			setHeatTip((t) => t?.label === label ? null : {
+				label,
+				count,
+				x: rect.left + rect.width / 2,
+				y: rect.top - 8
+			});
+		}} className="rounded-[2px] transition-all duration-100 hover:brightness-150 active:scale-90" style={{
+			aspectRatio: "1",
+			background: HEAT_BG[v],
+			border: heatTip?.label === label ? "1px solid rgba(168,85,247,0.7)" : "1px solid rgba(255,255,255,0.03)"
+		}} />;
+	})}
+              </div>)}
+          </div>
+
+          {/* Month labels below grid */}
+          <div className="relative h-4 mt-1.5">
+            {getMonthLabels().map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
+		left: `${col / WEEKS * 100}%`,
+		color: "#3A3860",
+		fontFamily: "'JetBrains Mono', monospace",
+		transform: "translateX(-0%)"
+	}}>
+                {label}
+              </span>)}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Problem carousel ─────────────────────────────────────────────────── */}
+      <div className="relative z-10 px-5 pb-8 shrink-0">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="w-2 h-2 rounded-full bg-[#A855F7]" style={{ boxShadow: "0 0 6px rgba(168,85,247,0.8)" }} />
+          <span className="text-sm font-semibold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+            오늘의 문제
+          </span>
+        </div>
+
+        <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
+		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "#1E1D35",
+		background: "#0D0D1F",
+		boxShadow: isSolved ? "0 0 28px rgba(124,58,237,0.1)" : "none"
+	}}>
+          <div className="h-[2px]" style={{ background: "linear-gradient(90deg, #7C3AED, #A855F7 60%, transparent)" }} />
+
+          <div className="p-4">
+            {/* Badges */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <span className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${ds.text} ${ds.bg} ${ds.border}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: ds.dot }} />
+                {currentProblem.difficulty}
+              </span>
+              <span className={`px-2.5 py-1 rounded-full text-[11px] font-medium border ${catStyle}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {currentProblem.category}
+              </span>
+              {isSolved && <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold border text-[#A855F7] bg-[#7C3AED]/12 border-[#7C3AED]/25" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                  ✓ 완료
+                </span>}
+            </div>
+
+            {/* Title */}
+            <h2 className="text-lg font-bold mb-2 leading-snug" style={{
+		fontFamily: "'Outfit', sans-serif",
+		color: isSolved ? "#8B7FC4" : "#E2E0F0"
+	}}>
+              {currentProblem.title}
+            </h2>
+
+            {/* Description */}
+            <p className="text-sm text-[#6B6890] leading-relaxed mb-4" style={{
+		fontFamily: "'Outfit', sans-serif",
+		display: "-webkit-box",
+		WebkitLineClamp: 3,
+		WebkitBoxOrient: "vertical",
+		overflow: "hidden"
+	}}>
+              {currentProblem.description}
+            </p>
+
+            {/* Example box */}
+            <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
+              <p className="text-[10px] text-[#4A4870] mb-2 font-semibold tracking-wider uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                입력 예시
+              </p>
+              {currentProblem.examples.slice(0, 1).map((ex, i) => <div key={i} className="flex flex-col gap-1">
+                  <p className="text-xs text-[#8B7FC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
+                  </p>
+                  <p className="text-xs text-[#C084FC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
+                  </p>
+                </div>)}
+            </div>
+
+            {/* CTA */}
+            <button onClick={handleSolve} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150" style={{
+		fontFamily: "'Outfit', sans-serif",
+		background: isSolved ? "rgba(124,58,237,0.12)" : "linear-gradient(135deg, #7C3AED, #A855F7)",
+		color: isSolved ? "#A855F7" : "white",
+		boxShadow: isSolved ? "none" : "0 4px 18px rgba(124,58,237,0.4)",
+		border: isSolved ? "1px solid rgba(124,58,237,0.28)" : "none"
+	}}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
+                <path d="M2.5 2l8 4.5-8 4.5V2z" />
+              </svg>
+              {isSolved ? "다시 풀기" : "오늘의 문제 풀기"}
+            </button>
+          </div>
+
+          {/* Carousel nav */}
+          <div className="flex items-center justify-between px-4 pb-4">
+            <button onClick={() => setCardIndex((i) => Math.max(0, i - 1))} disabled={cardIndex === 0} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M9 2L4 7l5 5" stroke="#8B7FC4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            <div className="flex items-center gap-1.5">
+              {problems.map((p, i) => <button key={p.id} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
+		width: i === cardIndex ? 20 : 6,
+		height: 6,
+		background: i === cardIndex ? "linear-gradient(90deg, #7C3AED, #A855F7)" : solved.has(p.id) ? "rgba(168,85,247,0.4)" : "#2A2845"
+	}} />)}
+            </div>
+
+            <button onClick={() => setCardIndex((i) => Math.min(4, i + 1))} disabled={cardIndex === 4} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M5 2l5 5-5 5" stroke="#8B7FC4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {solvedCount === 5 && <div className="mt-3 rounded-2xl border border-[#7C3AED]/25 p-3.5 flex items-center gap-3" style={{ background: "rgba(124,58,237,0.06)" }}>
+            <span className="text-xl">🎉</span>
+            <div>
+              <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 챌린지 완료!</p>
+              <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>내일 새로운 5문제가 기다려요</p>
+            </div>
+          </div>}
+      </div>
+
+      {/* Heatmap tooltip backdrop */}
+      {heatTip && <div className="fixed inset-0 z-[290]" onClick={() => setHeatTip(null)} />}
+
+      {/* Heatmap tooltip */}
+      {heatTip && <div className="fixed z-[300] pointer-events-none px-3 py-2 rounded-xl text-xs" style={{
+		left: heatTip.x,
+		top: heatTip.y,
+		transform: "translate(-50%, -100%)",
+		background: "#0F0E1E",
+		border: "1px solid rgba(168,85,247,0.3)",
+		boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
+		fontFamily: "'Outfit', sans-serif",
+		whiteSpace: "nowrap"
+	}} onClick={() => setHeatTip(null)}>
+          <p className="text-[#8B7FC4] mb-0.5">{heatTip.label}</p>
+          <p className="font-semibold" style={{ color: heatTip.count > 0 ? "#C084FC" : "#4A4870" }}>
+            {heatTip.count > 0 ? `${heatTip.count}개 풀이` : "풀이 없음"}
+          </p>
+        </div>}
     </div>;
 }

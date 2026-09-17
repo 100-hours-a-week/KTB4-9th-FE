@@ -51,9 +51,9 @@ function RankingIcon({ active }) {
 }
 
 const NAV_ITEMS = [
-  { to: "/generate", label: "생성", Icon: SparkIcon },
+  { to: "/problems/new", label: "생성", Icon: SparkIcon },
   { to: "/battle", label: "배틀", Icon: BattleIcon },
-  { to: "/home", label: "홈", Icon: HomeIcon },
+  { to: "/", label: "홈", Icon: HomeIcon },
   { to: "/mypage", label: "내 문제", Icon: BookIcon },
   { to: "/rankings", label: "랭킹", Icon: RankingIcon },
 ];
@@ -69,6 +69,7 @@ export default function BottomNavigation() {
         <NavLink
           key={to}
           to={to}
+          end={to === "/"}
           className={({ isActive }) => `flex min-w-0 flex-1 flex-col items-center gap-0.5 transition-all duration-200 ${isActive ? "text-[#A855F7]" : "text-[#6B6890]"}`}
         >
           {({ isActive }) => (
