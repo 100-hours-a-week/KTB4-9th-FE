@@ -1,6 +1,7 @@
+import { useCallback, useEffect, useRef } from "react";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
+import { useAuth } from "../features/auth/authContext.js";
 import { useBattlePage } from "../features/battle/useBattlePage.js";
-import { getStoredUser } from "../services/auth.js";
 // ─── Seeded RNG ───────────────────────────────────────────────────────────────
 function seeded(n) {
 	const x = Math.sin(n + 1) * 43758.5453;
@@ -148,7 +149,7 @@ const MOCK_AVATARS = [
 	"DE",
 	"JH"
 ];
-function getMockBoard(userTime) {
+function getMockBoard(userTime, user = {}) {
 	const seed = todaySeed();
 	const entries = Array.from({ length: 4 }, (_, i) => ({
 		rank: 0,
@@ -156,7 +157,6 @@ function getMockBoard(userTime) {
 		avatar: MOCK_AVATARS[Math.floor(seeded(seed + i * 7) * MOCK_AVATARS.length)],
 		time: Math.floor(30 + seeded(seed + i * 13) * 300)
 	}));
-	const user = getStoredUser() || {};
 	if (userTime !== null) {
 		entries.push({
 			rank: 0,
@@ -202,6 +202,12 @@ const DIFF_BADGE = {
 };
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function BattlePage() {
+	const { user } = useAuth();
+	const userRef = useRef(user);
+	useEffect(() => {
+		userRef.current = user;
+	}, [user]);
+	const buildMockBoard = useCallback((userTime) => getMockBoard(userTime, userRef.current || {}), []);
 	const {
 		answers,
 		board,
@@ -216,7 +222,7 @@ export default function BattlePage() {
 		start,
 		state,
 		userTime
-	} = useBattlePage({ getBattleWindow, getDailyProblem, getMockBoard });
+	} = useBattlePage({ getBattleWindow, getDailyProblem, getMockBoard: buildMockBoard });
 	// ── Waiting ─────────────────────────────────────────────────────────────────
 	if (state === "waiting") {
 		const battleHour = start.getHours().toString().padStart(2, "0");

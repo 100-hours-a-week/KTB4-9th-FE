@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { getStoredUser } from "../../services/auth.js";
+import { useAuth } from "../auth/authContext.js";
 import { setCurrentProblem } from "../../store.js";
 
 export function useHomePage({ getDailyProblems, getHeatmapData, solvedKey }) {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const problems = getDailyProblems();
   const heatmap = getHeatmapData();
-  const user = getStoredUser() || {};
+  const user = currentUser || {};
   const [solved] = useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem(solvedKey) || "[]"));

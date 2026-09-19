@@ -11,19 +11,13 @@ export class ApiError extends Error {
   }
 }
 
-function getAccessToken() {
-  return localStorage.getItem('accessToken')
-}
-
 export async function request(path, options = {}) {
-  const accessToken = getAccessToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: 'include',
     headers: {
       Accept: 'application/json',
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...options.headers,
     },
   })
