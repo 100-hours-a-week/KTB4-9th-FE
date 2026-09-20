@@ -13,6 +13,35 @@ const LANGUAGE_TO_API = {
 }
 
 export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
+// 기능별로 진짜 API를 켜는 스위치. USE_MOCKS가 false면 전부 켜짐
+export const USE_REAL_PROBLEM = !USE_MOCKS || import.meta.env.VITE_USE_REAL_PROBLEM === 'true'
+export const USE_REAL_APPROACH = !USE_MOCKS || import.meta.env.VITE_USE_REAL_APPROACH === 'true'
+
+const LANGUAGE_FROM_API = Object.fromEntries(
+  Object.entries(LANGUAGE_TO_API).map(([label, value]) => [value, label]),
+)
+
+// 문제 상세 응답(inputFormat 등)을 화면의 제약사항 문자열 목록으로 변환
+function buildConstraints(raw) {
+  if (raw.constraints) return raw.constraints
+
+  const lines = []
+  if (raw.inputFormat) lines.push(`입력 형식: ${raw.inputFormat}`)
+  if (raw.outputFormat) lines.push(`출력 형식: ${raw.outputFormat}`)
+
+  for (const c of raw.inputConstraints ?? []) {
+    const range = c.minValue != null && c.maxValue != null ? `${c.minValue} ~ ${c.maxValue} ` : ''
+    const conditions = c.specialConditions?.length ? ` · ${c.specialConditions.join(', ')}` : ''
+    lines.push(`${c.scope === 'OUTPUT' ? '[출력] ' : ''}${c.target}: ${range}(${c.dataType})${conditions}`)
+  }
+
+  for (const limit of raw.executionLimits ?? []) {
+    const language = LANGUAGE_FROM_API[limit.language] ?? limit.language
+    lines.push(`${language} 시간 ${limit.timeLimitMs / 1000}초 · 메모리 ${Math.round(limit.memoryLimitKb / 1024)}MB`)
+  }
+
+  return lines
+}
 
 export function toApiCategory(category) {
   return CATEGORY_TO_API[category] ?? category
@@ -31,7 +60,7 @@ function normalizeProblem(raw) {
       ...example,
       explanation: example.explanation ?? example.description ?? null,
     })),
-    constraints: raw.constraints ?? [],
+    constraints: buildConstraints(raw),
     categoryKnown: true,
   }
 }

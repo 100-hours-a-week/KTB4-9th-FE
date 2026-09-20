@@ -7,7 +7,9 @@ import {
   getProblem,
   submitApproach,
   submitCode,
-  USE_MOCKS
+  USE_MOCKS,
+  USE_REAL_APPROACH,
+  USE_REAL_PROBLEM
 } from "../api/problemApi.js";
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
@@ -442,7 +444,7 @@ function SolvePage() {
     const storedProblem = getCurrentProblem();
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
   });
-  const [problemLoading, setProblemLoading] = useState(!problem && !USE_MOCKS);
+  const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId);
   const [selectedCat, setSelectedCat] = useState(null);
   const categoryKnown = !!problem?.categoryKnown;
   const [approach, setApproach] = useState("");
@@ -451,6 +453,7 @@ function SolvePage() {
   const [approachScore, setApproachScore] = useState(0);
   const [evaluationKeywords, setEvaluationKeywords] = useState(null);
   const [aiFeedback, setAiFeedback] = useState("");
+  const [evaluationPending, setEvaluationPending] = useState(false);
   const [apiError, setApiError] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [lang, setLang] = useState("Python");
@@ -483,7 +486,7 @@ function SolvePage() {
     dragging.current = false;
   }, []);
   useEffect(() => {
-    if (problem || USE_MOCKS || !problemId) return undefined;
+    if (problem || !USE_REAL_PROBLEM || !problemId) return undefined;
 
     let cancelled = false;
     getProblem(problemId)
@@ -523,7 +526,7 @@ function SolvePage() {
     setSubmitStage("grading");
     setApiError("");
     try {
-      if (USE_MOCKS) {
+      if (!USE_REAL_APPROACH) {
         await new Promise((r) => setTimeout(r, 1400));
         const cc = categoryKnown ? true : selectedCat === p.category;
         const lower = approach.toLowerCase();
@@ -540,6 +543,7 @@ function SolvePage() {
         setApproachScore(submission.result?.approachScore ?? 0);
         setEvaluationKeywords(submission.result?.keywords ?? []);
         setAiFeedback(submission.result?.aiFeedback ?? "");
+        setEvaluationPending(submission.evaluationStatus !== "COMPLETED");
       }
       setSubmitStage("done");
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
@@ -707,13 +711,13 @@ function SolvePage() {
               {
     /* Overall */
   }
-              <div className={`rounded-2xl border p-4 flex items-center gap-3 ${totalPass ? "bg-emerald-500/8 border-emerald-500/25" : "bg-rose-500/8 border-rose-500/25"}`}>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${totalPass ? "bg-emerald-500/15" : "bg-rose-500/12"}`}>
-                  {totalPass ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#10B981" strokeWidth="1.8" /><path d="M6 10l3 3 5-5" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> : <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#EF4444" strokeWidth="1.8" /><path d="M7 7l6 6M13 7l-6 6" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" /></svg>}
+              <div className={`rounded-2xl border p-4 flex items-center gap-3 ${evaluationPending ? "bg-[#0D0D1F] border-[#1E1D35]" : totalPass ? "bg-emerald-500/8 border-emerald-500/25" : "bg-rose-500/8 border-rose-500/25"}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${evaluationPending ? "bg-[#7C3AED]/15" : totalPass ? "bg-emerald-500/15" : "bg-rose-500/12"}`}>
+                  {evaluationPending ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#A855F7" strokeWidth="1.8" /><path d="M10 6v4l3 2" stroke="#A855F7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> : totalPass ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#10B981" strokeWidth="1.8" /><path d="M6 10l3 3 5-5" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> : <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#EF4444" strokeWidth="1.8" /><path d="M7 7l6 6M13 7l-6 6" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" /></svg>}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{totalPass ? "\uD6CC\uB96D\uD55C \uC811\uADFC\uC774\uC5D0\uC694!" : "\uC870\uAE08 \uB354 \uC0DD\uAC01\uD574\uBD10\uC694"}</p>
-                  <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>{categoryKnown ? p.category : `\uCE74\uD14C\uACE0\uB9AC ${catCorrect ? "\uC815\uB2F5" : "\uC624\uB2F5"}`} · 접근 방식 {approachScore}점</p>
+                  <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{evaluationPending ? "\uC81C\uCD9C \uC644\uB8CC" : totalPass ? "\uD6CC\uB96D\uD55C \uC811\uADFC\uC774\uC5D0\uC694!" : "\uC870\uAE08 \uB354 \uC0DD\uAC01\uD574\uBD10\uC694"}</p>
+                  <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>{categoryKnown ? p.category : `\uCE74\uD14C\uACE0\uB9AC ${catCorrect ? "\uC815\uB2F5" : "\uC624\uB2F5"}`} · {evaluationPending ? "AI 평가 준비 중" : `접근 방식 ${approachScore}점`}</p>
                 </div>
               </div>
 
@@ -740,7 +744,9 @@ function SolvePage() {
               {
     /* Approach score */
   }
-              <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
+              {evaluationPending ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
+                  <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>AI 평가는 준비 중이에요. 곧 점수와 피드백을 보여드릴게요.</p>
+                </div> : <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs text-[#6B6890] uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>접근 방식</p>
                   <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: approachScore >= 66 ? "#10B981" : approachScore >= 33 ? "#F59E0B" : "#EF4444" }}>
@@ -761,7 +767,7 @@ function SolvePage() {
   })}
                 </div>
                 {aiFeedback && <p className="mt-3 text-xs leading-relaxed text-[#A89EC4]">{aiFeedback}</p>}
-              </div>
+              </div>}
 
               {
     /* Code editor toggle */
