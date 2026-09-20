@@ -1,14 +1,4 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
-import { getStoredUser } from "../../services/auth.js";
-
 export function useLoginPage() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (getStoredUser()) navigate("/", { replace: true });
-  }, [navigate]);
-
   const handleKakaoLogin = () => {
     const clientId = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI;
