@@ -6,10 +6,10 @@ function normalizeUser(payload) {
   const source = payload?.data?.user ?? payload?.user ?? payload?.data ?? payload;
 
   return {
-    id: source?.id == null ? null : String(source.id),
-    name: source?.nickname ?? source?.name ?? "사용자",
-    email: source?.email ?? "",
+    id: source?.userId == null ? null : String(source.userId),
+    name: source?.userName ?? source?.username ?? "사용자",
     profileImageUrl:
+      source?.userProfileImageUrl ??
       source?.profileImageUrl ??
       source?.profile_image_url ??
       source?.thumbnailImageUrl ??
@@ -36,7 +36,7 @@ export function clearStoredUser() {
 }
 
 export async function fetchCurrentUser() {
-  const payload = await request("/api/v1/users/me");
+  const payload = await request("/auth/me");
   return normalizeUser(payload);
 }
 

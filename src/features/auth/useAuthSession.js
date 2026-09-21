@@ -2,11 +2,15 @@ import { useEffect, useState } from "react";
 import {
   clearStoredUser,
   fetchCurrentUser,
+  getStoredUser,
   storeUser,
 } from "../../services/auth.js";
 
 export function useAuthSession() {
-  const [status, setStatus] = useState("loading");
+  const [session, setSession] = useState(() => ({
+    status: "loading",
+    user: getStoredUser(),
+  }));
 
   useEffect(() => {
     let active = true;
@@ -15,12 +19,21 @@ export function useAuthSession() {
       .then((user) => {
         if (!active) return;
         storeUser(user);
-        setStatus("authenticated");
+        setSession({ status: "authenticated", user });
       })
-      .catch(() => {
+      .catch((error) => {
         if (!active) return;
-        clearStoredUser();
-        setStatus("unauthenticated");
+
+        if (error?.status === 401 || error?.status === 403) {
+          clearStoredUser();
+          setSession({ status: "unauthenticated", user: null });
+          return;
+        }
+
+        setSession((current) => ({
+          status: "error",
+          user: current.user,
+        }));
       });
 
     return () => {
@@ -28,5 +41,5 @@ export function useAuthSession() {
     };
   }, []);
 
-  return status;
+  return session;
 }

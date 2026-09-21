@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { getStoredUser, logoutCurrentUser } from "../../services/auth.js";
+import { useAuth } from "../../features/auth/authContext.js";
+import { logoutCurrentUser } from "../../services/auth.js";
 
 export default function UserMenu({ rounded = "rounded-xl", menuIcon = false }) {
   const navigate = useNavigate();
   const containerRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
-  const user = getStoredUser() || {};
+  const { user: currentUser } = useAuth();
+  const user = currentUser || {};
 
   useEffect(() => {
     if (!open) return undefined;
@@ -48,7 +50,6 @@ export default function UserMenu({ rounded = "rounded-xl", menuIcon = false }) {
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{user.name || "사용자"}</p>
-              {user.email && <p className="mt-0.5 truncate text-xs text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>{user.email}</p>}
             </div>
           </div>
           <button type="button" onClick={handleLogout} disabled={loggingOut} className="flex w-full items-center gap-2 px-4 py-3 text-sm text-[#F87171] transition-colors active:bg-[#1A0D1D] disabled:opacity-50" style={{ fontFamily: "'Outfit', sans-serif" }}><svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true"><path d="M6 2H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h3M10 10l3-3-3-3M13 7H6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>{loggingOut ? "로그아웃 중..." : "로그아웃"}</button>
