@@ -13,7 +13,17 @@ import {
 } from "../api/problemApi.js";
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
+import ApproachResult from "../components/ApproachResult.jsx";
 import { APPROACH_KEYWORDS } from "../constants/approachKeywords.js";
+import {
+  createMockApproachEvaluation,
+  normalizeApproachEvaluation,
+} from "../features/approach/approachEvaluation.js";
+import {
+  loadApproachResult,
+  markApproachAnswerRevealed,
+  saveApproachResult,
+} from "../features/approach/approachResultStorage.js";
 import {
   DIFFICULTY_BADGE_CLASSES,
   PROBLEM_CATEGORIES,
@@ -445,15 +455,13 @@ function SolvePage() {
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
   });
   const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId);
-  const [selectedCat, setSelectedCat] = useState(null);
-  const categoryKnown = !!problem?.categoryKnown;
-  const [approach, setApproach] = useState("");
-  const [submitStage, setSubmitStage] = useState("idle");
-  const [catCorrect, setCatCorrect] = useState(false);
-  const [approachScore, setApproachScore] = useState(0);
-  const [evaluationKeywords, setEvaluationKeywords] = useState(null);
-  const [aiFeedback, setAiFeedback] = useState("");
-  const [evaluationPending, setEvaluationPending] = useState(false);
+  const [initialResult] = useState(() => loadApproachResult(problemId ?? problem?.id));
+  const [selectedCat, setSelectedCat] = useState(initialResult?.selectedCategory ?? null);
+  const categoryKnown = initialResult?.categoryKnown ?? !!problem?.categoryKnown;
+  const [approach, setApproach] = useState(initialResult?.approach ?? "");
+  const [submitStage, setSubmitStage] = useState(initialResult ? "done" : "idle");
+  const [evaluation, setEvaluation] = useState(initialResult?.evaluation ?? null);
+  const [answerRevealed, setAnswerRevealed] = useState(initialResult?.answerRevealed ?? false);
   const [apiError, setApiError] = useState("");
   const [showCode, setShowCode] = useState(false);
   const [lang, setLang] = useState("Python");
@@ -526,25 +534,26 @@ function SolvePage() {
     setSubmitStage("grading");
     setApiError("");
     try {
+      let nextEvaluation;
       if (!USE_REAL_APPROACH) {
         await new Promise((r) => setTimeout(r, 1400));
-        const cc = categoryKnown ? true : selectedCat === p.category;
-        const lower = approach.toLowerCase();
-        const matched = keywords.filter((k) => lower.includes(k.toLowerCase())).length;
-        const score = keywords.length ? Math.round(matched / keywords.length * 100) : 50;
-        setCatCorrect(cc);
-        setApproachScore(score);
+        nextEvaluation = createMockApproachEvaluation(p, selectedCat, approach, keywords);
       } else {
         const submission = await submitApproach(p.id, {
           selectedCategory: categoryKnown ? p.category : selectedCat,
           approach
         }, crypto.randomUUID());
-        setCatCorrect(Boolean(submission.result?.isCorrect));
-        setApproachScore(submission.result?.approachScore ?? 0);
-        setEvaluationKeywords(submission.result?.keywords ?? []);
-        setAiFeedback(submission.result?.aiFeedback ?? "");
-        setEvaluationPending(submission.evaluationStatus !== "COMPLETED");
+        nextEvaluation = normalizeApproachEvaluation(submission, p);
       }
+      setEvaluation(nextEvaluation);
+      setAnswerRevealed(false);
+      saveApproachResult(p.id, {
+        selectedCategory: categoryKnown ? p.category : selectedCat,
+        categoryKnown,
+        approach,
+        evaluation: nextEvaluation,
+        answerRevealed: false,
+      });
       setSubmitStage("done");
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch (error) {
@@ -599,11 +608,6 @@ function SolvePage() {
       setCodeResult("idle");
     }
   }
-  const totalPass = catCorrect && approachScore >= 33;
-  const keywordResults = evaluationKeywords ?? keywords.map((keyword) => ({
-    keyword,
-    isIncluded: approach.toLowerCase().includes(keyword.toLowerCase())
-  }));
   return <div className="h-full flex flex-col bg-[#05050F] overflow-hidden">
       {
     /* Header */
@@ -707,100 +711,24 @@ function SolvePage() {
           {
     /* Result */
   }
-          {submitStage === "done" && <div ref={resultRef} className="flex flex-col gap-3 animate-fadeIn">
-              {
-    /* Overall */
-  }
-              <div className={`rounded-2xl border p-4 flex items-center gap-3 ${evaluationPending ? "bg-[#0D0D1F] border-[#1E1D35]" : totalPass ? "bg-emerald-500/8 border-emerald-500/25" : "bg-rose-500/8 border-rose-500/25"}`}>
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${evaluationPending ? "bg-[#7C3AED]/15" : totalPass ? "bg-emerald-500/15" : "bg-rose-500/12"}`}>
-                  {evaluationPending ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#A855F7" strokeWidth="1.8" /><path d="M10 6v4l3 2" stroke="#A855F7" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> : totalPass ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#10B981" strokeWidth="1.8" /><path d="M6 10l3 3 5-5" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg> : <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="#EF4444" strokeWidth="1.8" /><path d="M7 7l6 6M13 7l-6 6" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" /></svg>}
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{evaluationPending ? "\uC81C\uCD9C \uC644\uB8CC" : totalPass ? "\uD6CC\uB96D\uD55C \uC811\uADFC\uC774\uC5D0\uC694!" : "\uC870\uAE08 \uB354 \uC0DD\uAC01\uD574\uBD10\uC694"}</p>
-                  <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>{categoryKnown ? p.category : `\uCE74\uD14C\uACE0\uB9AC ${catCorrect ? "\uC815\uB2F5" : "\uC624\uB2F5"}`} · {evaluationPending ? "AI 평가 준비 중" : `접근 방식 ${approachScore}점`}</p>
-                </div>
-              </div>
+          {submitStage === "done" && evaluation && (
+            <div ref={resultRef}>
+              <ApproachResult
+                evaluation={evaluation}
+                categoryKnown={categoryKnown}
+                selectedCategory={selectedCat}
+                answerRevealed={answerRevealed}
+                onRevealAnswer={() => {
+                  setAnswerRevealed(true);
+                  markApproachAnswerRevealed(p.id);
+                }}
+                showCode={showCode}
+                onWriteCode={() => setShowCode((value) => !value)}
+                onNewProblem={() => navigate("/problems/new")}
+              />
+            </div>
+          )}
 
-              {
-    /* Category result — only shown when user had to guess the category */
-  }
-              {!categoryKnown && <div className={`rounded-2xl border p-4 ${catCorrect ? "bg-[#0D0D1F] border-[#1E1D35]" : "bg-rose-500/6 border-rose-500/20"}`}>
-                <p className="text-xs text-[#6B6890] mb-2 uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>카테고리</p>
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>내 선택</p>
-                    <span className="text-sm font-semibold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{selectedCat}</span>
-                  </div>
-                  {!catCorrect && <>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 8h8M9 5l3 3-3 3" stroke="#4A4870" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                      <div>
-                        <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>정답</p>
-                        <span className="text-sm font-semibold text-emerald-400" style={{ fontFamily: "'Outfit', sans-serif" }}>{p.category}</span>
-                      </div>
-                    </>}
-                </div>
-              </div>}
-
-              {
-    /* Approach score */
-  }
-              {evaluationPending ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
-                  <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>AI 평가는 준비 중이에요. 곧 점수와 피드백을 보여드릴게요.</p>
-                </div> : <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-[#6B6890] uppercase tracking-widest" style={{ fontFamily: "'JetBrains Mono', monospace" }}>접근 방식</p>
-                  <span className="text-xs font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: approachScore >= 66 ? "#10B981" : approachScore >= 33 ? "#F59E0B" : "#EF4444" }}>
-                    {approachScore}점
-                  </span>
-                </div>
-                <div className="h-1.5 rounded-full bg-[#1E1D35] mb-3 overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-700" style={{ width: `${approachScore}%`, background: approachScore >= 66 ? "#10B981" : approachScore >= 33 ? "#F59E0B" : "#EF4444" }} />
-                </div>
-                <p className="text-[11px] text-[#4A4870] mb-2" style={{ fontFamily: "'Outfit', sans-serif" }}>핵심 키워드</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {keywordResults.map((item) => {
-    const keyword = item.keyword;
-    const hit = item.isIncluded;
-    return <span key={keyword} className={`text-[11px] px-2.5 py-1 rounded-full border ${hit ? "bg-[#7C3AED]/20 text-[#C084FC] border-[#7C3AED]/30" : "bg-[#0A0A1A] text-[#3A3860] border-[#1A1A2E]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
-                        {hit ? "\u2713 " : ""}{keyword}
-                      </span>;
-  })}
-                </div>
-                {aiFeedback && <p className="mt-3 text-xs leading-relaxed text-[#A89EC4]">{aiFeedback}</p>}
-              </div>}
-
-              {
-    /* Code editor toggle */
-  }
-              <button
-    onClick={() => setShowCode((v) => !v)}
-    className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border border-[#7C3AED]/25 bg-[#7C3AED]/8 transition-all active:scale-95"
-  >
-                <div className="flex items-center gap-2.5">
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                    <path d="M5 4l-3 4 3 4M11 4l3 4-3 4" stroke="#A855F7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M9 3l-2 10" stroke="#A855F7" strokeWidth="1.5" strokeLinecap="round" />
-                  </svg>
-                  <span className="text-sm font-semibold text-[#C084FC]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-                    코드 직접 작성해볼게요
-                  </span>
-                </div>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d={showCode ? "M3 9l4-4 4 4" : "M3 5l4 4 4-4"} stroke="#A855F7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-
-              {
-    /* New problem */
-  }
-              <button
-    onClick={() => navigate("/")}
-    className="w-full py-4 rounded-2xl text-sm font-bold border border-[#1E1D35] text-[#6B6890] active:text-[#C084FC] active:border-[#7C3AED]/40 transition-all mb-2"
-    style={{ fontFamily: "'Outfit', sans-serif" }}
-  >
-                새 문제 생성하기
-              </button>
-            </div>}
         </div>
       </div>
 
