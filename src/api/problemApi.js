@@ -100,7 +100,7 @@ export async function submitApproach(
     headers: idempotencyHeaders(requestId),
     body: JSON.stringify({
       selectedCategory: toApiCategory(selectedCategory),
-      approach,
+      natural_solution: approach,
     }),
   })
 
@@ -150,6 +150,8 @@ export function getApiErrorMessage(error) {
     daily_solution_submission_limit_exceeded: '오늘의 풀이 제출 횟수를 모두 사용했습니다.',
     submission_limit_exceeded: '이 문제의 코드 제출 횟수를 모두 사용했습니다.',
     judge_server_unavailable: '채점 서버를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
+    ai_server_unavailable: '채점 요청을 처리하지 못했습니다. 다시 시도해 주세요.',
+    evaluation_timeout: '채점 시간이 초과되었습니다. 다시 시도해 주세요.',
     access_token_expired: '로그인이 만료되었습니다.',
     access_token_missing: '로그인이 필요합니다.',
     access_token_invalid: '로그인 정보가 올바르지 않습니다.',
