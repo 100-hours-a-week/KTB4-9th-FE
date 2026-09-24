@@ -119,6 +119,8 @@ export default function HomePage() {
 		heatTip,
 		isSolved,
 		problems,
+		problemOpenError,
+		problemOpening,
 		recommendDate,
 		setCardIndex,
 		setHeatTip,
@@ -311,7 +313,7 @@ export default function HomePage() {
             </div>}
 
             {/* CTA */}
-            <button onClick={handleSolve} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150" style={{
+            <button onClick={handleSolve} disabled={problemOpening} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 disabled:cursor-wait disabled:opacity-70" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: isSolved ? "rgba(124,58,237,0.12)" : "linear-gradient(135deg, #7C3AED, #A855F7)",
 		color: isSolved ? "#A855F7" : "white",
@@ -321,8 +323,11 @@ export default function HomePage() {
               <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
                 <path d="M2.5 2l8 4.5-8 4.5V2z" />
               </svg>
-              {isSolved ? "다시 풀기" : "오늘의 문제 풀기"}
+              {problemOpening ? "문제 불러오는 중..." : isSolved ? "다시 풀기" : "오늘의 문제 풀기"}
             </button>
+            {problemOpenError && <p className="mt-2 text-center text-xs text-rose-400" role="alert" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {problemOpenError}
+              </p>}
           </div>
 
           {/* Carousel nav */}

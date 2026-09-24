@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getMyActivities } from "../../api/activityApi.js";
 import { getDailyProblems } from "../../api/dailyProblemApi.js";
+import { getApiErrorMessage, getProblem } from "../../api/problemApi.js";
 import { useAuth } from "../auth/authContext.js";
 import { createActivityHeatmap } from "./activityHeatmap.js";
 import { setCurrentProblem } from "../../store.js";
@@ -13,6 +14,8 @@ export function useHomePage({ solvedKey }) {
   const [recommendDate, setRecommendDate] = useState(null);
   const [dailyProblemsLoading, setDailyProblemsLoading] = useState(true);
   const [dailyProblemsError, setDailyProblemsError] = useState(false);
+  const [problemOpening, setProblemOpening] = useState(false);
+  const [problemOpenError, setProblemOpenError] = useState("");
   const [heatmap, setHeatmap] = useState(() => createActivityHeatmap());
   const user = currentUser || {};
   const [solved] = useState(() => {
@@ -67,10 +70,21 @@ export function useHomePage({ solvedKey }) {
     };
   }, []);
 
-  const handleSolve = () => {
-    if (!currentProblem) return;
-    setCurrentProblem(currentProblem);
-    navigate(`/problems/${currentProblem.id}`);
+  const handleSolve = async () => {
+    if (!currentProblem || problemOpening) return;
+
+    setProblemOpening(true);
+    setProblemOpenError("");
+
+    try {
+      const problem = await getProblem(currentProblem.id);
+      setCurrentProblem(problem);
+      navigate(`/problems/${currentProblem.id}`);
+    } catch (error) {
+      setProblemOpenError(getApiErrorMessage(error));
+    } finally {
+      setProblemOpening(false);
+    }
   };
 
   return {
@@ -83,6 +97,8 @@ export function useHomePage({ solvedKey }) {
     heatTip,
     isSolved,
     problems,
+    problemOpenError,
+    problemOpening,
     recommendDate,
     setCardIndex,
     setHeatTip,
