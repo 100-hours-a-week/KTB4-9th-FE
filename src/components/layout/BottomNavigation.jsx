@@ -52,7 +52,7 @@ function RankingIcon({ active }) {
 
 const NAV_ITEMS = [
   { to: "/problems/new", label: "생성", Icon: SparkIcon },
-  { to: "/battle", label: "배틀", Icon: BattleIcon },
+  { to: "/daily-battles", label: "배틀", Icon: BattleIcon },
   { to: "/", label: "홈", Icon: HomeIcon },
   { to: "/mypage", label: "내 문제", Icon: BookIcon },
   { to: "/rankings", label: "랭킹", Icon: RankingIcon },

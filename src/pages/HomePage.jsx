@@ -1,173 +1,15 @@
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
+import ExpandableProblemContent from "../components/home/ExpandableProblemContent.jsx";
 import { useHomePage } from "../features/home/useHomePage.js";
-// ─── Daily problem pool ───────────────────────────────────────────────────────
-const POOL = [
-	{
-		title: "두 수의 합",
-		difficulty: "LV1",
-		category: "Array",
-		description: "정수 배열 nums와 정수 target이 주어진다. 합이 target이 되는 두 수의 인덱스를 반환하시오.",
-		examples: [{
-			input: "nums=[2,7,11,15], target=9",
-			output: "[0,1]"
-		}],
-		constraints: ["2 ≤ nums.length ≤ 10⁴", "각 입력에 정확히 하나의 답이 존재"],
-		categoryKnown: true
-	},
-	{
-		title: "회의실 최대 예약",
-		difficulty: "LV2",
-		category: "Greedy",
-		description: "하나의 회의실에서 겹치지 않게 진행할 수 있는 최대 회의 수를 구하시오.",
-		examples: [{
-			input: "meetings=[[1,4],[3,5],[0,6],[5,7]]",
-			output: "2"
-		}],
-		constraints: ["1 ≤ N ≤ 10⁵"],
-		categoryKnown: true
-	},
-	{
-		title: "괄호 유효성 검사",
-		difficulty: "LV2",
-		category: "Stack/Queue",
-		description: "주어진 괄호 문자열이 올바른 괄호 쌍으로 이루어져 있는지 판별하시오.",
-		examples: [{
-			input: "s = \"(())\"",
-			output: "false"
-		}],
-		constraints: ["1 ≤ s.length ≤ 10⁵"],
-		categoryKnown: true
-	},
-	{
-		title: "소수 판별",
-		difficulty: "LV1",
-		category: "Math",
-		description: "정수 N이 주어질 때 소수이면 true, 아니면 false를 반환하시오.",
-		examples: [{
-			input: "N = 7",
-			output: "true"
-		}],
-		constraints: ["2 ≤ N ≤ 10⁶"],
-		categoryKnown: true
-	},
-	{
-		title: "부분 배열 최대합",
-		difficulty: "LV2",
-		category: "Array",
-		description: "정수 배열에서 합이 최대인 연속 부분 배열의 합을 구하시오 (카데인 알고리즘).",
-		examples: [{
-			input: "nums=[-2,1,-3,4,-1,2,1,-5,4]",
-			output: "6"
-		}],
-		constraints: ["1 ≤ nums.length ≤ 10⁵"],
-		categoryKnown: true
-	},
-	{
-		title: "아나그램 판별",
-		difficulty: "LV1",
-		category: "String",
-		description: "두 문자열 s와 t가 서로 아나그램인지 판별하시오.",
-		examples: [{
-			input: "s=\"anagram\", t=\"nagaram\"",
-			output: "true"
-		}],
-		constraints: ["1 ≤ s.length ≤ 5×10⁴"],
-		categoryKnown: true
-	},
-	{
-		title: "이진 트리 최대 깊이",
-		difficulty: "LV2",
-		category: "Tree",
-		description: "이진 트리의 루트가 주어질 때, 루트에서 가장 깊은 리프 노드까지의 깊이를 구하시오.",
-		examples: [{
-			input: "root=[3,9,20,null,null,15,7]",
-			output: "3"
-		}],
-		constraints: ["0 ≤ 노드 수 ≤ 10⁴"],
-		categoryKnown: true
-	},
-	{
-		title: "피보나치 수",
-		difficulty: "LV1",
-		category: "DP",
-		description: "F(n) = F(n-1) + F(n-2), F(0)=0, F(1)=1 일 때 F(n)을 구하시오.",
-		examples: [{
-			input: "n = 10",
-			output: "55"
-		}],
-		constraints: ["0 ≤ n ≤ 30"],
-		categoryKnown: true
-	},
-	{
-		title: "배열 회전",
-		difficulty: "LV1",
-		category: "Array",
-		description: "정수 배열을 오른쪽으로 k번 회전한 결과를 반환하시오.",
-		examples: [{
-			input: "nums=[1,2,3,4,5], k=2",
-			output: "[4,5,1,2,3]"
-		}],
-		constraints: ["1 ≤ nums.length ≤ 10⁵"],
-		categoryKnown: true
-	},
-	{
-		title: "두 포인터 합",
-		difficulty: "LV2",
-		category: "Two Pointer",
-		description: "정렬된 배열에서 합이 target이 되는 두 수가 존재하면 true를 반환하시오.",
-		examples: [{
-			input: "nums=[1,2,3,4,6], target=6",
-			output: "true"
-		}],
-		constraints: ["2 ≤ nums.length ≤ 10⁴"],
-		categoryKnown: true
-	}
-];
-function seeded(n) {
-	const x = Math.sin(n + 1) * 43758.5453;
-	return x - Math.floor(x);
-}
 function todaySeed() {
 	const d = new Date();
 	return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate();
 }
-function getDailyProblems() {
-	const seed = todaySeed();
-	const picked = [];
-	let s = seed;
-	while (picked.length < 5) {
-		const idx = Math.floor(seeded(s++) * POOL.length);
-		if (!picked.includes(idx)) picked.push(idx);
-	}
-	return picked.map((idx, i) => ({
-		...POOL[idx],
-		id: `daily_${seed}_${i}`
-	}));
-}
 // ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
 const WEEKS = 20;
-const TOTAL_CELLS = WEEKS * 7;
-function getHeatmapData() {
-	const seed = todaySeed();
-	return Array.from({ length: TOTAL_CELLS }, (_, i) => {
-		const v = seeded(seed + i * 7);
-		if (v < .45) return 0;
-		if (v < .65) return 1;
-		if (v < .8) return 2;
-		if (v < .92) return 3;
-		return 4;
-	});
-}
-function cellDate(cellIndex) {
-	// cellIndex 0 = oldest cell (top-left), TOTAL_CELLS-1 = today or close
-	const daysAgo = TOTAL_CELLS - 1 - cellIndex;
-	const d = new Date();
-	d.setDate(d.getDate() - daysAgo);
-	return d;
-}
 // Returns month label per column (week): { col, label } only when month changes
-function getMonthLabels() {
+function getMonthLabels(heatmap) {
 	const MONTH_SHORT = [
 		"JAN",
 		"FEB",
@@ -185,8 +27,8 @@ function getMonthLabels() {
 	const labels = [];
 	let lastMonth = -1;
 	for (let col = 0; col < WEEKS; col++) {
-		const d = cellDate(col * 7);
-		const m = d.getMonth();
+		const m = heatmap[col * 7]?.monthIndex;
+		if (m == null) continue;
 		if (m !== lastMonth) {
 			labels.push({
 				col,
@@ -248,8 +90,11 @@ const CAT_COLORS = {
 	"Two Pointer": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
 	Math: "bg-rose-500/15 text-rose-300 border-rose-500/25"
 };
-function todayDateLabel() {
-	const d = new Date();
+function dateLabel(dateString) {
+	const parts = dateString?.split("-").map(Number);
+	const d = parts?.length === 3 && parts.every(Number.isFinite)
+		? new Date(parts[0], parts[1] - 1, parts[2])
+		: new Date();
 	const days = [
 		"일",
 		"월",
@@ -267,19 +112,25 @@ export default function HomePage() {
 	const {
 		cardIndex,
 		currentProblem,
+		dailyProblemsError,
+		dailyProblemsLoading,
 		handleSolve,
 		heatmap,
 		heatTip,
 		isSolved,
 		problems,
+		problemOpenError,
+		problemOpening,
+		recommendDate,
 		setCardIndex,
 		setHeatTip,
 		solved,
 		solvedCount,
 		user
-	} = useHomePage({ getDailyProblems, getHeatmapData, solvedKey: SOLVED_KEY });
-	const ds = DIFF_STYLE[currentProblem.difficulty] || DIFF_STYLE["LV1"];
-	const catStyle = CAT_COLORS[currentProblem.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";
+	} = useHomePage({ solvedKey: SOLVED_KEY });
+	const dailyGoal = problems.length || 5;
+	const ds = DIFF_STYLE[currentProblem?.difficulty] || DIFF_STYLE["LV1"];
+	const catStyle = CAT_COLORS[currentProblem?.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";
 	const circumference = 2 * Math.PI * 14;
 	return <div className="h-full flex flex-col bg-[#05050F] overflow-y-auto">
       {/* Ambient glow */}
@@ -292,7 +143,7 @@ export default function HomePage() {
             <CosmosLogo size={34} color="#C084FC" className="shrink-0" />
             <div className="min-w-0">
             <p className="text-[11px] text-[#4A4870] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {todayDateLabel()}
+              {dateLabel(recommendDate)}
             </p>
             <h1 className="truncate text-xl font-bold leading-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>
               <span className="text-[#8B7FC4]">안녕하세요, </span>
@@ -307,7 +158,7 @@ export default function HomePage() {
               <div className="relative w-11 h-11">
                 <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }}>
                   <circle cx="22" cy="22" r="14" stroke="#1E1D35" strokeWidth="3.5" fill="none" />
-                  <circle cx="22" cy="22" r="14" stroke="url(#pr)" strokeWidth="3.5" fill="none" strokeDasharray={`${solvedCount / 5 * circumference} ${circumference}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s ease" }} />
+                  <circle cx="22" cy="22" r="14" stroke="url(#pr)" strokeWidth="3.5" fill="none" strokeDasharray={`${solvedCount / dailyGoal * circumference} ${circumference}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s ease" }} />
                   <defs>
                     <linearGradient id="pr" x1="0%" y1="0%" x2="100%" y2="0%">
                       <stop offset="0%" stopColor="#7C3AED" />
@@ -316,7 +167,7 @@ export default function HomePage() {
                   </defs>
                 </svg>
                 <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-[#E2E0F0]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {solvedCount}/5
+                  {solvedCount}/{dailyGoal}
                 </span>
               </div>
               <span className="text-[9px] text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 진행</span>
@@ -348,10 +199,10 @@ export default function HomePage() {
             {Array.from({ length: WEEKS }, (_, col) => <div key={col} className="flex flex-col gap-[3px] flex-1">
                 {Array.from({ length: 7 }, (_, row) => {
 		const i = col * 7 + row;
-		const v = heatmap[i];
-		const d = cellDate(i);
-		const label = `${d.getMonth() + 1}월 ${d.getDate()}일`;
-		const count = v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : v === 3 ? 6 : 10;
+		const cell = heatmap[i];
+		const v = cell?.level ?? 0;
+		const label = cell?.label ?? "";
+		const count = cell?.correctProblemCount ?? 0;
 		return <button key={row} onClick={(e) => {
 			e.stopPropagation();
 			const rect = e.target.getBoundingClientRect();
@@ -372,7 +223,7 @@ export default function HomePage() {
 
           {/* Month labels below grid */}
           <div className="relative h-4 mt-1.5">
-            {getMonthLabels().map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
+            {getMonthLabels(heatmap).map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
 		left: `${col / WEEKS * 100}%`,
 		color: "#3A3860",
 		fontFamily: "'JetBrains Mono', monospace",
@@ -393,6 +244,20 @@ export default function HomePage() {
           </span>
         </div>
 
+        {!currentProblem ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] px-5 py-8">
+            {dailyProblemsLoading ? <div className="animate-pulse" aria-label="오늘의 문제를 불러오는 중">
+                <div className="flex gap-2 mb-5">
+                  <div className="h-6 w-14 rounded-full bg-[#1A1A30]" />
+                  <div className="h-6 w-20 rounded-full bg-[#1A1A30]" />
+                </div>
+                <div className="h-5 w-2/3 rounded bg-[#1A1A30] mb-4" />
+                <div className="h-3 w-full rounded bg-[#151529] mb-2" />
+                <div className="h-3 w-5/6 rounded bg-[#151529] mb-2" />
+                <div className="h-3 w-1/2 rounded bg-[#151529]" />
+              </div> : <p className="py-4 text-center text-sm text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
+              </p>}
+          </div> : <>
         <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
 		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "#1E1D35",
 		background: "#0D0D1F",
@@ -424,33 +289,31 @@ export default function HomePage() {
             </h2>
 
             {/* Description */}
-            <p className="text-sm text-[#6B6890] leading-relaxed mb-4" style={{
-		fontFamily: "'Outfit', sans-serif",
-		display: "-webkit-box",
-		WebkitLineClamp: 3,
-		WebkitBoxOrient: "vertical",
-		overflow: "hidden"
-	}}>
-              {currentProblem.description}
-            </p>
+            <ExpandableProblemContent key={currentProblem.id} content={currentProblem.description} />
 
             {/* Example box */}
-            <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
+            {currentProblem.examples.length > 0 && <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
               <p className="text-[10px] text-[#4A4870] mb-2 font-semibold tracking-wider uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                입력 예시
+                입출력 예시
               </p>
-              {currentProblem.examples.slice(0, 1).map((ex, i) => <div key={i} className="flex flex-col gap-1">
+              {currentProblem.examples.map((ex, i) => <div key={i} className={`flex flex-col gap-1 ${i > 0 ? "mt-3 border-t border-[#1A1A30] pt-3" : ""}`}>
+                  {currentProblem.examples.length > 1 && <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    예시 {i + 1}
+                  </p>}
                   <p className="text-xs text-[#8B7FC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
                   </p>
                   <p className="text-xs text-[#C084FC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
                   </p>
+                  {ex.description && <p className="text-[11px] text-[#6B6890] mt-1 leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                    {ex.description}
+                  </p>}
                 </div>)}
-            </div>
+            </div>}
 
             {/* CTA */}
-            <button onClick={handleSolve} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150" style={{
+            <button onClick={handleSolve} disabled={problemOpening} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 disabled:cursor-wait disabled:opacity-70" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: isSolved ? "rgba(124,58,237,0.12)" : "linear-gradient(135deg, #7C3AED, #A855F7)",
 		color: isSolved ? "#A855F7" : "white",
@@ -460,8 +323,11 @@ export default function HomePage() {
               <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor">
                 <path d="M2.5 2l8 4.5-8 4.5V2z" />
               </svg>
-              {isSolved ? "다시 풀기" : "오늘의 문제 풀기"}
+              {problemOpening ? "문제 불러오는 중..." : isSolved ? "다시 풀기" : "오늘의 문제 풀기"}
             </button>
+            {problemOpenError && <p className="mt-2 text-center text-xs text-rose-400" role="alert" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {problemOpenError}
+              </p>}
           </div>
 
           {/* Carousel nav */}
@@ -480,7 +346,7 @@ export default function HomePage() {
 	}} />)}
             </div>
 
-            <button onClick={() => setCardIndex((i) => Math.min(4, i + 1))} disabled={cardIndex === 4} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
+            <button onClick={() => setCardIndex((i) => Math.min(problems.length - 1, i + 1))} disabled={cardIndex === problems.length - 1} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                 <path d="M5 2l5 5-5 5" stroke="#8B7FC4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -488,13 +354,14 @@ export default function HomePage() {
           </div>
         </div>
 
-        {solvedCount === 5 && <div className="mt-3 rounded-2xl border border-[#7C3AED]/25 p-3.5 flex items-center gap-3" style={{ background: "rgba(124,58,237,0.06)" }}>
+        {problems.length > 0 && solvedCount === problems.length && <div className="mt-3 rounded-2xl border border-[#7C3AED]/25 p-3.5 flex items-center gap-3" style={{ background: "rgba(124,58,237,0.06)" }}>
             <span className="text-xl">🎉</span>
             <div>
               <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 챌린지 완료!</p>
-              <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>내일 새로운 5문제가 기다려요</p>
+              <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>내일 새로운 문제가 기다려요</p>
             </div>
           </div>}
+        </>}
       </div>
 
       {/* Heatmap tooltip backdrop */}
@@ -513,7 +380,7 @@ export default function HomePage() {
 	}} onClick={() => setHeatTip(null)}>
           <p className="text-[#8B7FC4] mb-0.5">{heatTip.label}</p>
           <p className="font-semibold" style={{ color: heatTip.count > 0 ? "#C084FC" : "#4A4870" }}>
-            {heatTip.count > 0 ? `${heatTip.count}개 풀이` : "풀이 없음"}
+            {heatTip.count > 0 ? `정답 ${heatTip.count}개` : "정답 없음"}
           </p>
         </div>}
     </div>;
