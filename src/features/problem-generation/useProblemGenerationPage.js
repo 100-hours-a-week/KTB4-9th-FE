@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { createProblem, USE_MOCKS } from "../../api/problemApi.js";
+import { createProblem, getApiErrorMessage, USE_MOCKS } from "../../api/problemApi.js";
 import { setCurrentProblem } from "../../store.js";
 
 export function useProblemGenerationPage({ categories, createMockProblem, mockCategories }) {
@@ -9,8 +9,10 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
   const [category, setCategory] = useState("랜덤");
   const [stage, setStage] = useState("config");
   const [dots, setDots] = useState(0);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleGenerate = async () => {
+    setErrorMessage("");
     setStage("loading");
     let nextDots = 0;
     const intervalId = setInterval(() => {
@@ -36,6 +38,7 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
       }, 400);
     } catch (error) {
       console.error("문제 생성에 실패했습니다.", error);
+      setErrorMessage(getApiErrorMessage(error));
       setStage("config");
     } finally {
       clearInterval(intervalId);
@@ -47,6 +50,7 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
     categoryOptions: USE_MOCKS ? ["랜덤", ...mockCategories] : categories,
     difficulty,
     dots,
+    errorMessage,
     handleGenerate,
     setCategory,
     setDifficulty,
