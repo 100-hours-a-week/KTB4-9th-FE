@@ -147,27 +147,8 @@ function getDailyProblems() {
 }
 // ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
 const WEEKS = 20;
-const TOTAL_CELLS = WEEKS * 7;
-function getHeatmapData() {
-	const seed = todaySeed();
-	return Array.from({ length: TOTAL_CELLS }, (_, i) => {
-		const v = seeded(seed + i * 7);
-		if (v < .45) return 0;
-		if (v < .65) return 1;
-		if (v < .8) return 2;
-		if (v < .92) return 3;
-		return 4;
-	});
-}
-function cellDate(cellIndex) {
-	// cellIndex 0 = oldest cell (top-left), TOTAL_CELLS-1 = today or close
-	const daysAgo = TOTAL_CELLS - 1 - cellIndex;
-	const d = new Date();
-	d.setDate(d.getDate() - daysAgo);
-	return d;
-}
 // Returns month label per column (week): { col, label } only when month changes
-function getMonthLabels() {
+function getMonthLabels(heatmap) {
 	const MONTH_SHORT = [
 		"JAN",
 		"FEB",
@@ -185,8 +166,8 @@ function getMonthLabels() {
 	const labels = [];
 	let lastMonth = -1;
 	for (let col = 0; col < WEEKS; col++) {
-		const d = cellDate(col * 7);
-		const m = d.getMonth();
+		const m = heatmap[col * 7]?.monthIndex;
+		if (m == null) continue;
 		if (m !== lastMonth) {
 			labels.push({
 				col,
@@ -277,7 +258,7 @@ export default function HomePage() {
 		solved,
 		solvedCount,
 		user
-	} = useHomePage({ getDailyProblems, getHeatmapData, solvedKey: SOLVED_KEY });
+	} = useHomePage({ getDailyProblems, solvedKey: SOLVED_KEY });
 	const ds = DIFF_STYLE[currentProblem.difficulty] || DIFF_STYLE["LV1"];
 	const catStyle = CAT_COLORS[currentProblem.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";
 	const circumference = 2 * Math.PI * 14;
@@ -348,10 +329,10 @@ export default function HomePage() {
             {Array.from({ length: WEEKS }, (_, col) => <div key={col} className="flex flex-col gap-[3px] flex-1">
                 {Array.from({ length: 7 }, (_, row) => {
 		const i = col * 7 + row;
-		const v = heatmap[i];
-		const d = cellDate(i);
-		const label = `${d.getMonth() + 1}월 ${d.getDate()}일`;
-		const count = v === 0 ? 0 : v === 1 ? 1 : v === 2 ? 3 : v === 3 ? 6 : 10;
+		const cell = heatmap[i];
+		const v = cell?.level ?? 0;
+		const label = cell?.label ?? "";
+		const count = cell?.correctProblemCount ?? 0;
 		return <button key={row} onClick={(e) => {
 			e.stopPropagation();
 			const rect = e.target.getBoundingClientRect();
@@ -372,7 +353,7 @@ export default function HomePage() {
 
           {/* Month labels below grid */}
           <div className="relative h-4 mt-1.5">
-            {getMonthLabels().map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
+            {getMonthLabels(heatmap).map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
 		left: `${col / WEEKS * 100}%`,
 		color: "#3A3860",
 		fontFamily: "'JetBrains Mono', monospace",
@@ -513,7 +494,7 @@ export default function HomePage() {
 	}} onClick={() => setHeatTip(null)}>
           <p className="text-[#8B7FC4] mb-0.5">{heatTip.label}</p>
           <p className="font-semibold" style={{ color: heatTip.count > 0 ? "#C084FC" : "#4A4870" }}>
-            {heatTip.count > 0 ? `${heatTip.count}개 풀이` : "풀이 없음"}
+            {heatTip.count > 0 ? `정답 ${heatTip.count}개` : "정답 없음"}
           </p>
         </div>}
     </div>;
