@@ -90,8 +90,11 @@ const CAT_COLORS = {
 	"Two Pointer": "bg-cyan-500/15 text-cyan-300 border-cyan-500/25",
 	Math: "bg-rose-500/15 text-rose-300 border-rose-500/25"
 };
-function todayDateLabel() {
-	const d = new Date();
+function dateLabel(dateString) {
+	const parts = dateString?.split("-").map(Number);
+	const d = parts?.length === 3 && parts.every(Number.isFinite)
+		? new Date(parts[0], parts[1] - 1, parts[2])
+		: new Date();
 	const days = [
 		"일",
 		"월",
@@ -116,6 +119,7 @@ export default function HomePage() {
 		heatTip,
 		isSolved,
 		problems,
+		recommendDate,
 		setCardIndex,
 		setHeatTip,
 		solved,
@@ -137,7 +141,7 @@ export default function HomePage() {
             <CosmosLogo size={34} color="#C084FC" className="shrink-0" />
             <div className="min-w-0">
             <p className="text-[11px] text-[#4A4870] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {todayDateLabel()}
+              {dateLabel(recommendDate)}
             </p>
             <h1 className="truncate text-xl font-bold leading-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>
               <span className="text-[#8B7FC4]">안녕하세요, </span>
@@ -238,10 +242,19 @@ export default function HomePage() {
           </span>
         </div>
 
-        {!currentProblem ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] px-5 py-12 text-center">
-            <p className="text-sm text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-              {dailyProblemsLoading ? "오늘의 문제를 불러오는 중입니다..." : dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
-            </p>
+        {!currentProblem ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] px-5 py-8">
+            {dailyProblemsLoading ? <div className="animate-pulse" aria-label="오늘의 문제를 불러오는 중">
+                <div className="flex gap-2 mb-5">
+                  <div className="h-6 w-14 rounded-full bg-[#1A1A30]" />
+                  <div className="h-6 w-20 rounded-full bg-[#1A1A30]" />
+                </div>
+                <div className="h-5 w-2/3 rounded bg-[#1A1A30] mb-4" />
+                <div className="h-3 w-full rounded bg-[#151529] mb-2" />
+                <div className="h-3 w-5/6 rounded bg-[#151529] mb-2" />
+                <div className="h-3 w-1/2 rounded bg-[#151529]" />
+              </div> : <p className="py-4 text-center text-sm text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                {dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
+              </p>}
           </div> : <>
         <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
 		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "#1E1D35",
@@ -277,19 +290,25 @@ export default function HomePage() {
             <ExpandableProblemContent key={currentProblem.id} content={currentProblem.description} />
 
             {/* Example box */}
-            <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
+            {currentProblem.examples.length > 0 && <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
               <p className="text-[10px] text-[#4A4870] mb-2 font-semibold tracking-wider uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                입력 예시
+                입출력 예시
               </p>
-              {currentProblem.examples.slice(0, 1).map((ex, i) => <div key={i} className="flex flex-col gap-1">
+              {currentProblem.examples.map((ex, i) => <div key={i} className={`flex flex-col gap-1 ${i > 0 ? "mt-3 border-t border-[#1A1A30] pt-3" : ""}`}>
+                  {currentProblem.examples.length > 1 && <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                    예시 {i + 1}
+                  </p>}
                   <p className="text-xs text-[#8B7FC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
                   </p>
                   <p className="text-xs text-[#C084FC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
                   </p>
+                  {ex.description && <p className="text-[11px] text-[#6B6890] mt-1 leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                    {ex.description}
+                  </p>}
                 </div>)}
-            </div>
+            </div>}
 
             {/* CTA */}
             <button onClick={handleSolve} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150" style={{

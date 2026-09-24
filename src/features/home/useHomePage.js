@@ -10,6 +10,7 @@ export function useHomePage({ solvedKey }) {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [problems, setProblems] = useState([]);
+  const [recommendDate, setRecommendDate] = useState(null);
   const [dailyProblemsLoading, setDailyProblemsLoading] = useState(true);
   const [dailyProblemsError, setDailyProblemsError] = useState(false);
   const [heatmap, setHeatmap] = useState(() => createActivityHeatmap());
@@ -31,9 +32,10 @@ export function useHomePage({ solvedKey }) {
     let active = true;
 
     getDailyProblems()
-      .then(({ problems: nextProblems }) => {
+      .then(({ problems: nextProblems, recommendDate: nextRecommendDate }) => {
         if (!active) return;
         setProblems(nextProblems);
+        setRecommendDate(nextRecommendDate);
         setCardIndex(0);
         setDailyProblemsError(false);
       })
@@ -68,7 +70,7 @@ export function useHomePage({ solvedKey }) {
   const handleSolve = () => {
     if (!currentProblem) return;
     setCurrentProblem(currentProblem);
-    navigate("/solve");
+    navigate(`/problems/${currentProblem.id}`);
   };
 
   return {
@@ -81,6 +83,7 @@ export function useHomePage({ solvedKey }) {
     heatTip,
     isSolved,
     problems,
+    recommendDate,
     setCardIndex,
     setHeatTip,
     solved,
