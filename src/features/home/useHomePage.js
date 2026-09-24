@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { getMyActivities } from "../../api/activityApi.js";
+import { getDailyProblems } from "../../api/dailyProblemApi.js";
 import { useAuth } from "../auth/authContext.js";
 import { createActivityHeatmap } from "./activityHeatmap.js";
 import { setCurrentProblem } from "../../store.js";
 
-export function useHomePage({ getDailyProblems, solvedKey }) {
+export function useHomePage({ solvedKey }) {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
-  const problems = getDailyProblems();
+  const [problems, setProblems] = useState([]);
+  const [dailyProblemsLoading, setDailyProblemsLoading] = useState(true);
+  const [dailyProblemsError, setDailyProblemsError] = useState(false);
   const [heatmap, setHeatmap] = useState(() => createActivityHeatmap());
   const user = currentUser || {};
   const [solved] = useState(() => {
@@ -21,8 +24,30 @@ export function useHomePage({ getDailyProblems, solvedKey }) {
   const [cardIndex, setCardIndex] = useState(0);
   const [heatTip, setHeatTip] = useState(null);
   const solvedCount = problems.filter((problem) => solved.has(problem.id)).length;
-  const currentProblem = problems[cardIndex];
-  const isSolved = solved.has(currentProblem.id);
+  const currentProblem = problems[cardIndex] ?? null;
+  const isSolved = currentProblem ? solved.has(currentProblem.id) : false;
+
+  useEffect(() => {
+    let active = true;
+
+    getDailyProblems()
+      .then(({ problems: nextProblems }) => {
+        if (!active) return;
+        setProblems(nextProblems);
+        setCardIndex(0);
+        setDailyProblemsError(false);
+      })
+      .catch(() => {
+        if (active) setDailyProblemsError(true);
+      })
+      .finally(() => {
+        if (active) setDailyProblemsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -41,6 +66,7 @@ export function useHomePage({ getDailyProblems, solvedKey }) {
   }, []);
 
   const handleSolve = () => {
+    if (!currentProblem) return;
     setCurrentProblem(currentProblem);
     navigate("/solve");
   };
@@ -48,6 +74,8 @@ export function useHomePage({ getDailyProblems, solvedKey }) {
   return {
     cardIndex,
     currentProblem,
+    dailyProblemsError,
+    dailyProblemsLoading,
     handleSolve,
     heatmap,
     heatTip,
