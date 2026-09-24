@@ -27,7 +27,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, Component: HomePage },
       { path: "problems/new", Component: ProblemGenerationPage },
-      { path: "battle", Component: BattlePage },
+      { path: "daily-battles", Component: BattlePage },
       { path: "rankings", Component: RankingPage },
       { path: "mypage", Component: MyPage },
     ],
