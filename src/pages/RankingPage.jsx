@@ -62,7 +62,7 @@ export default function RankingPage() {
               다시 시도
             </button>
           </div> : <>
-        {myRanking && <>
+        {hasRankingData && myRanking && <>
         {/* My rank card */}
         <div className="mb-3 rounded-2xl p-4 flex items-center gap-3" style={{
 		background: "rgba(124,58,237,0.12)",
