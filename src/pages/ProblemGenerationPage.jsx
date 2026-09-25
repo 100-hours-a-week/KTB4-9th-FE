@@ -176,6 +176,7 @@ export default function ProblemGenerationPage() {
 		categoryOptions,
 		difficulty,
 		dots,
+		errorMessage,
 		handleGenerate,
 		setCategory,
 		setDifficulty,
@@ -256,6 +257,7 @@ export default function ProblemGenerationPage() {
           </div>
         </div>
 
+        {errorMessage && <p className="mb-3 text-center text-xs text-rose-400" role="alert" style={{ fontFamily: "'Outfit', sans-serif" }}>{errorMessage}</p>}
         <button onClick={handleGenerate} disabled={stage !== "config"} className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all duration-200 active:scale-95 disabled:opacity-50 mb-8" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
