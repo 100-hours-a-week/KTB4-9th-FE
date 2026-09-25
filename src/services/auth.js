@@ -42,7 +42,10 @@ export async function fetchCurrentUser() {
 
 export async function logoutCurrentUser() {
   try {
-    await request("/auth/logout", { method: "POST" });
+    await request("/auth/logout", {
+      method: "POST",
+      skipAuthRefresh: true,
+    });
   } catch (error) {
     console.warn("서버 로그아웃 요청에 실패해 로컬 로그인 정보만 정리합니다.", error);
   } finally {

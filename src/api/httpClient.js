@@ -68,10 +68,10 @@ function moveToLogin() {
   window.location.replace('/login')
 }
 
-export async function request(path, options = {}) {
+export async function request(path, { skipAuthRefresh = false, ...options } = {}) {
   let response = await fetchApi(path, options)
 
-  if (response.status === 401 && path !== TOKEN_REFRESH_PATH) {
+  if (response.status === 401 && path !== TOKEN_REFRESH_PATH && !skipAuthRefresh) {
     try {
       await refreshTokens()
     } catch (error) {
