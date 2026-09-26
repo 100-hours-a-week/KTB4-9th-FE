@@ -163,6 +163,7 @@ export function getApiErrorMessage(error) {
     invalid_language: '지원하지 않는 언어입니다.',
     comment_hint_not_found: '이 문제의 주석 힌트를 찾을 수 없습니다.',
     answer_hint_not_found: '이 문제의 정답 힌트를 찾을 수 없습니다.',
+    comment_hint_required: '주석 힌트를 먼저 확인해 주세요.',
     problem_generation_unavailable: '문제를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.',
     ai_problem_creation_failed: '문제를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.',
     matching_problem_not_found:'조건에 맞는 문제를 찾지 못했습니다.',
