@@ -6,8 +6,8 @@ import {
   getProblem,
   submitApproach,
   submitCode,
-  USE_MOCKS,
   USE_REAL_APPROACH,
+  USE_REAL_CODE,
   USE_REAL_HINT,
   USE_REAL_PROBLEM
 } from "../api/problemApi.js";
@@ -29,10 +29,17 @@ import {
   PROBLEM_CATEGORIES,
 } from "../constants/problemOptions.js";
 const LANG_STARTERS = {
-  Python: "def solution(nums):\n    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n    pass\n",
-  JavaScript: "function solution(nums) {\n  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n}\n",
-  Java: "class Solution {\n    public int solution(int[] nums) {\n        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n        return 0;\n    }\n}\n",
-  "C++": "#include <vector>\nusing namespace std;\n\nint solution(vector<int> nums) {\n    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n    return 0;\n}\n"
+  Python: "import sys\ninput = sys.stdin.readline\n\n# 여기에 코드를 작성하세요\n",
+  JavaScript: "const lines = require(\"fs\").readFileSync(0, \"utf8\").split(\"\\n\");\n\n// 여기에 코드를 작성하세요\n",
+  Java: "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // 여기에 코드를 작성하세요\n    }\n}\n",
+  "C++": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // 여기에 코드를 작성하세요\n    return 0;\n}\n"
+};
+// 채점 결과 종류별 화면 문구
+const CODE_RESULT_LABEL = {
+  WRONG_ANSWER: "오답",
+  COMPILE_ERROR: "컴파일 오류",
+  RUNTIME_ERROR: "런타임 오류",
+  TIME_LIMIT_EXCEEDED: "시간 초과"
 };
 const SUPPORTED_LANGUAGES = ["Python", "JavaScript", "Java", "C++"];
 const HINTS = {
@@ -468,6 +475,7 @@ function SolvePage() {
   const [lang, setLang] = useState(INITIAL_LANG);
   const [code, setCode] = useState(LANG_STARTERS[INITIAL_LANG]);
   const [codeResult, setCodeResult] = useState("idle");
+  const [codeReport, setCodeReport] = useState(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
@@ -633,15 +641,23 @@ function SolvePage() {
     setCodeResult("running");
     setApiError("");
     try {
-      if (USE_MOCKS) {
+      if (!USE_REAL_CODE) {
         await new Promise((r) => setTimeout(r, 1600));
         const isStarterCode = code.includes("여기에 코드를 작성하세요") || code.includes("pass");
+        setCodeReport(null);
         setCodeResult(isStarterCode ? "fail" : "pass");
       } else {
+        // 1. 코드를 제출하고 채점 결과를 받음
         const result = await submitCode(p.id, {
           language: lang,
           sourceCode: code
         }, crypto.randomUUID());
+        // 2. 결과 종류와 통과 개수를 저장 (화면에 함께 표시)
+        setCodeReport({
+          result: result.judging_result,
+          passed: result.passed_test_count,
+          total: result.total_test_count
+        });
         setCodeResult(result.judging_result === "CORRECT" ? "pass" : "fail");
       }
     } catch (error) {
@@ -864,8 +880,8 @@ function SolvePage() {
     onMouseDown={(e) => e.stopPropagation()}
     onTouchStart={(e) => e.stopPropagation()}
   >
-                {codeResult === "pass" && <p className="text-emerald-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ 테스트 통과</p>}
-                {codeResult === "fail" && <p className="text-rose-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ 오답 — 다시 시도해 보세요</p>}
+                {codeResult === "pass" && <p className="text-emerald-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ {codeReport ? `정답 (${codeReport.passed}/${codeReport.total} 통과)` : "테스트 통과"}</p>}
+                {codeResult === "fail" && <p className="text-rose-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ {codeReport ? `${CODE_RESULT_LABEL[codeReport.result] ?? "오답"} (${codeReport.passed}/${codeReport.total} 통과)` : "오답"} — 다시 시도해 보세요</p>}
 
                 <div className="flex gap-2">
                   {

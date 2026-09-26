@@ -17,6 +17,7 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
 export const USE_REAL_PROBLEM = !USE_MOCKS || import.meta.env.VITE_USE_REAL_PROBLEM === 'true'
 export const USE_REAL_APPROACH = !USE_MOCKS || import.meta.env.VITE_USE_REAL_APPROACH === 'true'
 export const USE_REAL_HINT = !USE_MOCKS || import.meta.env.VITE_USE_REAL_HINT === 'true'
+export const USE_REAL_CODE = !USE_MOCKS || import.meta.env.VITE_USE_REAL_CODE === 'true'
 
 const LANGUAGE_FROM_API = Object.fromEntries(
   Object.entries(LANGUAGE_TO_API).map(([label, value]) => [value, label]),
@@ -157,6 +158,7 @@ export function getApiErrorMessage(error) {
     selected_category_is_required: '카테고리를 선택해 주세요.',
     invalid_selected_category: '지원하지 않는 카테고리입니다.',
     approach_is_required: '접근 방식을 입력해 주세요.',
+    source_code_is_required: '코드를 입력해 주세요.',
     language_is_required: '언어를 선택해 주세요.',
     invalid_language: '지원하지 않는 언어입니다.',
     comment_hint_not_found: '이 문제의 주석 힌트를 찾을 수 없습니다.',
