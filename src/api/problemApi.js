@@ -16,6 +16,7 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
 // 기능별로 진짜 API를 켜는 스위치. USE_MOCKS가 false면 전부 켜짐
 export const USE_REAL_PROBLEM = !USE_MOCKS || import.meta.env.VITE_USE_REAL_PROBLEM === 'true'
 export const USE_REAL_APPROACH = !USE_MOCKS || import.meta.env.VITE_USE_REAL_APPROACH === 'true'
+export const USE_REAL_HINT = !USE_MOCKS || import.meta.env.VITE_USE_REAL_HINT === 'true'
 
 const LANGUAGE_FROM_API = Object.fromEntries(
   Object.entries(LANGUAGE_TO_API).map(([label, value]) => [value, label]),
@@ -62,6 +63,7 @@ function normalizeProblem(raw) {
     })),
     constraints: buildConstraints(raw),
     categoryKnown: true,
+    usedHintStage: raw.usedHintStage ?? raw.used_hint_stage ?? 0,
   }
 }
 
@@ -139,6 +141,13 @@ export function getAnswerHint(problemId, language) {
   return requestHint(problemId, 'answer', language)
 }
 
+// 단계(1: 주석, 2: 정답)에 맞는 힌트를 요청
+export function getHintByStage(problemId, stage, language) {
+  return stage === 1
+    ? getCommentHint(problemId, language)
+    : getAnswerHint(problemId, language)
+}
+
 export function getApiErrorMessage(error) {
   const messages = {
     problem_level_is_required: '난이도를 선택해 주세요.',
@@ -148,9 +157,16 @@ export function getApiErrorMessage(error) {
     selected_category_is_required: '카테고리를 선택해 주세요.',
     invalid_selected_category: '지원하지 않는 카테고리입니다.',
     approach_is_required: '접근 방식을 입력해 주세요.',
-    matching_problem_not_found: '조건에 맞는 문제를 찾지 못했습니다.',
+    language_is_required: '언어를 선택해 주세요.',
+    invalid_language: '지원하지 않는 언어입니다.',
+    comment_hint_not_found: '이 문제의 주석 힌트를 찾을 수 없습니다.',
+    answer_hint_not_found: '이 문제의 정답 힌트를 찾을 수 없습니다.',
+    problem_generation_unavailable: '문제를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+    ai_problem_creation_failed: '문제를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+    matching_problem_not_found:'조건에 맞는 문제를 찾지 못했습니다.',
     problem_not_found: '문제를 찾을 수 없습니다.',
     daily_problem_limit_exceeded: '오늘의 문제 생성 횟수를 모두 사용했습니다.',
+    solution_submission_limit_exceeded: '이 문제의 풀이 제출 횟수를 모두 사용했습니다.',
     daily_solution_submission_limit_exceeded: '오늘의 풀이 제출 횟수를 모두 사용했습니다.',
     submission_limit_exceeded: '이 문제의 코드 제출 횟수를 모두 사용했습니다.',
     judge_server_unavailable: '채점 서버를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',

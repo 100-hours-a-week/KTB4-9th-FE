@@ -1,14 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
-  getAnswerHint,
   getApiErrorMessage,
-  getCommentHint,
+  getHintByStage,
   getProblem,
   submitApproach,
   submitCode,
   USE_MOCKS,
   USE_REAL_APPROACH,
+  USE_REAL_HINT,
   USE_REAL_PROBLEM
 } from "../api/problemApi.js";
 import { getCurrentProblem } from "../store.js";
@@ -447,6 +447,7 @@ function getAnswer(category, lang) {
   return HINTS[category]?.answer[lang] ?? `# \uC774 \uCE74\uD14C\uACE0\uB9AC(${category})\uC758 \uC815\uB2F5 \uCF54\uB4DC\uB97C \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.
 `;
 }
+const INITIAL_LANG = "Python";
 function SolvePage() {
   const navigate = useNavigate();
   const { problemId } = useParams();
@@ -464,12 +465,13 @@ function SolvePage() {
   const [answerRevealed, setAnswerRevealed] = useState(initialResult?.answerRevealed ?? false);
   const [apiError, setApiError] = useState("");
   const [showCode, setShowCode] = useState(false);
-  const [lang, setLang] = useState("Python");
-  const [code, setCode] = useState(LANG_STARTERS["Python"]);
+  const [lang, setLang] = useState(INITIAL_LANG);
+  const [code, setCode] = useState(LANG_STARTERS[INITIAL_LANG]);
   const [codeResult, setCodeResult] = useState("idle");
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
+  const approachInputRef = useRef(null);
   const [codePos, setCodePos] = useState({ x: 16, y: 120 });
   const [codeCollapsed, setCodeCollapsed] = useState(false);
   const dragging = useRef(false);
@@ -494,24 +496,37 @@ function SolvePage() {
     dragging.current = false;
   }, []);
   useEffect(() => {
-    if (problem || !USE_REAL_PROBLEM || !problemId) return undefined;
+    // 1. 실제 문제 API 모드가 아니거나 문제 id가 없으면 하지 않음
+    if (!USE_REAL_PROBLEM || !problemId) return undefined;
 
     let cancelled = false;
     getProblem(problemId)
-      .then((loadedProblem) => {
-        if (!cancelled) setProblem(loadedProblem);
+      .then(async (loadedProblem) => {
+        if (cancelled) return;
+        // 2. 저장된 문제가 없을 때만 받아온 문제를 화면 문제로 사용
+        setProblem((prev) => prev ?? loadedProblem);
+        // 3. 힌트를 연 적이 있으면 횟수를 채우고, 현재 언어의 힌트를 에디터에 표시
+        if (USE_REAL_HINT && loadedProblem.usedHintStage >= 1) {
+          setHintsUsed(loadedProblem.usedHintStage);
+          setHintLoading(true);
+          const hint = await getHintByStage(problemId, loadedProblem.usedHintStage, INITIAL_LANG);
+          if (!cancelled) setCode(hint.content);
+        }
       })
       .catch((error) => {
         if (!cancelled) setApiError(getApiErrorMessage(error));
       })
       .finally(() => {
-        if (!cancelled) setProblemLoading(false);
+        if (!cancelled) {
+          setProblemLoading(false);
+          setHintLoading(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [problem, problemId]);
+  }, [problemId]);
   if (problemLoading) {
     return <div className="h-full flex items-center justify-center bg-[#05050F] text-sm text-[#6B6890]">
         문제를 불러오고 있어요...
@@ -561,28 +576,54 @@ function SolvePage() {
       setSubmitStage("idle");
     }
   }
-  function handleLangChange(l) {
+  function handleRetry() {
+    setSubmitStage("idle");
+    setApiError("");
+    setTimeout(() => approachInputRef.current?.focus(), 0);
+  }
+  // 단계(1: 주석, 2: 정답)와 언어에 맞는 힌트를 가져옴
+  async function fetchHint(stage, language) {
+    // 1. 목 모드면 화면에 있는 목 힌트를 반환
+    if (!USE_REAL_HINT) {
+      await new Promise((r) => setTimeout(r, 900));
+      return { content: stage === 1 ? getHint(p.category, language) : getAnswer(p.category, language), stage };
+    }
+    // 2. 실제 API 모드면 서버에서 받아서 반환 (stage는 서버가 알려준 값)
+    const hint = await getHintByStage(p.id, stage, language);
+    return { content: hint.content, stage: hint.hint_stage };
+  }
+  async function handleLangChange(l) {
+    if (hintLoading) return;
+    // 1. 언어와 시작 코드를 바꿈 (사용 횟수는 그대로)
     setLang(l);
     setCode(LANG_STARTERS[l]);
     setCodeResult("idle");
-    setHintsUsed(0);
+    // 2. 이미 힌트를 연 적이 있으면 새 언어의 같은 단계 힌트를 표시
+    if (hintsUsed < 1) return;
+    setHintLoading(true);
+    setApiError("");
+    try {
+      const hint = await fetchHint(hintsUsed, l);
+      setCode(hint.content);
+    } catch (error) {
+      // 3. 실패하면 에러만 표시 (시작 코드 유지)
+      setApiError(getApiErrorMessage(error));
+    } finally {
+      setHintLoading(false);
+    }
   }
   async function handleHint() {
     if (hintsUsed >= 2 || hintLoading) return;
     setHintLoading(true);
     setApiError("");
     try {
-      if (USE_MOCKS) {
-        await new Promise((r) => setTimeout(r, 900));
-        setCode(hintsUsed === 0 ? getHint(p.category, lang) : getAnswer(p.category, lang));
-      } else {
-        const hint = hintsUsed === 0
-          ? await getCommentHint(p.id, lang)
-          : await getAnswerHint(p.id, lang);
-        setCode(hint.content);
-      }
-      setHintsUsed((h) => h + 1);
+      // 1. 다음 단계의 힌트를 요청
+      const hint = await fetchHint(hintsUsed + 1, lang);
+      // 2. 에디터에 표시하고, 사용 횟수를 서버가 알려준 단계로 맞춤
+      setCode(hint.content);
+      setHintsUsed(hint.stage);
     } catch (error) {
+      // 3. 실패하면 에러만 표시 (횟수와 에디터는 그대로)
       setApiError(getApiErrorMessage(error));
     } finally {
       setHintLoading(false);
@@ -683,6 +724,7 @@ function SolvePage() {
               접근 방식을 자연어로 작성하세요
             </label>
             <textarea
+    ref={approachInputRef}
     value={approach}
     onChange={(e) => {
       if (submitStage === "idle") setApproach(e.target.value);
@@ -724,6 +766,7 @@ function SolvePage() {
                 }}
                 showCode={showCode}
                 onWriteCode={() => setShowCode((value) => !value)}
+                onRetry={handleRetry}
                 onNewProblem={() => navigate("/problems/new")}
               />
             </div>
@@ -804,6 +847,7 @@ function SolvePage() {
               {SUPPORTED_LANGUAGES.map((l) => <button
     key={l}
     onClick={() => handleLangChange(l)}
+    disabled={hintLoading}
     className={`px-2.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap transition-all ${lang === l ? "bg-[#7C3AED]/30 text-[#C084FC]" : "text-[#4A4870]"}`}
     style={{ fontFamily: "'JetBrains Mono', monospace" }}
   >

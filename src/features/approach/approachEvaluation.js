@@ -44,6 +44,17 @@ export function normalizeApproachEvaluation(submission, problem) {
 
   const rawCategory = result.correctCategory ?? problem.category;
 
+  const rawUsage = submission.submissionUsage;
+  const usage = Number.isFinite(rawUsage?.limit) && Number.isFinite(rawUsage?.usedCount)
+    ? {
+        limit: rawUsage.limit,
+        usedCount: rawUsage.usedCount,
+        remainingCount: Number.isFinite(rawUsage.remainingCount)
+          ? rawUsage.remainingCount
+          : rawUsage.limit - rawUsage.usedCount,
+      }
+    : null;
+
   return {
     status: "completed",
     categoryCorrect: problem.categoryKnown ? true : result.isCorrect === true,
@@ -54,6 +65,7 @@ export function normalizeApproachEvaluation(submission, problem) {
       : null,
     keywords,
     aiFeedback: result.aiFeedback ?? null,
+    usage,
   };
 }
 

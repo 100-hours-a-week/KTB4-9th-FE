@@ -9,7 +9,18 @@ function LockedText({ children, className = "" }) {
   );
 }
 
-function ResultActions({ showCode, onWriteCode, onNewProblem }) {
+function isLimitReached(usage) {
+  return !!usage && usage.remainingCount <= 0;
+}
+
+function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem }) {
+  const limitReached = isLimitReached(usage);
+  const retryLabel = !usage
+    ? "다시 풀기"
+    : limitReached
+      ? `재제출불가(${usage.usedCount}/${usage.limit})`
+      : `재제출하기(${usage.usedCount}/${usage.limit})`;
+
   return (
     <>
       <button
@@ -20,6 +31,16 @@ function ResultActions({ showCode, onWriteCode, onNewProblem }) {
         코드 직접 작성해볼게요
         <span aria-hidden="true">{showCode ? "⌃" : "⌄"}</span>
       </button>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          disabled={limitReached}
+          className="w-full rounded-2xl bg-[#7C3AED] py-4 text-sm font-bold text-white transition-all active:scale-95 disabled:bg-[#2A2845] disabled:text-[#6B6890] disabled:active:scale-100"
+        >
+          {retryLabel}
+        </button>
+      )}
       <button
         type="button"
         onClick={onNewProblem}
@@ -39,6 +60,7 @@ export default function ApproachResult({
   onRevealAnswer,
   showCode,
   onWriteCode,
+  onRetry,
   onNewProblem,
 }) {
   if (evaluation.status === "pending" || evaluation.status === "failed") {
@@ -54,7 +76,7 @@ export default function ApproachResult({
               : "AI 평가가 진행 중이에요. 아직 점수와 피드백이 도착하지 않았어요."}
           </p>
         </div>
-        <ResultActions showCode={showCode} onWriteCode={onWriteCode} onNewProblem={onNewProblem} />
+        <ResultActions showCode={showCode} onWriteCode={onWriteCode} onRetry={onRetry} onNewProblem={onNewProblem} />
       </div>
     );
   }
@@ -62,7 +84,9 @@ export default function ApproachResult({
   const hasScore = evaluation.approachScore !== null;
   const score = hasScore ? Math.max(0, Math.min(100, evaluation.approachScore)) : 0;
   const totalPass = evaluation.categoryCorrect && hasScore && score >= 33;
-  const lockCategory = !categoryKnown && !evaluation.categoryCorrect && !answerRevealed;
+  // 제출 횟수를 모두 쓰면 카테고리 정답·선정 배경, 핵심 키워드를 강제로 공개
+  const limitReached = isLimitReached(evaluation.usage);
+  const lockCategory = !categoryKnown && !evaluation.categoryCorrect && !answerRevealed && !limitReached;
 
   return (
     <div className="flex flex-col gap-3 animate-fadeIn">
@@ -152,11 +176,13 @@ export default function ApproachResult({
               {evaluation.keywords.map((item, index) => (
                 <span
                   key={`${item.keyword}-${index}`}
-                  aria-label={item.matched ? `일치한 키워드: ${item.keyword}` : "아직 찾지 못한 키워드"}
+                  aria-label={item.matched ? `일치한 키워드: ${item.keyword}` : limitReached ? `놓친 키워드: ${item.keyword}` : "아직 찾지 못한 키워드"}
                   className={`rounded-full border px-3 py-1.5 text-xs ${item.matched ? "border-[#7C3AED]/40 bg-[#7C3AED]/15 text-[#E2E0F0]" : "border-[#2A2845] bg-[#151425] text-[#6B6890]"}`}
                 >
                   {item.matched ? (
                     <>✓ {item.keyword}</>
+                  ) : limitReached ? (
+                    <>{item.keyword}</>
                   ) : (
                     <span aria-hidden="true" className="inline-block select-none blur-[5px]">
                       {item.keyword}
@@ -178,7 +204,7 @@ export default function ApproachResult({
         )}
       </section>
 
-      <ResultActions showCode={showCode} onWriteCode={onWriteCode} onNewProblem={onNewProblem} />
+      <ResultActions showCode={showCode} onWriteCode={onWriteCode} usage={evaluation.usage} onRetry={onRetry} onNewProblem={onNewProblem} />
     </div>
   );
 }
