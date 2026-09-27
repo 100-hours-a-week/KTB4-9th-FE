@@ -476,6 +476,7 @@ function SolvePage() {
   const [code, setCode] = useState(LANG_STARTERS[INITIAL_LANG]);
   const [codeResult, setCodeResult] = useState("idle");
   const [codeReport, setCodeReport] = useState(null);
+  const [submittedCount, setSubmittedCount] = useState(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
@@ -552,6 +553,19 @@ function SolvePage() {
   const badge = DIFFICULTY_BADGE_CLASSES[p.difficulty] || "";
   const keywords = APPROACH_KEYWORDS[p.category] || [];
   const canSubmit = (categoryKnown || selectedCat !== null) && approach.trim().length > 0 && submitStage === "idle";
+  // 코드 제출 버튼이 막히는 이유는 두 가지: 제출 횟수 소진, 정답 힌트 확인
+  const submissionLimitReached = submittedCount != null && submittedCount >= 5;
+  const answerHintUsed = hintsUsed >= 2;
+  const codeSubmitDisabled = codeResult === "running" || submissionLimitReached || answerHintUsed;
+  const codeSubmitLabel = codeResult === "running"
+    ? "채점 중..."
+    : submissionLimitReached
+      ? "제출불가(5/5)"
+      : answerHintUsed
+        ? "제출불가"
+        : submittedCount != null
+          ? `제출(${submittedCount}/5)`
+          : "제출";
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitStage("grading");
@@ -658,10 +672,16 @@ function SolvePage() {
           passed: result.passed_test_count,
           total: result.total_test_count
         });
+        // 3. 이번까지 사용한 제출 횟수를 저장 (버튼의 n/5 표시에 사용)
+        setSubmittedCount(result.submitted_count);
         setCodeResult(result.judging_result === "CORRECT" ? "pass" : "fail");
       }
     } catch (error) {
       setApiError(getApiErrorMessage(error));
+      // 제출 횟수를 다 썼다는 오류면, 버튼이 계속 5/5로 보이도록 횟수를 저장
+      if (error.code === "submission_limit_exceeded" && error.data?.submitted_count != null) {
+        setSubmittedCount(error.data.submitted_count);
+      }
       setCodeResult("idle");
     }
   }
@@ -918,11 +938,11 @@ function SolvePage() {
   }
                   <button
     onClick={handleCodeSubmit}
-    disabled={codeResult === "running"}
+    disabled={codeSubmitDisabled}
     className="flex-1 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
     style={{ fontFamily: "'Outfit', sans-serif", background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)" }}
   >
-                    {codeResult === "running" ? "\uCC44\uC810 \uC911..." : "\uC81C\uCD9C"}
+                    {codeSubmitLabel}
                   </button>
                 </div>
 
@@ -930,7 +950,7 @@ function SolvePage() {
     /* Hint usage indicator */
   }
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>AI 힌트</span>
+                  <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>힌트</span>
                   <div className="flex gap-1">
                     {[0, 1].map((i) => <div
     key={i}
