@@ -174,6 +174,7 @@ export default function ProblemGenerationPage() {
 	const {
 		category,
 		categoryOptions,
+		dailyUsageLabel,
 		difficulty,
 		dots,
 		errorMessage,
@@ -257,6 +258,7 @@ export default function ProblemGenerationPage() {
           </div>
         </div>
 
+        <p className="mb-3 text-center text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>{dailyUsageLabel}</p>
         {errorMessage && <p className="mb-3 text-center text-xs text-rose-400" role="alert" style={{ fontFamily: "'Outfit', sans-serif" }}>{errorMessage}</p>}
         <button onClick={handleGenerate} disabled={stage !== "config"} className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all duration-200 active:scale-95 disabled:opacity-50 mb-8" style={{
 		fontFamily: "'Outfit', sans-serif",
