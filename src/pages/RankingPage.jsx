@@ -81,6 +81,9 @@ export default function RankingPage() {
             <p className="text-sm font-semibold text-[#C084FC]" style={{ fontFamily: "'Outfit', sans-serif" }}>
               {myRanking.username} · {myRanking.point.toLocaleString()}pt
             </p>
+            <p className="mt-1 text-[10px] text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+              풀이 {myRanking.totalCorrectProblemCount.toLocaleString()}개 · 연속 {myRanking.currentStreakDay.toLocaleString()}일
+            </p>
           </div>
           <span className="text-2xl font-black text-[#E2E0F0] shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
 			#{myRanking.point === 0 ? "-" : myRanking.rank}
@@ -108,7 +111,10 @@ export default function RankingPage() {
 				<ProfileAvatar src={entry.profileImageUrl} name={entry.username} className="h-full w-full rounded-xl object-cover" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-[#E2E0F0] leading-none" style={{ fontFamily: "'Outfit', sans-serif" }}>{entry.username}</p>
+                <p className="mb-0.5 text-sm font-semibold leading-none text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{entry.username}</p>
+                <p className="text-[10px] text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                  풀이 {entry.totalCorrectProblemCount.toLocaleString()}개 · 연속 {entry.currentStreakDay.toLocaleString()}일
+                </p>
               </div>
               <div className="text-right shrink-0">
                 <span className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>

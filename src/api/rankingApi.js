@@ -14,6 +14,19 @@ function normalizeRanking(ranking) {
       null,
     rank: Number(ranking.rank ?? 0),
     point: Number(ranking.point ?? 0),
+    totalCorrectProblemCount: Number(
+      ranking.totalCorrectProblemCount ??
+        ranking.total_correct_problem_count ??
+        ranking.correctProblemCount ??
+        ranking.solved ??
+        0,
+    ),
+    currentStreakDay: Number(
+      ranking.currentStreakDay ??
+        ranking.current_streak_day ??
+        ranking.streak ??
+        0,
+    ),
   };
 }
 
