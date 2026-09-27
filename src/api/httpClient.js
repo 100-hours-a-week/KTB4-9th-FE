@@ -75,7 +75,7 @@ export async function request(path, { skipAuthRefresh = false, ...options } = {}
     try {
       await refreshTokens()
     } catch (error) {
-      if (error?.status === 401 || error?.status === 403) moveToLogin()
+      moveToLogin()
       throw error
     }
 

@@ -1,14 +1,14 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
-  getAnswerHint,
   getApiErrorMessage,
-  getCommentHint,
+  getHintByStage,
   getProblem,
   submitApproach,
   submitCode,
-  USE_MOCKS,
   USE_REAL_APPROACH,
+  USE_REAL_CODE,
+  USE_REAL_HINT,
   USE_REAL_PROBLEM
 } from "../api/problemApi.js";
 import { getCurrentProblem } from "../store.js";
@@ -29,10 +29,17 @@ import {
   PROBLEM_CATEGORIES,
 } from "../constants/problemOptions.js";
 const LANG_STARTERS = {
-  Python: "def solution(nums):\n    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n    pass\n",
-  JavaScript: "function solution(nums) {\n  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n}\n",
-  Java: "class Solution {\n    public int solution(int[] nums) {\n        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n        return 0;\n    }\n}\n",
-  "C++": "#include <vector>\nusing namespace std;\n\nint solution(vector<int> nums) {\n    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694\n    return 0;\n}\n"
+  Python: "import sys\ninput = sys.stdin.readline\n\n# 여기에 코드를 작성하세요\n",
+  JavaScript: "const lines = require(\"fs\").readFileSync(0, \"utf8\").split(\"\\n\");\n\n// 여기에 코드를 작성하세요\n",
+  Java: "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // 여기에 코드를 작성하세요\n    }\n}\n",
+  "C++": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // 여기에 코드를 작성하세요\n    return 0;\n}\n"
+};
+// 채점 결과 종류별 화면 문구
+const CODE_RESULT_LABEL = {
+  WRONG_ANSWER: "오답",
+  COMPILE_ERROR: "컴파일 오류",
+  RUNTIME_ERROR: "런타임 오류",
+  TIME_LIMIT_EXCEEDED: "시간 초과"
 };
 const SUPPORTED_LANGUAGES = ["Python", "JavaScript", "Java", "C++"];
 const HINTS = {
@@ -447,6 +454,7 @@ function getAnswer(category, lang) {
   return HINTS[category]?.answer[lang] ?? `# \uC774 \uCE74\uD14C\uACE0\uB9AC(${category})\uC758 \uC815\uB2F5 \uCF54\uB4DC\uB97C \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.
 `;
 }
+const INITIAL_LANG = "Python";
 function SolvePage() {
   const navigate = useNavigate();
   const { problemId } = useParams();
@@ -464,12 +472,15 @@ function SolvePage() {
   const [answerRevealed, setAnswerRevealed] = useState(initialResult?.answerRevealed ?? false);
   const [apiError, setApiError] = useState("");
   const [showCode, setShowCode] = useState(false);
-  const [lang, setLang] = useState("Python");
-  const [code, setCode] = useState(LANG_STARTERS["Python"]);
+  const [lang, setLang] = useState(INITIAL_LANG);
+  const [code, setCode] = useState(LANG_STARTERS[INITIAL_LANG]);
   const [codeResult, setCodeResult] = useState("idle");
+  const [codeReport, setCodeReport] = useState(null);
+  const [submittedCount, setSubmittedCount] = useState(null);
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
+  const approachInputRef = useRef(null);
   const [codePos, setCodePos] = useState({ x: 16, y: 120 });
   const [codeCollapsed, setCodeCollapsed] = useState(false);
   const dragging = useRef(false);
@@ -494,24 +505,37 @@ function SolvePage() {
     dragging.current = false;
   }, []);
   useEffect(() => {
-    if (problem || !USE_REAL_PROBLEM || !problemId) return undefined;
+    // 1. 실제 문제 API 모드가 아니거나 문제 id가 없으면 하지 않음
+    if (!USE_REAL_PROBLEM || !problemId) return undefined;
 
     let cancelled = false;
     getProblem(problemId)
-      .then((loadedProblem) => {
-        if (!cancelled) setProblem(loadedProblem);
+      .then(async (loadedProblem) => {
+        if (cancelled) return;
+        // 2. 저장된 문제가 없을 때만 받아온 문제를 화면 문제로 사용
+        setProblem((prev) => prev ?? loadedProblem);
+        // 3. 힌트를 연 적이 있으면 횟수를 채우고, 현재 언어의 힌트를 에디터에 표시
+        if (USE_REAL_HINT && loadedProblem.usedHintStage >= 1) {
+          setHintsUsed(loadedProblem.usedHintStage);
+          setHintLoading(true);
+          const hint = await getHintByStage(problemId, loadedProblem.usedHintStage, INITIAL_LANG);
+          if (!cancelled) setCode(hint.content);
+        }
       })
       .catch((error) => {
         if (!cancelled) setApiError(getApiErrorMessage(error));
       })
       .finally(() => {
-        if (!cancelled) setProblemLoading(false);
+        if (!cancelled) {
+          setProblemLoading(false);
+          setHintLoading(false);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [problem, problemId]);
+  }, [problemId]);
   if (problemLoading) {
     return <div className="h-full flex items-center justify-center bg-[#05050F] text-sm text-[#6B6890]">
         문제를 불러오고 있어요...
@@ -529,6 +553,19 @@ function SolvePage() {
   const badge = DIFFICULTY_BADGE_CLASSES[p.difficulty] || "";
   const keywords = APPROACH_KEYWORDS[p.category] || [];
   const canSubmit = (categoryKnown || selectedCat !== null) && approach.trim().length > 0 && submitStage === "idle";
+  // 코드 제출 버튼이 막히는 이유는 두 가지: 제출 횟수 소진, 정답 힌트 확인
+  const submissionLimitReached = submittedCount != null && submittedCount >= 5;
+  const answerHintUsed = hintsUsed >= 2;
+  const codeSubmitDisabled = codeResult === "running" || submissionLimitReached || answerHintUsed;
+  const codeSubmitLabel = codeResult === "running"
+    ? "채점 중..."
+    : submissionLimitReached
+      ? "제출불가(5/5)"
+      : answerHintUsed
+        ? "제출불가"
+        : submittedCount != null
+          ? `제출(${submittedCount}/5)`
+          : "제출";
   async function handleSubmit() {
     if (!canSubmit) return;
     setSubmitStage("grading");
@@ -561,28 +598,54 @@ function SolvePage() {
       setSubmitStage("idle");
     }
   }
-  function handleLangChange(l) {
+  function handleRetry() {
+    setSubmitStage("idle");
+    setApiError("");
+    setTimeout(() => approachInputRef.current?.focus(), 0);
+  }
+  // 단계(1: 주석, 2: 정답)와 언어에 맞는 힌트를 가져옴
+  async function fetchHint(stage, language) {
+    // 1. 목 모드면 화면에 있는 목 힌트를 반환
+    if (!USE_REAL_HINT) {
+      await new Promise((r) => setTimeout(r, 900));
+      return { content: stage === 1 ? getHint(p.category, language) : getAnswer(p.category, language), stage };
+    }
+    // 2. 실제 API 모드면 서버에서 받아서 반환 (stage는 서버가 알려준 값)
+    const hint = await getHintByStage(p.id, stage, language);
+    return { content: hint.content, stage: hint.hint_stage };
+  }
+  async function handleLangChange(l) {
+    if (hintLoading) return;
+    // 1. 언어와 시작 코드를 바꿈 (사용 횟수는 그대로)
     setLang(l);
     setCode(LANG_STARTERS[l]);
     setCodeResult("idle");
-    setHintsUsed(0);
+    // 2. 이미 힌트를 연 적이 있으면 새 언어의 같은 단계 힌트를 표시
+    if (hintsUsed < 1) return;
+    setHintLoading(true);
+    setApiError("");
+    try {
+      const hint = await fetchHint(hintsUsed, l);
+      setCode(hint.content);
+    } catch (error) {
+      // 3. 실패하면 에러만 표시 (시작 코드 유지)
+      setApiError(getApiErrorMessage(error));
+    } finally {
+      setHintLoading(false);
+    }
   }
   async function handleHint() {
     if (hintsUsed >= 2 || hintLoading) return;
     setHintLoading(true);
     setApiError("");
     try {
-      if (USE_MOCKS) {
-        await new Promise((r) => setTimeout(r, 900));
-        setCode(hintsUsed === 0 ? getHint(p.category, lang) : getAnswer(p.category, lang));
-      } else {
-        const hint = hintsUsed === 0
-          ? await getCommentHint(p.id, lang)
-          : await getAnswerHint(p.id, lang);
-        setCode(hint.content);
-      }
-      setHintsUsed((h) => h + 1);
+      // 1. 다음 단계의 힌트를 요청
+      const hint = await fetchHint(hintsUsed + 1, lang);
+      // 2. 에디터에 표시하고, 사용 횟수를 서버가 알려준 단계로 맞춤
+      setCode(hint.content);
+      setHintsUsed(hint.stage);
     } catch (error) {
+      // 3. 실패하면 에러만 표시 (횟수와 에디터는 그대로)
       setApiError(getApiErrorMessage(error));
     } finally {
       setHintLoading(false);
@@ -592,19 +655,33 @@ function SolvePage() {
     setCodeResult("running");
     setApiError("");
     try {
-      if (USE_MOCKS) {
+      if (!USE_REAL_CODE) {
         await new Promise((r) => setTimeout(r, 1600));
         const isStarterCode = code.includes("여기에 코드를 작성하세요") || code.includes("pass");
+        setCodeReport(null);
         setCodeResult(isStarterCode ? "fail" : "pass");
       } else {
+        // 1. 코드를 제출하고 채점 결과를 받음
         const result = await submitCode(p.id, {
           language: lang,
           sourceCode: code
         }, crypto.randomUUID());
+        // 2. 결과 종류와 통과 개수를 저장 (화면에 함께 표시)
+        setCodeReport({
+          result: result.judging_result,
+          passed: result.passed_test_count,
+          total: result.total_test_count
+        });
+        // 3. 이번까지 사용한 제출 횟수를 저장 (버튼의 n/5 표시에 사용)
+        setSubmittedCount(result.submitted_count);
         setCodeResult(result.judging_result === "CORRECT" ? "pass" : "fail");
       }
     } catch (error) {
       setApiError(getApiErrorMessage(error));
+      // 제출 횟수를 다 썼다는 오류면, 버튼이 계속 5/5로 보이도록 횟수를 저장
+      if (error.code === "submission_limit_exceeded" && error.data?.submitted_count != null) {
+        setSubmittedCount(error.data.submitted_count);
+      }
       setCodeResult("idle");
     }
   }
@@ -683,6 +760,7 @@ function SolvePage() {
               접근 방식을 자연어로 작성하세요
             </label>
             <textarea
+    ref={approachInputRef}
     value={approach}
     onChange={(e) => {
       if (submitStage === "idle") setApproach(e.target.value);
@@ -724,6 +802,7 @@ function SolvePage() {
                 }}
                 showCode={showCode}
                 onWriteCode={() => setShowCode((value) => !value)}
+                onRetry={handleRetry}
                 onNewProblem={() => navigate("/problems/new")}
               />
             </div>
@@ -804,6 +883,7 @@ function SolvePage() {
               {SUPPORTED_LANGUAGES.map((l) => <button
     key={l}
     onClick={() => handleLangChange(l)}
+    disabled={hintLoading}
     className={`px-2.5 py-0.5 rounded text-[11px] font-medium whitespace-nowrap transition-all ${lang === l ? "bg-[#7C3AED]/30 text-[#C084FC]" : "text-[#4A4870]"}`}
     style={{ fontFamily: "'JetBrains Mono', monospace" }}
   >
@@ -820,8 +900,8 @@ function SolvePage() {
     onMouseDown={(e) => e.stopPropagation()}
     onTouchStart={(e) => e.stopPropagation()}
   >
-                {codeResult === "pass" && <p className="text-emerald-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ 테스트 통과</p>}
-                {codeResult === "fail" && <p className="text-rose-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ 오답 — 다시 시도해 보세요</p>}
+                {codeResult === "pass" && <p className="text-emerald-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ {codeReport ? `정답 (${codeReport.passed}/${codeReport.total} 통과)` : "테스트 통과"}</p>}
+                {codeResult === "fail" && <p className="text-rose-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ {codeReport ? `${CODE_RESULT_LABEL[codeReport.result] ?? "오답"} (${codeReport.passed}/${codeReport.total} 통과)` : "오답"} — 다시 시도해 보세요</p>}
 
                 <div className="flex gap-2">
                   {
@@ -858,11 +938,11 @@ function SolvePage() {
   }
                   <button
     onClick={handleCodeSubmit}
-    disabled={codeResult === "running"}
+    disabled={codeSubmitDisabled}
     className="flex-1 py-2 rounded-xl text-xs font-semibold text-white transition-all active:scale-95 disabled:opacity-50"
     style={{ fontFamily: "'Outfit', sans-serif", background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)" }}
   >
-                    {codeResult === "running" ? "\uCC44\uC810 \uC911..." : "\uC81C\uCD9C"}
+                    {codeSubmitLabel}
                   </button>
                 </div>
 
@@ -870,7 +950,7 @@ function SolvePage() {
     /* Hint usage indicator */
   }
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>AI 힌트</span>
+                  <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>힌트</span>
                   <div className="flex gap-1">
                     {[0, 1].map((i) => <div
     key={i}
