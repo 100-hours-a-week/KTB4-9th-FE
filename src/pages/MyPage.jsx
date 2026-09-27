@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import UserMenu from "../components/common/UserMenu.jsx";
-import { getStoredUser } from "../services/auth.js";
+import { useAuth } from "../features/auth/authContext.js";
 
 const LEVELS = ["LV1", "LV2", "LV3", "LV4", "LV5"];
 
@@ -15,7 +15,7 @@ const LEVEL_COLORS = {
 
 export default function MyPage() {
   const navigate = useNavigate();
-  const user = getStoredUser() || {};
+  const { user = {} } = useAuth();
   const [filter, setFilter] = useState("전체");
 
   return (

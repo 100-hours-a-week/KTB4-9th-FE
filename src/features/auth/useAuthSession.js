@@ -2,38 +2,27 @@ import { useEffect, useState } from "react";
 import {
   clearStoredUser,
   fetchCurrentUser,
-  getStoredUser,
-  storeUser,
 } from "../../services/auth.js";
 
 export function useAuthSession() {
-  const [session, setSession] = useState(() => ({
+  const [session, setSession] = useState({
     status: "loading",
-    user: getStoredUser(),
-  }));
+    user: null,
+  });
 
   useEffect(() => {
     let active = true;
+    clearStoredUser();
 
     fetchCurrentUser()
       .then((user) => {
         if (!active) return;
-        storeUser(user);
         setSession({ status: "authenticated", user });
       })
-      .catch((error) => {
+      .catch(() => {
         if (!active) return;
-
-        if (error?.status === 401 || error?.status === 403) {
-          clearStoredUser();
-          setSession({ status: "unauthenticated", user: null });
-          return;
-        }
-
-        setSession((current) => ({
-          status: "error",
-          user: current.user,
-        }));
+        clearStoredUser();
+        setSession({ status: "unauthenticated", user: null });
       });
 
     return () => {
