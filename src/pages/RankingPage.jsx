@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import PageHeader from "../components/common/PageHeader.jsx";
+import ProfileAvatar from "../components/common/ProfileAvatar.jsx";
 import { PROBLEM_CATEGORIES, PROBLEM_DIFFICULTIES } from "../constants/problemOptions.js";
 import { useRankingPage } from "../features/ranking/useRankingPage.js";
 export default function RankingPage() {
@@ -73,7 +74,7 @@ export default function RankingPage() {
 		color: "white",
 		fontFamily: "'Outfit', sans-serif"
 	}}>
-			{myRanking.profileImageUrl ? <img src={myRanking.profileImageUrl} alt={`${myRanking.username} 프로필`} className="h-full w-full rounded-xl object-cover" /> : myRanking.username[0]}
+			<ProfileAvatar src={myRanking.profileImageUrl} name={myRanking.username} className="h-full w-full rounded-xl object-cover" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'Outfit', sans-serif" }}>내 순위</p>
@@ -104,7 +105,7 @@ export default function RankingPage() {
 		color: "#8B7FC4",
 		fontFamily: "'Outfit', sans-serif"
 	}}>
-				{entry.profileImageUrl ? <img src={entry.profileImageUrl} alt={`${entry.username} 프로필`} className="h-full w-full rounded-xl object-cover" /> : entry.username[0]}
+				<ProfileAvatar src={entry.profileImageUrl} name={entry.username} className="h-full w-full rounded-xl object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-[#E2E0F0] leading-none" style={{ fontFamily: "'Outfit', sans-serif" }}>{entry.username}</p>

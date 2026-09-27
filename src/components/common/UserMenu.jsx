@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../features/auth/authContext.js";
 import { logoutCurrentUser } from "../../services/auth.js";
+import ProfileAvatar from "./ProfileAvatar.jsx";
 
 export default function UserMenu({ rounded = "rounded-xl", menuIcon = false }) {
   const navigate = useNavigate();
@@ -38,15 +39,24 @@ export default function UserMenu({ rounded = "rounded-xl", menuIcon = false }) {
           <svg width="22" height="18" viewBox="0 0 22 18" fill="none" aria-hidden="true">
             <path d="M1 1h20M1 9h20M1 17h20" stroke="#A89EC4" strokeWidth="1.8" strokeLinecap="round" />
           </svg>
-        ) : user.profileImageUrl ? (
-          <img src={user.profileImageUrl} alt={`${user.name || "사용자"} 프로필`} className="h-full w-full rounded-[inherit] object-cover" />
-        ) : (user.name || "?")[0]}
+        ) : (
+          <ProfileAvatar
+            src={user.profileImageUrl}
+            name={user.name}
+            className="h-full w-full rounded-[inherit] object-cover"
+          />
+        )}
       </button>
       {open && (
         <div className="absolute right-0 top-12 z-[200] min-w-[168px] overflow-hidden rounded-2xl border border-[#2A2845]" style={{ background: "#0F0E1E", boxShadow: "0 12px 40px rgba(0,0,0,0.85), 0 0 0 1px rgba(168,85,247,0.06)" }}>
           <div className="flex items-center gap-3 border-b border-[#1E1D35] px-4 py-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#7C3AED]/25 text-xs font-bold text-[#C084FC]">
-              {user.profileImageUrl ? <img src={user.profileImageUrl} alt="" className="h-full w-full object-cover" /> : (user.name || "?")[0]}
+              <ProfileAvatar
+                src={user.profileImageUrl}
+                name={user.name}
+                alt=""
+                className="h-full w-full object-cover"
+              />
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>{user.name || "사용자"}</p>
