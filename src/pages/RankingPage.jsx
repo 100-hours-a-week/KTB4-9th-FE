@@ -82,7 +82,7 @@ export default function RankingPage() {
             </p>
           </div>
           <span className="text-2xl font-black text-[#E2E0F0] shrink-0" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-            #{myRanking.rank}
+			#{myRanking.point === 0 ? "-" : myRanking.rank}
           </span>
         </div>
         </>}
