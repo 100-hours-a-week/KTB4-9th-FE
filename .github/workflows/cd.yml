@@ -40,6 +40,7 @@ jobs:
           VITE_USE_MOCKS: ${{ vars.VITE_USE_MOCKS || 'false' }}
           VITE_KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY || vars.KAKAO_REST_API_KEY }}
           VITE_KAKAO_REDIRECT_URI: ${{ vars.KAKAO_REDIRECT_URI }}
+          VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
         run: npm run build
 
       # 2. AWS 인증 (us-west-2 리전)
