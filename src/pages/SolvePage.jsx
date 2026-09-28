@@ -34,6 +34,19 @@ const LANG_STARTERS = {
   Java: "import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        // 여기에 코드를 작성하세요\n    }\n}\n",
   "C++": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    // 여기에 코드를 작성하세요\n    return 0;\n}\n"
 };
+// 언어별 한 줄 주석 기호
+const COMMENT_MARKER = { Python: "#", JavaScript: "//", Java: "//", "C++": "//" };
+// 힌트 내용을 선택된 언어의 주석 형식으로 감쌈 (이미 주석이거나 빈 줄이면 그대로 둠)
+function toComment(text, language) {
+  const marker = COMMENT_MARKER[language] ?? "//";
+  return text
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      return !trimmed || trimmed.startsWith(marker) ? line : `${marker} ${line}`;
+    })
+    .join("\n");
+}
 // 채점 결과 종류별 화면 문구
 const CODE_RESULT_LABEL = {
   WRONG_ANSWER: "오답",
@@ -618,7 +631,8 @@ function SolvePage() {
     if (hintLoading) return;
     // 1. 언어와 시작 코드를 바꿈 (사용 횟수는 그대로)
     setLang(l);
-    setCode(LANG_STARTERS[l]);
+    const starter = LANG_STARTERS[l];
+    setCode(starter);
     setCodeResult("idle");
     // 2. 이미 힌트를 연 적이 있으면 새 언어의 같은 단계 힌트를 표시
     if (hintsUsed < 1) return;
@@ -626,9 +640,10 @@ function SolvePage() {
     setApiError("");
     try {
       const hint = await fetchHint(hintsUsed, l);
-      setCode(hint.content);
+      // 3. 주석 힌트는 새 언어 시작 코드 위에 주석으로 얹고, 정답 힌트는 통째로 교체
+      setCode(hintsUsed === 1 ? `${toComment(hint.content, l)}\n\n${starter}` : hint.content);
     } catch (error) {
-      // 3. 실패하면 에러만 표시 (시작 코드 유지)
+      // 4. 실패하면 에러만 표시 (시작 코드 유지)
       setApiError(getApiErrorMessage(error));
     } finally {
       setHintLoading(false);
@@ -641,11 +656,12 @@ function SolvePage() {
     try {
       // 1. 다음 단계의 힌트를 요청
       const hint = await fetchHint(hintsUsed + 1, lang);
-      // 2. 에디터에 표시하고, 사용 횟수를 서버가 알려준 단계로 맞춤
-      setCode(hint.content);
+      // 2. 주석 힌트는 지금 쓰던 코드 위에 주석으로 얹고, 정답 힌트는 통째로 교체
+      setCode(hint.stage === 1 ? `${toComment(hint.content, lang)}\n\n${code}` : hint.content);
+      // 3. 사용 횟수를 서버가 알려준 단계로 맞춤
       setHintsUsed(hint.stage);
     } catch (error) {
-      // 3. 실패하면 에러만 표시 (횟수와 에디터는 그대로)
+      // 4. 실패하면 에러만 표시 (횟수와 에디터는 그대로)
       setApiError(getApiErrorMessage(error));
     } finally {
       setHintLoading(false);
