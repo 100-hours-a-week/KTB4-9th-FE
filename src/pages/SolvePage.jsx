@@ -14,6 +14,10 @@ import {
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
+import {
+  ExecutionLimitsCard,
+  ProblemConditions,
+} from "../components/ProblemSpecifications.jsx";
 import { APPROACH_KEYWORDS } from "../constants/approachKeywords.js";
 import {
   createMockApproachEvaluation,
@@ -525,8 +529,14 @@ function SolvePage() {
     getProblem(problemId)
       .then(async (loadedProblem) => {
         if (cancelled) return;
-        // 2. 저장된 문제가 없을 때만 받아온 문제를 화면 문제로 사용
-        setProblem((prev) => prev ?? loadedProblem);
+        // 2. 목록·생성 화면에서 저장한 기본 정보에 상세 조회 결과를 합쳐 제약조건까지 최신화
+        setProblem((prev) => prev
+          ? {
+              ...prev,
+              ...loadedProblem,
+              categoryKnown: prev.categoryKnown ?? loadedProblem.categoryKnown,
+            }
+          : loadedProblem);
         // 3. 힌트를 연 적이 있으면 횟수를 채우고, 현재 언어의 힌트를 에디터에 표시
         if (USE_REAL_HINT && loadedProblem.usedHintStage >= 1) {
           setHintsUsed(loadedProblem.usedHintStage);
@@ -744,10 +754,15 @@ function SolvePage() {
                 <p className="text-xs text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
                 {ex.explanation && <p className="text-[11px] text-[#6B6890] mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}>{ex.explanation}</p>}
               </div>)}
-            <div className="mt-1">
-              {p.constraints.map((c, i) => <p key={i} className="text-[11px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>• {c}</p>)}
-            </div>
+            <ProblemConditions
+              inputFormat={p.inputFormat}
+              outputFormat={p.outputFormat}
+              inputConstraints={p.inputConstraints}
+              legacyConstraints={p.constraints}
+            />
           </div>
+
+          <ExecutionLimitsCard limits={p.executionLimits} />
 
           {
     /* Category — only shown when category was not pre-selected */
