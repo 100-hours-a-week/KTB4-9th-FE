@@ -23,26 +23,27 @@ const LANGUAGE_FROM_API = Object.fromEntries(
   Object.entries(LANGUAGE_TO_API).map(([label, value]) => [value, label]),
 )
 
-// 문제 상세 응답(inputFormat 등)을 화면의 제약사항 문자열 목록으로 변환
-function buildConstraints(raw) {
-  if (raw.constraints) return raw.constraints
+function normalizeInputConstraints(raw) {
+  const constraints = raw.inputConstraints ?? raw.input_constraints ?? []
+  return constraints.map((constraint) => ({
+    target: constraint.target ?? '',
+    scope: constraint.scope ?? 'INPUT',
+    dataType: constraint.dataType ?? constraint.data_type ?? null,
+    minValue: constraint.minValue ?? constraint.min_value ?? null,
+    maxValue: constraint.maxValue ?? constraint.max_value ?? null,
+    dataCount: constraint.dataCount ?? constraint.data_count ?? null,
+    specialConditions:
+      constraint.specialConditions ?? constraint.special_conditions ?? [],
+  }))
+}
 
-  const lines = []
-  if (raw.inputFormat) lines.push(`입력 형식: ${raw.inputFormat}`)
-  if (raw.outputFormat) lines.push(`출력 형식: ${raw.outputFormat}`)
-
-  for (const c of raw.inputConstraints ?? []) {
-    const range = c.minValue != null && c.maxValue != null ? `${c.minValue} ~ ${c.maxValue} ` : ''
-    const conditions = c.specialConditions?.length ? ` · ${c.specialConditions.join(', ')}` : ''
-    lines.push(`${c.scope === 'OUTPUT' ? '[출력] ' : ''}${c.target}: ${range}(${c.dataType})${conditions}`)
-  }
-
-  for (const limit of raw.executionLimits ?? []) {
-    const language = LANGUAGE_FROM_API[limit.language] ?? limit.language
-    lines.push(`${language} 시간 ${limit.timeLimitMs / 1000}초 · 메모리 ${Math.round(limit.memoryLimitKb / 1024)}MB`)
-  }
-
-  return lines
+function normalizeExecutionLimits(raw) {
+  const limits = raw.executionLimits ?? raw.execution_limits ?? []
+  return limits.map((limit) => ({
+    language: LANGUAGE_FROM_API[limit.language] ?? limit.language,
+    timeLimitMs: limit.timeLimitMs ?? limit.time_limit_ms ?? null,
+    memoryLimitKb: limit.memoryLimitKb ?? limit.memory_limit_kb ?? null,
+  }))
 }
 
 export function toApiCategory(category) {
@@ -58,11 +59,15 @@ function normalizeProblem(raw) {
     difficulty: String(level).startsWith('LV') ? String(level) : `LV${level}`,
     category: CATEGORY_FROM_API[raw.category] ?? raw.category,
     description: raw.content ?? raw.description ?? '',
+    inputFormat: raw.inputFormat ?? raw.input_format ?? '',
+    outputFormat: raw.outputFormat ?? raw.output_format ?? '',
+    inputConstraints: normalizeInputConstraints(raw),
+    executionLimits: normalizeExecutionLimits(raw),
     examples: (raw.examples ?? []).map((example) => ({
       ...example,
       explanation: example.explanation ?? example.description ?? null,
     })),
-    constraints: buildConstraints(raw),
+    constraints: Array.isArray(raw.constraints) ? raw.constraints : [],
     categoryKnown: true,
     usedHintStage: raw.usedHintStage ?? raw.used_hint_stage ?? 0,
   }
