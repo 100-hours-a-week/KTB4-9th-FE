@@ -6,7 +6,7 @@ import { java } from "@codemirror/lang-java";
 import { javascript } from "@codemirror/lang-javascript";
 import { python } from "@codemirror/lang-python";
 import { indentUnit } from "@codemirror/language";
-import { Compartment, EditorState } from "@codemirror/state";
+import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { oneDark } from "@codemirror/theme-one-dark";
 
@@ -110,6 +110,7 @@ export default function CodeEditor({ value, onChange, lang }) {
     if (!view || view.state.doc.toString() === value) return;
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value },
+      annotations: Transaction.addToHistory.of(false), // 언어 전환 등 프로그램이 갈아끼운 내용은 undo 대상에서 제외
     });
   }, [value]);
 
