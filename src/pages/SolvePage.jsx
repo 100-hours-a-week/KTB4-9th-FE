@@ -58,70 +58,70 @@ const SUPPORTED_LANGUAGES = ["Python", "JavaScript", "Java", "C++"];
 const HINTS = {
   DP: {
     hint: {
-      Python: `# ===================== AI \uD78C\uD2B8 =====================
-# [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC774\uB098\uBBF9 \uD504\uB85C\uADF8\uB798\uBC0D (DP)
+      Python: `# ===================== AI 힌트 =====================
+# [핵심 아이디어] 다이나믹 프로그래밍 (DP)
 #
-#  dp[i] = i\uBC88\uC9F8 \uC704\uCE58\uC5D0\uC11C\uC758 \uCD5C\uC801\uAC12
+#  dp[i] = i번째 위치에서의 최적값
 #
-#  \uC810\uD654\uC2DD:
+#  점화식:
 #    dp[i] = min(dp[i-1], dp[i-2]) + cost[i]
-#            \u2191 1\uCE78 \uC804        \u2191 2\uCE78 \uC804
+#            ↑ 1칸 전        ↑ 2칸 전
 #
-#  \uC21C\uC11C: dp \uBC30\uC5F4\uC744 \uC55E\uC5D0\uC11C\uBD80\uD130 \uCC44\uC6CC\uB098\uAC00\uC138\uC694.
-#  \uB9C8\uC9C0\uB9C9: min(dp[n-1], dp[n-2]) \uAC00 \uC815\uB2F5\uC785\uB2C8\uB2E4.
+#  순서: dp 배열을 앞에서부터 채워나가세요.
+#  마지막: min(dp[n-1], dp[n-2]) 가 정답입니다.
 # ====================================================
 
 def solution(cost):
-    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    # 여기에 코드를 작성하세요
     pass
 `,
-      JavaScript: `// =================== AI \uD78C\uD2B8 ===================
-// [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC774\uB098\uBBF9 \uD504\uB85C\uADF8\uB798\uBC0D (DP)
+      JavaScript: `// =================== AI 힌트 ===================
+// [핵심 아이디어] 다이나믹 프로그래밍 (DP)
 //
-//  dp[i] = i\uBC88\uC9F8 \uC704\uCE58\uC5D0\uC11C\uC758 \uCD5C\uC801\uAC12
+//  dp[i] = i번째 위치에서의 최적값
 //
-//  \uC810\uD654\uC2DD:
+//  점화식:
 //    dp[i] = Math.min(dp[i-1], dp[i-2]) + cost[i]
 //
-//  \uC21C\uC11C: dp \uBC30\uC5F4\uC744 \uC55E\uC5D0\uC11C\uBD80\uD130 \uCC44\uC6CC\uB098\uAC00\uC138\uC694.
-//  \uB9C8\uC9C0\uB9C9: Math.min(dp[n-1], dp[n-2]) \uAC00 \uC815\uB2F5\uC785\uB2C8\uB2E4.
+//  순서: dp 배열을 앞에서부터 채워나가세요.
+//  마지막: Math.min(dp[n-1], dp[n-2]) 가 정답입니다.
 // ================================================
 
 function solution(cost) {
-  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+  // 여기에 코드를 작성하세요
 }
 `,
-      Java: `// =================== AI \uD78C\uD2B8 ===================
-// [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC774\uB098\uBBF9 \uD504\uB85C\uADF8\uB798\uBC0D (DP)
+      Java: `// =================== AI 힌트 ===================
+// [핵심 아이디어] 다이나믹 프로그래밍 (DP)
 //
-//  dp[i] = i\uBC88\uC9F8 \uC704\uCE58\uC5D0\uC11C\uC758 \uCD5C\uC801\uAC12
+//  dp[i] = i번째 위치에서의 최적값
 //  dp[i] = Math.min(dp[i-1], dp[i-2]) + cost[i]
 //
-//  \uB9C8\uC9C0\uB9C9: Math.min(dp[n-1], dp[n-2]) \uAC00 \uC815\uB2F5
+//  마지막: Math.min(dp[n-1], dp[n-2]) 가 정답
 // ================================================
 class Solution {
     public int solution(int[] cost) {
-        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+        // 여기에 코드를 작성하세요
         return 0;
     }
 }
 `,
-      "C++": `// =================== AI \uD78C\uD2B8 ===================
-// [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC774\uB098\uBBF9 \uD504\uB85C\uADF8\uB798\uBC0D (DP)
+      "C++": `// =================== AI 힌트 ===================
+// [핵심 아이디어] 다이나믹 프로그래밍 (DP)
 //
-//  dp[i] = i\uBC88\uC9F8 \uC704\uCE58\uC5D0\uC11C\uC758 \uCD5C\uC801\uAC12
+//  dp[i] = i번째 위치에서의 최적값
 //  dp[i] = min(dp[i-1], dp[i-2]) + cost[i]
 //
-//  \uB9C8\uC9C0\uB9C9: min(dp[n-1], dp[n-2]) \uAC00 \uC815\uB2F5
+//  마지막: min(dp[n-1], dp[n-2]) 가 정답
 // ================================================
 int solution(vector<int> cost) {
-    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    // 여기에 코드를 작성하세요
     return 0;
 }
 `
     },
     answer: {
-      Python: `# ===================== \uC815\uB2F5 \uACF5\uAC1C =====================
+      Python: `# ===================== 정답 공개 =====================
 def solution(cost):
     n = len(cost)
     dp = [0] * n
@@ -131,7 +131,7 @@ def solution(cost):
         dp[i] = min(dp[i-1], dp[i-2]) + cost[i]
     return min(dp[n-1], dp[n-2])
 `,
-      JavaScript: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      JavaScript: `// =================== 정답 공개 ===================
 function solution(cost) {
   const n = cost.length;
   const dp = new Array(n).fill(0);
@@ -143,7 +143,7 @@ function solution(cost) {
   return Math.min(dp[n-1], dp[n-2]);
 }
 `,
-      Java: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      Java: `// =================== 정답 공개 ===================
 class Solution {
     public int solution(int[] cost) {
         int n = cost.length;
@@ -157,7 +157,7 @@ class Solution {
     }
 }
 `,
-      "C++": `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      "C++": `// =================== 정답 공개 ===================
 int solution(vector<int> cost) {
     int n = cost.size();
     vector<int> dp(n);
@@ -173,55 +173,55 @@ int solution(vector<int> cost) {
   },
   Graph: {
     hint: {
-      Python: `# ===================== AI \uD78C\uD2B8 =====================
-# [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC775\uC2A4\uD2B8\uB77C \uC54C\uACE0\uB9AC\uC998
+      Python: `# ===================== AI 힌트 =====================
+# [핵심 아이디어] 다익스트라 알고리즘
 #
-#  1. \uC6B0\uC120\uC21C\uC704 \uD050(min-heap)\uB97C \uC0AC\uC6A9\uD569\uB2C8\uB2E4.
-#  2. (\uAC70\uB9AC, \uB178\uB4DC) \uD615\uD0DC\uB85C \uD050\uC5D0 \uB123\uC2B5\uB2C8\uB2E4.
-#  3. \uAEBC\uB0B8 \uB178\uB4DC\uC758 \uAC70\uB9AC > \uC800\uC7A5\uB41C \uAC70\uB9AC\uBA74 \uC2A4\uD0B5.
-#  4. \uC778\uC811 \uB178\uB4DC\uB97C \uD0D0\uC0C9\uD558\uBA70 \uCD5C\uB2E8 \uAC70\uB9AC\uB97C \uAC31\uC2E0\uD569\uB2C8\uB2E4.
+#  1. 우선순위 큐(min-heap)를 사용합니다.
+#  2. (거리, 노드) 형태로 큐에 넣습니다.
+#  3. 꺼낸 노드의 거리 > 저장된 거리면 스킵.
+#  4. 인접 노드를 탐색하며 최단 거리를 갱신합니다.
 #
-#  import heapq  \u2190 \uD544\uC218!
+#  import heapq  ← 필수!
 # ====================================================
 def solution(n, edges, src):
-    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    # 여기에 코드를 작성하세요
     pass
 `,
-      JavaScript: `// =================== AI \uD78C\uD2B8 ===================
-// [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uB2E4\uC775\uC2A4\uD2B8\uB77C \uC54C\uACE0\uB9AC\uC998
+      JavaScript: `// =================== AI 힌트 ===================
+// [핵심 아이디어] 다익스트라 알고리즘
 //
-//  1. \uC6B0\uC120\uC21C\uC704 \uD050(Min-Heap) \uD65C\uC6A9
-//  2. [\uAC70\uB9AC, \uB178\uB4DC] \uD615\uD0DC\uB85C \uD050\uC5D0 \uC0BD\uC785
-//  3. \uAEBC\uB0B8 \uAC70\uB9AC > dist[node] \uC774\uBA74 \uC2A4\uD0B5
-//  4. \uC778\uC811 \uB178\uB4DC \uAC70\uB9AC \uAC31\uC2E0 \uD6C4 \uD050\uC5D0 \uC0BD\uC785
+//  1. 우선순위 큐(Min-Heap) 활용
+//  2. [거리, 노드] 형태로 큐에 삽입
+//  3. 꺼낸 거리 > dist[node] 이면 스킵
+//  4. 인접 노드 거리 갱신 후 큐에 삽입
 // ================================================
 function solution(n, edges, src) {
-  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+  // 여기에 코드를 작성하세요
 }
 `,
-      Java: `// =================== AI \uD78C\uD2B8 ===================
-// \uB2E4\uC775\uC2A4\uD2B8\uB77C: PriorityQueue<int[]> \uC0AC\uC6A9
-// new int[]{dist, node} \uD615\uD0DC\uB85C \uC0BD\uC785
+      Java: `// =================== AI 힌트 ===================
+// 다익스트라: PriorityQueue<int[]> 사용
+// new int[]{dist, node} 형태로 삽입
 // ================================================
 class Solution {
     public int[] solution(int n, int[][] edges, int src) {
-        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+        // 여기에 코드를 작성하세요
         return new int[n];
     }
 }
 `,
-      "C++": `// =================== AI \uD78C\uD2B8 ===================
-// \uB2E4\uC775\uC2A4\uD2B8\uB77C: priority_queue<pair<int, int>> \uD65C\uC6A9
-// {dist, node} \uD615\uD0DC\uB85C \uC0BD\uC785
+      "C++": `// =================== AI 힌트 ===================
+// 다익스트라: priority_queue<pair<int, int>> 활용
+// {dist, node} 형태로 삽입
 // ================================================
 vector<int> solution(int n, vector<vector<int>> edges, int src) {
-    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    // 여기에 코드를 작성하세요
     return vector<int>(n);
 }
 `
     },
     answer: {
-      Python: `# ===================== \uC815\uB2F5 \uACF5\uAC1C =====================
+      Python: `# ===================== 정답 공개 =====================
 import heapq
 
 def solution(n, edges, src):
@@ -244,7 +244,7 @@ def solution(n, edges, src):
 
     return [-1 if d == float('inf') else d for d in dist]
 `,
-      JavaScript: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      JavaScript: `// =================== 정답 공개 ===================
 function solution(n, edges, src) {
   const graph = Array.from({length: n}, () => []);
   for (const [u, v, w] of edges) graph[u].push([v, w]);
@@ -267,7 +267,7 @@ function solution(n, edges, src) {
   return dist.map(d => d === Infinity ? -1 : d);
 }
 `,
-      Java: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      Java: `// =================== 정답 공개 ===================
 import java.util.*;
 class Solution {
     public int[] solution(int n, int[][] edges, int src) {
@@ -294,7 +294,7 @@ class Solution {
     }
 }
 `,
-      "C++": `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      "C++": `// =================== 정답 공개 ===================
 vector<int> solution(int n, vector<vector<int>> edges, int src) {
     vector<vector<pair<int, int>>> graph(n);
     for (auto &e : edges) graph[e[0]].push_back({e[1], e[2]});
@@ -317,50 +317,50 @@ vector<int> solution(int n, vector<vector<int>> edges, int src) {
   },
   Greedy: {
     hint: {
-      Python: `# ===================== AI \uD78C\uD2B8 =====================
-# [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uADF8\uB9AC\uB514 \u2014 \uC885\uB8CC \uC2DC\uAC04 \uAE30\uC900 \uC815\uB82C
+      Python: `# ===================== AI 힌트 =====================
+# [핵심 아이디어] 그리디 — 종료 시간 기준 정렬
 #
-#  1. \uD68C\uC758\uB97C \uC885\uB8CC \uC2DC\uAC04 \uAE30\uC900\uC73C\uB85C \uC624\uB984\uCC28\uC21C \uC815\uB82C
-#  2. \uAC00\uC7A5 \uC77C\uCC0D \uB05D\uB098\uB294 \uD68C\uC758\uB97C \uBA3C\uC800 \uC120\uD0DD
-#  3. \uD604\uC7AC \uD68C\uC758 \uC2DC\uC791 >= \uB9C8\uC9C0\uB9C9 \uC120\uD0DD \uC885\uB8CC \uC774\uBA74 \uC120\uD0DD
+#  1. 회의를 종료 시간 기준으로 오름차순 정렬
+#  2. 가장 일찍 끝나는 회의를 먼저 선택
+#  3. 현재 회의 시작 >= 마지막 선택 종료 이면 선택
 #
-#  \uC65C? \uC77C\uCC0D \uB05D\uB0A0\uC218\uB85D \uB2E4\uC74C \uD68C\uC758\uB97C \uB354 \uB9CE\uC774 \uB123\uC744 \uC218 \uC788\uC74C
+#  왜? 일찍 끝날수록 다음 회의를 더 많이 넣을 수 있음
 # ====================================================
 def solution(meetings):
-    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    # 여기에 코드를 작성하세요
     pass
 `,
-      JavaScript: `// =================== AI \uD78C\uD2B8 ===================
-// [\uD575\uC2EC \uC544\uC774\uB514\uC5B4] \uADF8\uB9AC\uB514 \u2014 \uC885\uB8CC \uC2DC\uAC04 \uAE30\uC900 \uC815\uB82C
+      JavaScript: `// =================== AI 힌트 ===================
+// [핵심 아이디어] 그리디 — 종료 시간 기준 정렬
 //
 //  meetings.sort((a, b) => a[1] - b[1])
-//  \uC885\uB8CC \uC2DC\uAC04\uC774 \uC774\uB978 \uD68C\uC758\uBD80\uD130 \uD0D0\uC695\uC801\uC73C\uB85C \uC120\uD0DD
+//  종료 시간이 이른 회의부터 탐욕적으로 선택
 // ================================================
 function solution(meetings) {
-  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+  // 여기에 코드를 작성하세요
 }
 `,
-      Java: `// =================== AI \uD78C\uD2B8 ===================
-// \uC885\uB8CC \uC2DC\uAC04 \uAE30\uC900 \uC815\uB82C \uD6C4 \uADF8\uB9AC\uB514 \uC120\uD0DD
+      Java: `// =================== AI 힌트 ===================
+// 종료 시간 기준 정렬 후 그리디 선택
 // ================================================
 class Solution {
     public int solution(int[][] meetings) {
-        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+        // 여기에 코드를 작성하세요
         return 0;
     }
 }
 `,
-      "C++": `// =================== AI \uD78C\uD2B8 ===================
-// \uC885\uB8CC \uC2DC\uAC04 \uAE30\uC900 \uC815\uB82C \uD6C4 \uADF8\uB9AC\uB514 \uC120\uD0DD
+      "C++": `// =================== AI 힌트 ===================
+// 종료 시간 기준 정렬 후 그리디 선택
 // ================================================
 int solution(vector<vector<int>> meetings) {
-    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    // 여기에 코드를 작성하세요
     return 0;
 }
 `
     },
     answer: {
-      Python: `# ===================== \uC815\uB2F5 \uACF5\uAC1C =====================
+      Python: `# ===================== 정답 공개 =====================
 def solution(meetings):
     meetings.sort(key=lambda x: x[1])
     count = 0
@@ -371,7 +371,7 @@ def solution(meetings):
             end = finish
     return count
 `,
-      JavaScript: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      JavaScript: `// =================== 정답 공개 ===================
 function solution(meetings) {
   meetings.sort((a, b) => a[1] - b[1]);
   let count = 0, end = -1;
@@ -384,7 +384,7 @@ function solution(meetings) {
   return count;
 }
 `,
-      Java: `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      Java: `// =================== 정답 공개 ===================
 import java.util.*;
 class Solution {
     public int solution(int[][] meetings) {
@@ -397,7 +397,7 @@ class Solution {
     }
 }
 `,
-      "C++": `// =================== \uC815\uB2F5 \uACF5\uAC1C ===================
+      "C++": `// =================== 정답 공개 ===================
 int solution(vector<vector<int>> meetings) {
     sort(meetings.begin(), meetings.end(), [](auto &a, auto &b) { return a[1] < b[1]; });
     int count = 0, end = -1;
@@ -411,51 +411,51 @@ int solution(vector<vector<int>> meetings) {
   }
 };
 const FALLBACK_HINTS = {
-  Python: `# ===================== AI \uD78C\uD2B8 =====================
-# \uC774 \uBB38\uC81C\uC758 \uCE74\uD14C\uACE0\uB9AC: {CATEGORY}
+  Python: `# ===================== AI 힌트 =====================
+# 이 문제의 카테고리: {CATEGORY}
 #
-# [\uC811\uADFC \uBC29\uBC95]
-#  1. \uC785\uB825 \uC870\uAC74\uACFC \uBC94\uC704\uB97C \uBA3C\uC800 \uD30C\uC545\uD558\uC138\uC694.
-#  2. \uC608\uC2DC \uCF00\uC774\uC2A4\uB97C \uC190\uC73C\uB85C \uC9C1\uC811 \uB530\uB77C\uAC00 \uBCF4\uC138\uC694.
-#  3. \uBE0C\uB8E8\uD2B8\uD3EC\uC2A4\uB85C \uBA3C\uC800 \uD480\uACE0, \uCD5C\uC801\uD654\uB97C \uACE0\uBBFC\uD558\uC138\uC694.
+# [접근 방법]
+#  1. 입력 조건과 범위를 먼저 파악하세요.
+#  2. 예시 케이스를 손으로 직접 따라가 보세요.
+#  3. 브루트포스로 먼저 풀고, 최적화를 고민하세요.
 #
-# [\uC790\uC8FC \uC4F0\uB294 \uD328\uD134]
-#  - \uBC18\uBCF5\uBB38 \uB0B4\uC5D0\uC11C \uC0C1\uD0DC\uB97C \uB204\uC801\uD558\uAC70\uB098 \uAC31\uC2E0\uD569\uB2C8\uB2E4.
-#  - \uC774\uC804 \uACB0\uACFC\uB97C \uC7AC\uD65C\uC6A9\uD560 \uC218 \uC788\uB294\uC9C0 \uD655\uC778\uD558\uC138\uC694.
+# [자주 쓰는 패턴]
+#  - 반복문 내에서 상태를 누적하거나 갱신합니다.
+#  - 이전 결과를 재활용할 수 있는지 확인하세요.
 # ====================================================
 def solution(nums):
-    # \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    # 여기에 코드를 작성하세요
     pass
 `,
-  JavaScript: `// =================== AI \uD78C\uD2B8 ===================
-// \uC774 \uBB38\uC81C\uC758 \uCE74\uD14C\uACE0\uB9AC: {CATEGORY}
+  JavaScript: `// =================== AI 힌트 ===================
+// 이 문제의 카테고리: {CATEGORY}
 //
-// [\uC811\uADFC \uBC29\uBC95]
-//  1. \uC785\uB825 \uC870\uAC74\uACFC \uBC94\uC704\uB97C \uBA3C\uC800 \uD30C\uC545\uD558\uC138\uC694.
-//  2. \uC608\uC2DC \uCF00\uC774\uC2A4\uB97C \uC190\uC73C\uB85C \uC9C1\uC811 \uB530\uB77C\uAC00 \uBCF4\uC138\uC694.
-//  3. \uBE0C\uB8E8\uD2B8\uD3EC\uC2A4\uB85C \uBA3C\uC800 \uD480\uACE0, \uCD5C\uC801\uD654\uB97C \uACE0\uBBFC\uD558\uC138\uC694.
+// [접근 방법]
+//  1. 입력 조건과 범위를 먼저 파악하세요.
+//  2. 예시 케이스를 손으로 직접 따라가 보세요.
+//  3. 브루트포스로 먼저 풀고, 최적화를 고민하세요.
 // ================================================
 function solution(nums) {
-  // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+  // 여기에 코드를 작성하세요
 }
 `,
-  Java: `// =================== AI \uD78C\uD2B8 ===================
-// \uCE74\uD14C\uACE0\uB9AC: {CATEGORY}
-// \uC785\uB825 \uBC94\uC704 \uD655\uC778 \u2192 \uC608\uC2DC \uD2B8\uB808\uC774\uC2F1 \u2192 \uCD5C\uC801\uD654 \uC21C\uC73C\uB85C!
+  Java: `// =================== AI 힌트 ===================
+// 카테고리: {CATEGORY}
+// 입력 범위 확인 → 예시 트레이싱 → 최적화 순으로!
 // ================================================
 class Solution {
     public int solution(int[] nums) {
-        // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+        // 여기에 코드를 작성하세요
         return 0;
     }
 }
 `,
-  "C++": `// =================== AI \uD78C\uD2B8 ===================
-// \uCE74\uD14C\uACE0\uB9AC: {CATEGORY}
-// \uC785\uB825 \uBC94\uC704 \uD655\uC778 \u2192 \uC608\uC2DC \uD2B8\uB808\uC774\uC2F1 \u2192 \uCD5C\uC801\uD654 \uC21C\uC73C\uB85C!
+  "C++": `// =================== AI 힌트 ===================
+// 카테고리: {CATEGORY}
+// 입력 범위 확인 → 예시 트레이싱 → 최적화 순으로!
 // ================================================
 int solution(vector<int> nums) {
-    // \uC5EC\uAE30\uC5D0 \uCF54\uB4DC\uB97C \uC791\uC131\uD558\uC138\uC694
+    // 여기에 코드를 작성하세요
     return 0;
 }
 `
@@ -464,7 +464,7 @@ function getHint(category, lang) {
   return HINTS[category]?.hint[lang] ?? FALLBACK_HINTS[lang]?.replace("{CATEGORY}", category) ?? "";
 }
 function getAnswer(category, lang) {
-  return HINTS[category]?.answer[lang] ?? `# \uC774 \uCE74\uD14C\uACE0\uB9AC(${category})\uC758 \uC815\uB2F5 \uCF54\uB4DC\uB97C \uC900\uBE44 \uC911\uC785\uB2C8\uB2E4.
+  return HINTS[category]?.answer[lang] ?? `# 이 카테고리(${category})의 정답 코드를 준비 중입니다.
 `;
 }
 const INITIAL_LANG = "Python";
@@ -490,6 +490,8 @@ function SolvePage() {
   const [codeResult, setCodeResult] = useState("idle");
   const [codeReport, setCodeReport] = useState(null);
   const [submittedCount, setSubmittedCount] = useState(null);
+  // 코드에디터 하단 결과 영역 탭: "test"(테스트 결과) | "examples"(예시 실행 결과)
+  const [resultTab, setResultTab] = useState("test");
   const [hintsUsed, setHintsUsed] = useState(0);
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
@@ -616,6 +618,11 @@ function SolvePage() {
     setApiError("");
     setTimeout(() => approachInputRef.current?.focus(), 0);
   }
+  // 힌트 로딩 실패 시 표시할 문구 (단계별로 다름, 알려진 에러 코드가 있으면 그 메시지를 우선함)
+  function hintErrorMessage(stage, error) {
+    if (error?.code) return getApiErrorMessage(error);
+    return stage === 1 ? "힌트를 불러오지 못했습니다." : "정답을 불러오지 못했습니다.";
+  }
   // 단계(1: 주석, 2: 정답)와 언어에 맞는 힌트를 가져옴
   async function fetchHint(stage, language) {
     // 1. 목 모드면 화면에 있는 목 힌트를 반환
@@ -643,8 +650,8 @@ function SolvePage() {
       // 3. 주석 힌트는 새 언어 시작 코드 위에 주석으로 얹고, 정답 힌트는 통째로 교체
       setCode(hintsUsed === 1 ? `${toComment(hint.content, l)}\n\n${starter}` : hint.content);
     } catch (error) {
-      // 4. 실패하면 에러만 표시 (시작 코드 유지)
-      setApiError(getApiErrorMessage(error));
+      // 4. 실패하면 에러만 표시 (시작 코드·사용 횟수 유지)
+      setApiError(hintErrorMessage(hintsUsed, error));
     } finally {
       setHintLoading(false);
     }
@@ -661,8 +668,8 @@ function SolvePage() {
       // 3. 사용 횟수를 서버가 알려준 단계로 맞춤
       setHintsUsed(hint.stage);
     } catch (error) {
-      // 4. 실패하면 에러만 표시 (횟수와 에디터는 그대로)
-      setApiError(getApiErrorMessage(error));
+      // 4. 실패하면 에러만 표시 (횟수와 에디터는 그대로, 요청했던 단계 기준으로 문구를 고름)
+      setApiError(hintErrorMessage(hintsUsed + 1, error));
     } finally {
       setHintLoading(false);
     }
@@ -682,18 +689,19 @@ function SolvePage() {
           language: lang,
           sourceCode: code
         }, crypto.randomUUID());
-        // 2. 결과 종류와 통과 개수를 저장 (화면에 함께 표시)
+        // 2. 결과 종류와 통과 개수, 테스트별 판정을 저장 (화면에 함께 표시)
         setCodeReport({
           result: result.judging_result,
           passed: result.passed_test_count,
-          total: result.total_test_count
+          total: result.total_test_count,
+          testResults: result.test_results ?? null
         });
         // 3. 이번까지 사용한 제출 횟수를 저장 (버튼의 n/5 표시에 사용)
         setSubmittedCount(result.submitted_count);
         setCodeResult(result.judging_result === "CORRECT" ? "pass" : "fail");
       }
     } catch (error) {
-      setApiError(getApiErrorMessage(error));
+      setApiError(error?.code ? getApiErrorMessage(error) : "코드를 제출하지 못했습니다.");
       // 제출 횟수를 다 썼다는 오류면, 버튼이 계속 5/5로 보이도록 횟수를 저장
       if (error.code === "submission_limit_exceeded" && error.data?.submitted_count != null) {
         setSubmittedCount(error.data.submitted_count);
@@ -797,7 +805,7 @@ function SolvePage() {
     className="w-full py-4 rounded-2xl text-sm font-bold text-white transition-all active:scale-95 disabled:opacity-40"
     style={{ fontFamily: "'Outfit', sans-serif", background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)", boxShadow: canSubmit ? "0 4px 20px rgba(124,58,237,0.35)" : "none" }}
   >
-              {submitStage === "grading" ? "\uCC44\uC810 \uC911..." : "\uC811\uADFC \uBC29\uC2DD \uC81C\uCD9C"}
+              {submitStage === "grading" ? "채점 중..." : "접근 방식 제출"}
             </button>}
 
           {apiError && <p className="text-center text-xs text-rose-400" role="alert">{apiError}</p>}
@@ -916,9 +924,6 @@ function SolvePage() {
     onMouseDown={(e) => e.stopPropagation()}
     onTouchStart={(e) => e.stopPropagation()}
   >
-                {codeResult === "pass" && <p className="text-emerald-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ {codeReport ? `정답 (${codeReport.passed}/${codeReport.total} 통과)` : "테스트 통과"}</p>}
-                {codeResult === "fail" && <p className="text-rose-400 text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ {codeReport ? `${CODE_RESULT_LABEL[codeReport.result] ?? "오답"} (${codeReport.passed}/${codeReport.total} 통과)` : "오답"} — 다시 시도해 보세요</p>}
-
                 <div className="flex gap-2">
                   {
     /* Hint button */
@@ -946,7 +951,7 @@ function SolvePage() {
                           <path d="M6 1l1.2 3.6H11l-3 2.2 1.1 3.5L6 8.7l-3.1 1.6 1.1-3.5-3-2.2h3.8L6 1z" fill="#C084FC" fillOpacity="0.8" />
                         </svg>
                         정답 공개
-                      </> : "\uD78C\uD2B8 \uC18C\uC9C4"}
+                      </> : "힌트 소진"}
                   </button>
 
                   {
@@ -975,8 +980,66 @@ function SolvePage() {
   />)}
                   </div>
                   <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {hintsUsed === 0 ? "2\uD68C \uB0A8\uC74C" : hintsUsed === 1 ? "1\uD68C \uB0A8\uC74C" : "\uC18C\uC9C4"}
+                    {hintsUsed === 0 ? "2회 남음" : hintsUsed === 1 ? "1회 남음" : "소진"}
                   </span>
+                </div>
+              </div>
+
+              {
+    /* 테스트 결과 / 예시 실행 결과 탭 */
+  }
+              <div className="border-t border-[#1E1D35]" onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+                <div className="flex">
+                  {[{ key: "test", label: "테스트 결과" }, { key: "examples", label: "예시 실행 결과" }].map((tab) => <button
+    key={tab.key}
+    onClick={() => setResultTab(tab.key)}
+    className="flex-1 py-2 text-[11px] font-semibold border-b-2 transition-all"
+    style={{
+      fontFamily: "'Outfit', sans-serif",
+      color: resultTab === tab.key ? "#C084FC" : "#4A4870",
+      borderColor: resultTab === tab.key ? "#7C3AED" : "transparent"
+    }}
+  >
+                      {tab.label}
+                    </button>)}
+                </div>
+
+                <div className="px-3 py-2.5 max-h-[180px] overflow-y-auto">
+                  {resultTab === "test" ? (
+                    codeResult === "running" ? <div className="flex flex-col gap-1">
+                        <p className="text-[11px] text-[#A89EC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>채점 중입니다</p>
+                        <p className="text-[10px] text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>최대 20개의 비공개 테스트를 실행하고 있어요.</p>
+                        <p className="text-[10px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>안내: 입력값과 기대 출력값은 공개되지 않아요.</p>
+                      </div>
+                    : codeReport?.testResults ? <>
+                        {
+    /* 1. 테스트케이스 순서대로 통과/실패 표시 */
+  }
+                        <ul className="flex flex-col gap-1 mb-2">
+                          {codeReport.testResults.map((verdict, i) => <li key={i} className="flex items-center gap-1.5 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                              <span style={{ color: verdict === "CORRECT" ? "#34D399" : "#F87171" }}>{verdict === "CORRECT" ? "✓" : "✗"}</span>
+                              <span className="text-[#A89EC4]">테스트 {i + 1}</span>
+                            </li>)}
+                        </ul>
+                        {
+    /* 2. 전체 결과 요약 */
+  }
+                        <p className="text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace", color: codeResult === "pass" ? "#34D399" : "#F87171" }}>
+                          {codeResult === "pass" ? "모든 테스트를 통과했어요!" : `${CODE_RESULT_LABEL[codeReport.result] ?? "오답"} (${codeReport.passed}/${codeReport.total} 통과)`}
+                        </p>
+                      </>
+                    : codeResult === "pass" ? <p className="text-emerald-400 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ 정답</p>
+                    : codeResult === "fail" ? <p className="text-rose-400 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ 오답 — 다시 시도해 보세요</p>
+                    : <p className="text-[11px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>아직 제출하지 않았어요</p>
+                  ) : p.examples.length === 0 ? (
+                    <p className="text-[11px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>등록된 예시가 없습니다.</p>
+                  ) : (
+                    p.examples.map((ex, i) => <div key={i} className="mb-2 last:mb-0">
+                        <p className="text-[10px] text-[#6B6890] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
+                        <p className="text-[11px] text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
+                        <p className="text-[11px] text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
+                      </div>)
+                  )}
                 </div>
               </div>
             </>}
