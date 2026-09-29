@@ -5,9 +5,10 @@ import { getDailyProblems } from "../../api/dailyProblemApi.js";
 import { getApiErrorMessage, getProblem } from "../../api/problemApi.js";
 import { useAuth } from "../auth/authContext.js";
 import { createActivityHeatmap } from "./activityHeatmap.js";
+import { readDailySolvedProblemIds } from "./dailyProgress.js";
 import { setCurrentProblem } from "../../store.js";
 
-export function useHomePage({ solvedKey }) {
+export function useHomePage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [problems, setProblems] = useState([]);
@@ -18,13 +19,7 @@ export function useHomePage({ solvedKey }) {
   const [problemOpenError, setProblemOpenError] = useState("");
   const [heatmap, setHeatmap] = useState(() => createActivityHeatmap());
   const user = currentUser || {};
-  const [solved] = useState(() => {
-    try {
-      return new Set(JSON.parse(localStorage.getItem(solvedKey) || "[]"));
-    } catch {
-      return new Set();
-    }
-  });
+  const [solved] = useState(() => readDailySolvedProblemIds());
   const [cardIndex, setCardIndex] = useState(0);
   const [heatTip, setHeatTip] = useState(null);
   const solvedCount = problems.filter((problem) => solved.has(problem.id)).length;
@@ -78,7 +73,7 @@ export function useHomePage({ solvedKey }) {
 
     try {
       const problem = await getProblem(currentProblem.id);
-      setCurrentProblem(problem);
+      setCurrentProblem({ ...problem, isDailyProblem: true });
       navigate(`/problems/${currentProblem.id}`);
     } catch (error) {
       setProblemOpenError(getApiErrorMessage(error));

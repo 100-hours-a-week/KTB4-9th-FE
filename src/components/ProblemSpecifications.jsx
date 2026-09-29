@@ -1,3 +1,5 @@
+import MathText from "./common/MathText.jsx";
+
 const DATA_TYPE_LABELS = {
   INT: "INT",
   LONG: "LONG",
@@ -33,7 +35,7 @@ function FormatRow({ label, children }) {
       <span className="flex h-6 items-center justify-center rounded-md bg-[#7C3AED]/15 text-[10px] font-semibold text-[#A78BFA]">
         {label}
       </span>
-      <p className="break-words text-xs leading-6 text-[#8B87AA]">{children}</p>
+      <p className="break-words text-xs leading-6 text-[#8B87AA]"><MathText text={children} /></p>
     </div>
   );
 }
@@ -78,7 +80,7 @@ export function ProblemConditions({
                     {constraint.scope === "OUTPUT" && (
                       <span className="rounded-md bg-[#A855F7]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[#C084FC]">출력</span>
                     )}
-                    <code className="text-xs font-semibold text-[#C8B8F8]">{formatRange(constraint)}</code>
+                    <code className="text-xs font-semibold text-[#C8B8F8]"><MathText text={formatRange(constraint)} /></code>
                     {constraint.dataType && (
                       <span className="rounded-md border border-[#2A2845] px-1.5 py-0.5 text-[9px] text-[#6B6890]">
                         {DATA_TYPE_LABELS[constraint.dataType] ?? constraint.dataType}
@@ -86,7 +88,7 @@ export function ProblemConditions({
                     )}
                   </div>
                   {conditions.length > 0 && (
-                    <p className="mt-1.5 text-[10px] leading-5 text-[#5F5B80]">{conditions.join(" · ")}</p>
+                    <p className="mt-1.5 text-[10px] leading-5 text-[#5F5B80]"><MathText text={conditions.join(" · ")} /></p>
                   )}
                 </div>
               );
@@ -94,7 +96,7 @@ export function ProblemConditions({
 
             {!hasStructuredConstraints && legacyConstraints.map((constraint, index) => (
               <div key={`${constraint}-${index}`} className="rounded-xl border border-[#1E1D35] bg-[#080814] px-3.5 py-3">
-                <code className="text-xs text-[#8B87AA]">{constraint}</code>
+                <code className="text-xs text-[#8B87AA]"><MathText text={constraint} /></code>
               </div>
             ))}
           </div>
