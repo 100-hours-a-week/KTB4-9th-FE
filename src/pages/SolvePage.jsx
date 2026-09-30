@@ -1019,41 +1019,65 @@ function SolvePage() {
                     </button>)}
                 </div>
 
-                <div className="px-3 py-2.5 max-h-[180px] overflow-y-auto">
+                <div className="px-3 py-3 max-h-[240px] overflow-y-auto">
                   {resultTab === "test" ? (
-                    codeResult === "running" ? <div className="flex flex-col gap-1">
-                        <p className="text-[11px] text-[#A89EC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>채점 중입니다</p>
-                        <p className="text-[10px] text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>최대 20개의 비공개 테스트를 실행하고 있어요.</p>
-                        <p className="text-[10px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>안내: 입력값과 기대 출력값은 공개되지 않아요.</p>
+                    codeResult === "running" ? <div className="flex flex-col items-center gap-3 py-3 text-center">
+                        {
+    /* 1. 채점 중 스피너 */
+  }
+                        <div className="w-9 h-9 rounded-full border-[3px] border-[#2A2845] border-t-[#C084FC] animate-spin" />
+                        <div className="flex flex-col gap-1.5">
+                          <p className="text-sm font-bold text-[#E2E0F0]" style={{ fontFamily: "'Outfit', sans-serif" }}>채점 중입니다</p>
+                          <p className="text-xs text-[#8B87AD]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>최대 20개의 비공개 테스트를 실행하고 있어요.</p>
+                        </div>
+                        {
+    /* 2. 안내 박스 */
+  }
+                        <div className="w-full rounded-xl bg-[#0D0D1F] border border-[#1E1D35] px-3 py-2.5">
+                          <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>안내: 입력값과 기대 출력값은 공개되지 않아요.</p>
+                        </div>
                       </div>
                     : codeReport?.testResults ? <>
                         {
-    /* 1. 테스트케이스 순서대로 통과/실패 표시 */
+    /* 1. 전체 결과 요약 — 통과/실패에 따라 색이 다른 박스 (제일 먼저 보이도록 맨 위) */
   }
-                        <ul className="flex flex-col gap-1 mb-2">
-                          {codeReport.testResults.map((verdict, i) => <li key={i} className="flex items-center gap-1.5 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                              <span style={{ color: verdict === "CORRECT" ? "#34D399" : "#F87171" }}>{verdict === "CORRECT" ? "✓" : "✗"}</span>
-                              <span className="text-[#A89EC4]">테스트 {i + 1}</span>
+                        <div
+    className="rounded-xl border px-3 py-2.5 mb-3 animate-fadeIn"
+    style={{
+      background: codeResult === "pass" ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)",
+      borderColor: codeResult === "pass" ? "rgba(52,211,153,0.3)" : "rgba(248,113,113,0.3)"
+    }}
+  >
+                          <p className="text-sm font-bold mb-0.5" style={{ fontFamily: "'Outfit', sans-serif", color: codeResult === "pass" ? "#34D399" : "#F87171" }}>
+                            {codeResult === "pass" ? "모든 테스트를 통과했어요!" : CODE_RESULT_LABEL[codeReport.result] ?? "오답"}
+                          </p>
+                          <p className="text-xs text-[#8B87AD]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                            {codeResult === "pass" ? "정답 처리와 잔디·점수가 갱신됩니다." : `${codeReport.passed}/${codeReport.total} 통과 — 다시 시도해 보세요.`}
+                          </p>
+                        </div>
+                        {
+    /* 2. 테스트케이스별 통과/실패 상세 (요약 아래, 스크롤로 확인) */
+  }
+                        <ul className="flex flex-col gap-1.5">
+                          {codeReport.testResults.map((verdict, i) => <li key={i} className="flex items-center gap-2 text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                              <span className="font-bold" style={{ color: verdict === "CORRECT" ? "#34D399" : "#F87171" }}>{verdict === "CORRECT" ? "✓" : "✗"}</span>
+                              <span className="text-[#C8C4E0]">테스트 {i + 1}</span>
                             </li>)}
                         </ul>
-                        {
-    /* 2. 전체 결과 요약 */
-  }
-                        <p className="text-[11px] animate-fadeIn" style={{ fontFamily: "'JetBrains Mono', monospace", color: codeResult === "pass" ? "#34D399" : "#F87171" }}>
-                          {codeResult === "pass" ? "모든 테스트를 통과했어요!" : `${CODE_RESULT_LABEL[codeReport.result] ?? "오답"} (${codeReport.passed}/${codeReport.total} 통과)`}
-                        </p>
                       </>
-                    : codeResult === "pass" ? <p className="text-emerald-400 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✓ 정답</p>
-                    : codeResult === "fail" ? <p className="text-rose-400 text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>✗ 오답 — 다시 시도해 보세요</p>
-                    : <p className="text-[11px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>아직 제출하지 않았어요</p>
+                    : codeResult === "pass" ? <p className="text-emerald-400 text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>✓ 정답</p>
+                    : codeResult === "fail" ? <p className="text-rose-400 text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>✗ 오답 — 다시 시도해 보세요</p>
+                    : <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>아직 제출하지 않았어요</p>
                   ) : p.examples.length === 0 ? (
-                    <p className="text-[11px] text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>등록된 예시가 없습니다.</p>
+                    <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>등록된 예시가 없습니다.</p>
                   ) : (
-                    p.examples.map((ex, i) => <div key={i} className="mb-2 last:mb-0">
-                        <p className="text-[10px] text-[#6B6890] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
-                        <p className="text-[11px] text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
-                        <p className="text-[11px] text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
-                      </div>)
+                    <div className="flex flex-col gap-2">
+                      {p.examples.map((ex, i) => <div key={i} className="rounded-xl bg-[#06060E] border border-[#1E1D35] p-3">
+                          <p className="text-xs text-[#8B87AD] mb-1.5 font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
+                          <p className="text-sm text-[#C8B8F8] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
+                          <p className="text-sm text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
+                        </div>)}
+                    </div>
                   )}
                 </div>
               </div>
