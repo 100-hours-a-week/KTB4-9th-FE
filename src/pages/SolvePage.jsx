@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useBlocker, useLocation, useNavigate, useParams } from "react-router";
 import {
   getApiErrorMessage,
   getHintByStage,
@@ -15,6 +15,7 @@ import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
 import MathText from "../components/common/MathText.jsx";
+import LeaveConfirmModal from "../components/common/LeaveConfirmModal.jsx";
 import {
   ExecutionLimitsCard,
   ProblemConditions,
@@ -502,6 +503,20 @@ function SolvePage() {
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
   const approachInputRef = useRef(null);
+  const location = useLocation();
+  // 문제 생성으로 들어왔고 아직 풀이를 제출하지 않았을 때만 이탈을 막음
+  const shouldConfirmLeave = !!location.state?.generated && submitStage === "idle";
+  // 1. 화면 안 이동(뒤로가기, 홈 이동 등)은 다른 경로로 갈 때 막고 모달을 띄움
+  const leaveBlocker = useBlocker(({ currentLocation, nextLocation }) =>
+    shouldConfirmLeave && currentLocation.pathname !== nextLocation.pathname
+  );
+  // 2. 새로고침, 탭 닫기는 브라우저 기본 확인창을 띄움
+  useEffect(() => {
+    if (!shouldConfirmLeave) return undefined;
+    const handleBeforeUnload = (event) => event.preventDefault();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [shouldConfirmLeave]);
   const [codePos, setCodePos] = useState({ x: 16, y: 120 });
   const [codeCollapsed, setCodeCollapsed] = useState(false);
   const dragging = useRef(false);
@@ -1094,6 +1109,9 @@ function SolvePage() {
             </>}
         </div>}
 
+      {leaveBlocker.state === "blocked" && (
+        <LeaveConfirmModal onStay={() => leaveBlocker.reset()} onLeave={() => leaveBlocker.proceed()} />
+      )}
     </div>;
 }
 export {

@@ -58,7 +58,7 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
       setCurrentProblem(problem);
       setStage("done");
       setTimeout(() => {
-        navigate(`/problems/${problem.id}`);
+        navigate(`/problems/${problem.id}`, { state: { generated: true } });
         setStage("config");
       }, 400);
     } catch (error) {
