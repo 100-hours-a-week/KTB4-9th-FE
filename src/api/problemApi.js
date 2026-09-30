@@ -93,6 +93,12 @@ export async function createProblem({ difficulty, category }) {
   }
 }
 
+// 오늘 문제 생성 사용 현황 조회 (횟수는 올라가지 않음)
+export async function getDailyUsage() {
+  const payload = await request('/problems/daily-usage')
+  return payload.data
+}
+
 export async function getProblem(problemId) {
   const payload = await request(`/problems/${problemId}`)
   return normalizeProblem(payload.data.problem)

@@ -1,22 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { createProblem, getApiErrorMessage, USE_MOCKS } from "../../api/problemApi.js";
+import { createProblem, getApiErrorMessage, getDailyUsage, USE_MOCKS } from "../../api/problemApi.js";
 import { setCurrentProblem } from "../../store.js";
-
-// 오늘 생성 사용 현황(dailyUsage)을 화면에 보여줄 한 줄 문구로 변환
-function formatDailyUsageLabel(dailyUsage) {
-  // 1. 아직 시도한 적 없으면 고정 안내 문구
-  if (!dailyUsage) {
-    return "하루에 3번 생성할 수 있어요";
-  }
-  const { limit, usedCount, remainingCount, resetAt } = dailyUsage;
-  // 2. 남은 횟수가 있으면 사용 현황
-  if (remainingCount > 0) {
-    return `오늘 ${usedCount}/${limit} 사용 · ${remainingCount}회 남음`;
-  }
-  // 3. 다 썼으면 초기화까지 남은 시간
-  return `오늘 생성 횟수를 모두 사용했어요 · ${formatResetIn(resetAt)}`;
-}
 
 // resetAt(초기화 시각)까지 남은 시간을 "약 N시간 뒤" 문구로 변환
 function formatResetIn(resetAt) {
@@ -33,6 +18,22 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
   const [dots, setDots] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [dailyUsage, setDailyUsage] = useState(null);
+
+  // 화면에 들어오면 오늘 사용 현황을 조회 (실패해도 화면은 그대로 사용)
+  useEffect(() => {
+    if (USE_MOCKS) return undefined;
+
+    let active = true;
+    getDailyUsage()
+      .then((usage) => {
+        if (active) setDailyUsage(usage);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleGenerate = async () => {
     setErrorMessage("");
@@ -76,7 +77,12 @@ export function useProblemGenerationPage({ categories, createMockProblem, mockCa
   return {
     category,
     categoryOptions: USE_MOCKS ? ["랜덤", ...mockCategories] : categories,
-    dailyUsageLabel: formatDailyUsageLabel(dailyUsage),
+    dailyLimit: dailyUsage?.limit ?? 3,
+    limitReached: !!dailyUsage && dailyUsage.remainingCount <= 0,
+    limitNotice: dailyUsage && dailyUsage.remainingCount <= 0
+      ? `오늘 생성 횟수를 모두 사용했어요 · ${formatResetIn(dailyUsage.resetAt)}`
+      : null,
+    usageCount: dailyUsage ? `${dailyUsage.usedCount}/${dailyUsage.limit}` : null,
     difficulty,
     dots,
     errorMessage,

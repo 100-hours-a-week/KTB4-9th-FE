@@ -174,14 +174,17 @@ export default function ProblemGenerationPage() {
 	const {
 		category,
 		categoryOptions,
-		dailyUsageLabel,
+		dailyLimit,
 		difficulty,
 		dots,
 		errorMessage,
 		handleGenerate,
+		limitNotice,
+		limitReached,
 		setCategory,
 		setDifficulty,
-		stage
+		stage,
+		usageCount
 	} = useProblemGenerationPage({
 		categories: CATEGORIES_WITH_RANDOM,
 		createMockProblem: getProblem,
@@ -258,14 +261,14 @@ export default function ProblemGenerationPage() {
           </div>
         </div>
 
-        <p className="mb-3 text-center text-xs text-[#6B6890]" style={{ fontFamily: "'Outfit', sans-serif" }}>{dailyUsageLabel}</p>
+        <p className={`mb-3 text-center text-xs ${limitReached ? "font-semibold text-rose-400" : "text-[#6B6890]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>{limitNotice ?? `하루에 ${dailyLimit}번 생성할 수 있어요`}</p>
         {errorMessage && <p className="mb-3 text-center text-xs text-rose-400" role="alert" style={{ fontFamily: "'Outfit', sans-serif" }}>{errorMessage}</p>}
-        <button onClick={handleGenerate} disabled={stage !== "config"} className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all duration-200 active:scale-95 disabled:opacity-50 mb-8" style={{
+        <button onClick={handleGenerate} disabled={stage !== "config" || limitReached} className="w-full py-4 rounded-2xl text-base font-bold text-white transition-all duration-200 active:scale-95 disabled:opacity-50 mb-8" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: "linear-gradient(135deg, #7C3AED 0%, #A855F7 100%)",
 		boxShadow: "0 4px 24px rgba(124,58,237,0.4)"
 	}}>
-          문제 생성하기
+          {usageCount ? `문제 생성하기 (${usageCount})` : "문제 생성하기"}
         </button>
       </div>
     </div>;
