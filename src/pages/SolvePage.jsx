@@ -622,7 +622,7 @@ function SolvePage() {
         p.isDailyProblem &&
         nextEvaluation.status === "completed" &&
         nextEvaluation.categoryCorrect &&
-        nextEvaluation.approachScore === 100
+        nextEvaluation.approachScore >= 85
       ) {
         markDailyProblemSolved(p.id);
       }
