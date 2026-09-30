@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
-import kakaoLoginButton from "../assets/kakao_login_medium_wide.png";
 import { useLoginPage } from "../features/auth/useLoginPage.js";
 export default function LoginPage() {
 	const { handleKakaoLogin } = useLoginPage();
@@ -183,10 +182,17 @@ export default function LoginPage() {
           type="button"
           onClick={handleKakaoLogin}
           aria-label="카카오 로그인"
-          className="w-full max-w-[300px] overflow-hidden rounded-xl transition-transform duration-150 active:scale-95"
+          className="relative flex h-[46px] w-full max-w-[300px] items-center justify-center rounded-xl bg-[#FEE500] transition-transform duration-150 active:scale-95"
           style={{ boxShadow: "0 4px 20px rgba(254,229,0,0.18)" }}
         >
-          <img src={kakaoLoginButton} alt="카카오 로그인" className="block h-auto w-full" />
+          {/* 카카오 말풍선 심볼 (공식 SVG의 path) */}
+          <svg className="absolute left-4 h-[21px] w-[22px]" viewBox="13 14 22 21" aria-hidden="true">
+            <path
+              d="M24.0014 14C17.9241 14 13 18.0219 13 22.9825C13 26.1711 15.0368 28.9728 18.1057 30.5656L17.0681 34.5677C17.0295 34.6871 17.0598 34.8151 17.1424 34.9033C17.2029 34.9659 17.2855 35 17.3653 35C17.4341 35 17.5029 34.9772 17.5607 34.9289L22.0196 31.8171C22.661 31.911 23.3215 31.9622 23.9986 31.9622C30.0732 31.9622 35 27.9403 35 22.9797C35 18.0191 30.0759 14 24.0014 14Z"
+              fill="#191919"
+            />
+          </svg>
+          <span className="text-[15px] font-medium text-black/85" style={{ fontFamily: "'Pretendard', 'Outfit', sans-serif" }}>카카오 로그인</span>
         </button>
 
         <p className="mt-6 text-xs text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>
