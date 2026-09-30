@@ -35,7 +35,7 @@ function FormatRow({ label, children }) {
       <span className="flex h-6 items-center justify-center rounded-md bg-[#7C3AED]/15 text-[10px] font-semibold text-[#A78BFA]">
         {label}
       </span>
-      <p className="break-words text-xs leading-6 text-[#8B87AA]"><MathText text={children} /></p>
+      <p className="break-words whitespace-pre-line text-xs leading-6 text-[#8B87AA]"><MathText text={children} /></p>
     </div>
   );
 }

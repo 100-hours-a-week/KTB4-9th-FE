@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import MathText from "../common/MathText.jsx";
 
 export default function ExpandableProblemContent({ content }) {
   const contentRef = useRef(null);
@@ -25,7 +26,7 @@ export default function ExpandableProblemContent({ content }) {
     <div className="mb-4">
       <p
         ref={contentRef}
-        className="text-sm text-[#6B6890] leading-relaxed"
+        className="text-sm text-[#6B6890] leading-relaxed whitespace-pre-line"
         style={{
           fontFamily: "'Outfit', sans-serif",
           ...(!expanded
@@ -38,7 +39,7 @@ export default function ExpandableProblemContent({ content }) {
             : {}),
         }}
       >
-        {content}
+        <MathText text={content} />
       </p>
 
       {canExpand && (

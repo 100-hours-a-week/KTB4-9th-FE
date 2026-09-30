@@ -768,8 +768,8 @@ function SolvePage() {
             </p>
             {p.examples.map((ex, i) => <div key={i} className="mb-2 rounded-xl bg-[#06060E] border border-[#1E1D35] p-3">
                 <p className="text-[10px] text-[#6B6890] mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
-                <p className="text-xs text-[#C8B8F8] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
-                <p className="text-xs text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
+                <p className="text-xs text-[#C8B8F8] mb-0.5 whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
+                <p className="text-xs text-[#C8B8F8] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
                 {ex.explanation && <p className="text-[11px] text-[#6B6890] mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}><MathText text={ex.explanation} /></p>}
               </div>)}
             <ProblemConditions
@@ -1084,8 +1084,8 @@ function SolvePage() {
                     <div className="flex flex-col gap-2">
                       {p.examples.map((ex, i) => <div key={i} className="rounded-xl bg-[#06060E] border border-[#1E1D35] p-3">
                           <p className="text-xs text-[#8B87AD] mb-1.5 font-semibold" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
-                          <p className="text-sm text-[#C8B8F8] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
-                          <p className="text-sm text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
+                          <p className="text-sm text-[#C8B8F8] mb-0.5 whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
+                          <p className="text-sm text-[#C8B8F8] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
                         </div>)}
                     </div>
                   )}

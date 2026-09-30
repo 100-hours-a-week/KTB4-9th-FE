@@ -117,3 +117,14 @@ textarea:focus, input:focus, button:focus {
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: default; }
+
+/* 수식(KaTeX)을 본문 글꼴·크기와 똑같이 표시 */
+.katex,
+.katex * {
+  font-family: inherit !important;
+  font-style: normal !important;
+}
+
+.katex {
+  font-size: 1.1em !important;
+}
