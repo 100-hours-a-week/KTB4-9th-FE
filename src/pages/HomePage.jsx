@@ -295,10 +295,10 @@ export default function HomePage() {
                   {currentProblem.examples.length > 1 && <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     예시 {i + 1}
                   </p>}
-                  <p className="text-xs text-[#8B7FC4]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <p className="text-xs text-[#8B7FC4] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
                   </p>
-                  <p className="text-xs text-[#C084FC]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <p className="text-xs text-[#C084FC] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
                   </p>
                   {ex.description && <p className="text-[11px] text-[#6B6890] mt-1 leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
