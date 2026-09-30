@@ -193,7 +193,7 @@ export default function ProblemGenerationPage() {
 	return <div className="h-full flex flex-col overflow-y-auto bg-[#05050F]">
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 40% at 50% 0%, rgba(124,58,237,0.12) 0%, transparent 60%)" }} />
 
-      {stage === "loading" && <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#05050F]">
+      {(stage === "loading" || stage === "done") && <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#05050F]">
           <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(124,58,237,0.15) 0%, transparent 70%)" }} />
           <div className="relative w-28 h-28 mb-10">
             <div className="absolute inset-0 rounded-full border-2 border-[#7C3AED]/30" style={{ animation: "spin 3s linear infinite" }} />
