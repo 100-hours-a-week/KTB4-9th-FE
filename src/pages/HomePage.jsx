@@ -2,10 +2,6 @@ import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import ExpandableProblemContent from "../components/home/ExpandableProblemContent.jsx";
 import { useHomePage } from "../features/home/useHomePage.js";
-function todaySeed() {
-	const d = new Date();
-	return d.getFullYear() * 1e4 + (d.getMonth() + 1) * 100 + d.getDate();
-}
 // ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
 const WEEKS = 20;
 // Returns month label per column (week): { col, label } only when month changes
@@ -106,7 +102,6 @@ function dateLabel(dateString) {
 	];
 	return `${d.getMonth() + 1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
 }
-const SOLVED_KEY = `cosmos_solved_${todaySeed()}`;
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export default function HomePage() {
 	const {
@@ -127,7 +122,7 @@ export default function HomePage() {
 		solved,
 		solvedCount,
 		user
-	} = useHomePage({ solvedKey: SOLVED_KEY });
+	} = useHomePage();
 	const dailyGoal = problems.length || 5;
 	const ds = DIFF_STYLE[currentProblem?.difficulty] || DIFF_STYLE["LV1"];
 	const catStyle = CAT_COLORS[currentProblem?.category] || "bg-[#1A1A2E] text-[#6B6890] border-[#2A2845]";

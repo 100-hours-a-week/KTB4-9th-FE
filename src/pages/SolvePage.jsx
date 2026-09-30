@@ -14,6 +14,7 @@ import {
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
+import MathText from "../components/common/MathText.jsx";
 import {
   ExecutionLimitsCard,
   ProblemConditions,
@@ -28,6 +29,7 @@ import {
   markApproachAnswerRevealed,
   saveApproachResult,
 } from "../features/approach/approachResultStorage.js";
+import { markDailyProblemSolved } from "../features/home/dailyProgress.js";
 import {
   DIFFICULTY_BADGE_CLASSES,
   PROBLEM_CATEGORIES,
@@ -616,6 +618,14 @@ function SolvePage() {
         evaluation: nextEvaluation,
         answerRevealed: false,
       });
+      if (
+        p.isDailyProblem &&
+        nextEvaluation.status === "completed" &&
+        nextEvaluation.categoryCorrect &&
+        nextEvaluation.approachScore === 100
+      ) {
+        markDailyProblemSolved(p.id);
+      }
       setSubmitStage("done");
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch (error) {
@@ -754,13 +764,13 @@ function SolvePage() {
               {p.title}
             </h2>
             <p className="text-sm text-[#A89EC4] leading-relaxed whitespace-pre-line mb-4" style={{ fontFamily: "'Outfit', sans-serif" }}>
-              {p.description}
+              <MathText text={p.description} />
             </p>
             {p.examples.map((ex, i) => <div key={i} className="mb-2 rounded-xl bg-[#06060E] border border-[#1E1D35] p-3">
                 <p className="text-[10px] text-[#6B6890] mb-1.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>예시 {i + 1}</p>
                 <p className="text-xs text-[#C8B8F8] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>입력: {ex.input}</p>
                 <p className="text-xs text-[#C8B8F8]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>출력: {ex.output}</p>
-                {ex.explanation && <p className="text-[11px] text-[#6B6890] mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}>{ex.explanation}</p>}
+                {ex.explanation && <p className="text-[11px] text-[#6B6890] mt-1" style={{ fontFamily: "'Outfit', sans-serif" }}><MathText text={ex.explanation} /></p>}
               </div>)}
             <ProblemConditions
               inputFormat={p.inputFormat}
