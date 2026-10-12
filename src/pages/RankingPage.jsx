@@ -25,11 +25,11 @@ export default function RankingPage() {
 
         {/* Tabs */}
         <div className="mb-3">
-          <div className="flex rounded-xl overflow-hidden border border-[#1E1D35]" style={{ background: "#08081A" }}>
+          <div className="flex rounded-xl overflow-hidden border border-[#1E1D35]" style={{ background: "var(--cosmos-surface-deep)" }}>
             {["난이도", "카테고리"].map((tab) => <button key={tab} onClick={() => selectRankTab(tab)} className="flex-1 py-2.5 text-sm font-semibold transition-all duration-150" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: rankTab === tab ? "linear-gradient(135deg, #7C3AED, #A855F7)" : "transparent",
-		color: rankTab === tab ? "white" : "#4A4870",
+		color: rankTab === tab ? "white" : "var(--cosmos-text-subtle)",
 		borderRadius: 10
 	}}>
                 {tab}
@@ -42,8 +42,8 @@ export default function RankingPage() {
           {(rankTab === "난이도" ? ["전체", ...PROBLEM_DIFFICULTIES] : ["전체", ...PROBLEM_CATEGORIES]).map((f) => <button key={f} onClick={() => setRankFilter(f)} className={`${rankTab === "난이도" ? "w-full px-0" : "px-3"} py-1.5 rounded-full text-[11px] font-medium border transition-all duration-150`} style={{
 		fontFamily: rankTab === "난이도" ? "'JetBrains Mono', monospace" : "'Outfit', sans-serif",
 		background: rankFilter === f ? "rgba(124,58,237,0.25)" : "transparent",
-		borderColor: rankFilter === f ? "rgba(168,85,247,0.5)" : "#2A2845",
-		color: rankFilter === f ? "#C084FC" : "#4A4870"
+		borderColor: rankFilter === f ? "rgba(168,85,247,0.5)" : "var(--cosmos-border-strong)",
+		color: rankFilter === f ? "var(--cosmos-accent-text)" : "var(--cosmos-text-subtle)"
 	}}>
               {f}
             </button>)}
@@ -94,18 +94,18 @@ export default function RankingPage() {
         {/* Leaderboard */}
         {hasRankingData ? <div className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] overflow-hidden">
           {rankings.map((entry, i) => <div key={`${entry.username}-${entry.rank}-${i}`} className="flex items-center gap-3 px-4 py-3.5" style={{
-		borderBottom: i < rankings.length - 1 ? "1px solid #1A1A2E" : "none",
+		borderBottom: i < rankings.length - 1 ? "1px solid var(--cosmos-border)" : "none",
 		background: myRanking?.username === entry.username ? "rgba(124,58,237,0.10)" : "transparent"
 	}}>
               <span className="w-6 text-center text-sm font-bold shrink-0" style={{
 		fontFamily: "'JetBrains Mono', monospace",
-		color: entry.rank === 1 ? "#FFD700" : entry.rank === 2 ? "#C0C0C0" : entry.rank === 3 ? "#CD7F32" : "#4A4870"
+		color: entry.rank === 1 ? "var(--cosmos-rank-gold)" : entry.rank === 2 ? "var(--cosmos-rank-silver)" : entry.rank === 3 ? "var(--cosmos-rank-bronze)" : "var(--cosmos-text-subtle)"
 	}}>
                 {entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : entry.rank === 3 ? "🥉" : entry.rank}
               </span>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold shrink-0" style={{
-		background: "#1E1D35",
-		color: "#8B7FC4",
+		background: "var(--cosmos-border)",
+		color: "var(--cosmos-text-purple)",
 		fontFamily: "'Outfit', sans-serif"
 	}}>
 				<ProfileAvatar src={entry.profileImageUrl} name={entry.username} className="h-full w-full rounded-xl object-cover" />

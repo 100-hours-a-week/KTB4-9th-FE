@@ -113,7 +113,7 @@ export default function MyPage() {
               <strong
                 className="text-2xl font-semibold"
                 style={{
-                  color: level === "전체" ? "#C084FC" : LEVEL_COLORS[level],
+                  color: level === "전체" ? "var(--cosmos-accent-text)" : LEVEL_COLORS[level],
                   fontFamily: "'JetBrains Mono', monospace",
                 }}
               >
