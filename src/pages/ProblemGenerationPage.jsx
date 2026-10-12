@@ -1,58 +1,12 @@
 import PageHeader from "../components/common/PageHeader.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
+import {
+	CATEGORIES_WITH_RANDOM,
+	DIFFICULTY_COLORS,
+	PROBLEM_DIFFICULTIES,
+	RANDOM_CATEGORY
+} from "../constants/problemOptions.js";
 import { useProblemGenerationPage } from "../features/problem-generation/useProblemGenerationPage.js";
-const DIFFICULTIES = [
-	"LV1",
-	"LV2",
-	"LV3",
-	"LV4",
-	"LV5"
-];
-const ALL_CATEGORIES = [
-	"Array",
-	"String",
-	"DP",
-	"Graph",
-	"Tree",
-	"Stack/Queue",
-	"Binary Search",
-	"Greedy",
-	"Backtracking",
-	"Two Pointer",
-	"Hash",
-	"Heap",
-	"Sorting",
-	"구현",
-	"완전탐색"
-];
-const CATEGORIES_WITH_RANDOM = ["랜덤", ...ALL_CATEGORIES];
-const DIFF_COLORS = {
-	LV1: {
-		bg: "bg-sky-500/15",
-		text: "text-sky-400",
-		border: "border-sky-500/30"
-	},
-	LV2: {
-		bg: "bg-emerald-500/15",
-		text: "text-emerald-400",
-		border: "border-emerald-500/30"
-	},
-	LV3: {
-		bg: "bg-amber-500/15",
-		text: "text-amber-400",
-		border: "border-amber-500/30"
-	},
-	LV4: {
-		bg: "bg-orange-500/15",
-		text: "text-orange-400",
-		border: "border-orange-500/30"
-	},
-	LV5: {
-		bg: "bg-rose-500/15",
-		text: "text-rose-400",
-		border: "border-rose-500/30"
-	}
-};
 const MOCK = {
 	DP: [{
 		id: "",
@@ -157,7 +111,7 @@ const MOCK = {
 };
 const MOCK_CATEGORIES = Object.keys(MOCK);
 function getProblem(difficulty, category) {
-	const requestedCat = category === "랜덤" ? MOCK_CATEGORIES[Math.floor(Math.random() * MOCK_CATEGORIES.length)] : category;
+	const requestedCat = category === RANDOM_CATEGORY ? MOCK_CATEGORIES[Math.floor(Math.random() * MOCK_CATEGORIES.length)] : category;
 	const resolvedCat = MOCK[requestedCat] ? requestedCat : "Array";
 	const pool = MOCK[resolvedCat];
 	const byDiff = pool.filter((p) => p.difficulty === difficulty);
@@ -167,7 +121,7 @@ function getProblem(difficulty, category) {
 		id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
 		difficulty,
 		category: resolvedCat,
-		categoryKnown: category !== "랜덤"
+		categoryKnown: category !== RANDOM_CATEGORY
 	};
 }
 export default function ProblemGenerationPage() {
@@ -219,7 +173,7 @@ export default function ProblemGenerationPage() {
             </div>
           </div>
           <p className="text-[#A855F7] text-base font-semibold mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>문제 생성 중{".".repeat(dots)}</p>
-          <p className="text-[#4A4870] text-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>{difficulty} · {category === "랜덤" ? "랜덤 카테고리" : category}</p>
+          <p className="text-[#4A4870] text-sm" style={{ fontFamily: "'Outfit', sans-serif" }}>{difficulty} · {category === RANDOM_CATEGORY ? "랜덤 카테고리" : category}</p>
           <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
         </div>}
 
@@ -229,8 +183,8 @@ export default function ProblemGenerationPage() {
         <div className="mb-6">
           <label className="block text-xs font-medium text-[#6B6890] mb-3 tracking-widest uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>난이도</label>
           <div className="grid grid-cols-5 gap-2">
-            {DIFFICULTIES.map((d) => {
-		const c = DIFF_COLORS[d];
+            {PROBLEM_DIFFICULTIES.map((d) => {
+		const c = DIFFICULTY_COLORS[d];
 		return <button key={d} onClick={() => setDifficulty(d)} className={`py-3 rounded-xl border text-sm font-semibold transition-all duration-150 ${difficulty === d ? `${c.bg} ${c.text} ${c.border} scale-105` : "bg-[#0D0D1F] text-[#4A4870] border-[#1E1D35]"}`} style={{ fontFamily: "'Outfit', sans-serif" }}>
                   {d}
                 </button>;
