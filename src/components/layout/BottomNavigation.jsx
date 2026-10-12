@@ -1,7 +1,7 @@
 import { NavLink } from "react-router";
 
 function SparkIcon({ active }) {
-  const color = active ? "#C084FC" : "#6B6890";
+  const color = active ? "var(--cosmos-accent-text)" : "var(--cosmos-text-muted)";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M12 2l2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round" fill={active ? color : "none"} fillOpacity="0.22" />
@@ -10,7 +10,7 @@ function SparkIcon({ active }) {
 }
 
 function BattleIcon({ active }) {
-  const color = active ? "#C084FC" : "#6B6890";
+  const color = active ? "var(--cosmos-accent-text)" : "var(--cosmos-text-muted)";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M13 2 4.5 13.5H11L10 22l9.5-12H13V2Z" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill={active ? color : "none"} fillOpacity="0.22" />
@@ -19,7 +19,7 @@ function BattleIcon({ active }) {
 }
 
 function HomeIcon({ active }) {
-  const color = active ? "#FFFFFF" : "#6B6890";
+  const color = active ? "var(--cosmos-nav-home-icon)" : "var(--cosmos-text-muted)";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-5H9v5H4a1 1 0 0 1-1-1v-9.5Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round" fill={active ? "rgba(255,255,255,0.16)" : "none"} />
@@ -28,7 +28,7 @@ function HomeIcon({ active }) {
 }
 
 function BookIcon({ active }) {
-  const color = active ? "#C084FC" : "#6B6890";
+  const color = active ? "var(--cosmos-accent-text)" : "var(--cosmos-text-muted)";
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M4 4h7v16H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Zm7 0h7a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-7V4Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round" fill={active ? color : "none"} fillOpacity="0.16" />
@@ -38,8 +38,8 @@ function BookIcon({ active }) {
 
 function RankingIcon({ active }) {
   const colors = active
-    ? ["#A855F7", "#C084FC", "#9333EA"]
-    : ["#3A3860", "#4A4870", "#2E2C50"];
+    ? ["#A855F7", "var(--cosmos-accent-text)", "#9333EA"]
+    : ["var(--cosmos-text-faint)", "var(--cosmos-text-subtle)", "var(--cosmos-border-strong)"];
 
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">

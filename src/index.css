@@ -38,8 +38,8 @@ html, body, #root {
 #root {
   max-width: 430px;
   margin-inline: auto;
-  border-inline: 1px solid rgba(42, 40, 69, 0.55);
-  box-shadow: 0 0 80px rgba(0, 0, 0, 0.45);
+  border-inline: 1px solid var(--cosmos-root-border);
+  box-shadow: var(--cosmos-root-shadow);
 }
 
 @media (max-width: 430px) {
@@ -52,11 +52,56 @@ html, body, #root {
 :root {
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
+  --cosmos-background: #05050F;
+  --cosmos-surface: #0D0D1F;
+  --cosmos-surface-deep: #08081A;
+  --cosmos-surface-soft: #151525;
+  --cosmos-popover: #0F0E1E;
+  --cosmos-border: #1E1D35;
+  --cosmos-border-strong: #2A2845;
+  --cosmos-text-primary: #E2E0F0;
+  --cosmos-text-secondary: #A89EC4;
+  --cosmos-text-muted: #6B6890;
+  --cosmos-text-subtle: #4A4870;
+  --cosmos-text-faint: #3A3860;
+  --cosmos-text-purple: #8B7FC4;
+  --cosmos-accent-text: #C084FC;
+  --cosmos-nav-home-icon: #FFFFFF;
+  --cosmos-rank-gold: #FFD700;
+  --cosmos-rank-silver: #C0C0C0;
+  --cosmos-rank-bronze: #CD7F32;
+  --cosmos-root-border: rgba(42, 40, 69, 0.55);
+  --cosmos-root-shadow: 0 0 80px rgba(0, 0, 0, 0.45);
+  color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --cosmos-background: #F7F5FC;
+  --cosmos-surface: #FFFFFF;
+  --cosmos-surface-deep: #FBFAFE;
+  --cosmos-surface-soft: #EFEBF7;
+  --cosmos-popover: #FFFFFF;
+  --cosmos-border: #DED8EA;
+  --cosmos-border-strong: #CBC3DC;
+  --cosmos-text-primary: #241D35;
+  --cosmos-text-secondary: #5F5673;
+  --cosmos-text-muted: #70677F;
+  --cosmos-text-subtle: #7B7289;
+  --cosmos-text-faint: #91899E;
+  --cosmos-text-purple: #67549B;
+  --cosmos-accent-text: #7C3AED;
+  --cosmos-nav-home-icon: #5B21B6;
+  --cosmos-rank-gold: #9A6A00;
+  --cosmos-rank-silver: #686875;
+  --cosmos-rank-bronze: #9A5323;
+  --cosmos-root-border: rgba(124, 58, 237, 0.12);
+  --cosmos-root-shadow: 0 0 70px rgba(58, 38, 85, 0.12);
+  color-scheme: light;
 }
 
 body {
-  background-color: #05050F;
-  color: #E2E0F0;
+  background-color: var(--cosmos-background);
+  color: var(--cosmos-text-primary);
   font-family: 'Outfit', sans-serif;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior: none;
@@ -117,6 +162,83 @@ textarea:focus, input:focus, button:focus {
 button, a { -webkit-tap-highlight-color: transparent; }
 button { cursor: pointer; }
 button:disabled { cursor: default; }
+
+.theme-toggle {
+  border-color: rgba(168, 85, 247, 0.32);
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--cosmos-accent-text);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.08);
+}
+
+:root[data-theme='light'] .theme-toggle {
+  border-color: rgba(124, 58, 237, 0.24);
+  background: #F0E8FD;
+  box-shadow: 0 4px 14px rgba(76, 29, 149, 0.08);
+}
+
+/* 기존 COSMOS 색상 유틸리티를 라이트 팔레트로 대응시킵니다. */
+:root[data-theme='light'] [class*='bg-[#05050F]'] { background-color: var(--cosmos-background) !important; }
+:root[data-theme='light'] [class*='bg-[#06060E]'],
+:root[data-theme='light'] [class*='bg-[#08081A]'],
+:root[data-theme='light'] [class*='bg-[#080814]'],
+:root[data-theme='light'] [class*='bg-[#0D0D1F]'],
+:root[data-theme='light'] [class*='bg-[#0F0E1E]'] { background-color: var(--cosmos-surface) !important; }
+:root[data-theme='light'] [class*='bg-[#0A0A16]'],
+:root[data-theme='light'] [class*='bg-[#0A0A1E]'] { background-color: var(--cosmos-surface-deep) !important; }
+:root[data-theme='light'] [class*='bg-[#12121F]'],
+:root[data-theme='light'] [class*='bg-[#121222]'],
+:root[data-theme='light'] [class*='bg-[#121126]'],
+:root[data-theme='light'] [class*='bg-[#151425]'],
+:root[data-theme='light'] [class*='bg-[#151525]'],
+:root[data-theme='light'] [class*='bg-[#151529]'],
+:root[data-theme='light'] [class*='bg-[#1A1A2E]'],
+:root[data-theme='light'] [class*='bg-[#1A1A30]'] { background-color: var(--cosmos-surface-soft) !important; }
+:root[data-theme='light'] [class*='bg-[#24103F]'],
+:root[data-theme='light'] [class*='bg-[#2A1355]'],
+:root[data-theme='light'] [class*='bg-[#351060]'] { background-color: #EADDFC !important; }
+
+:root[data-theme='light'] [class*='text-[#E2E0F0]'],
+:root[data-theme='light'] [class*='text-[#F2F0FA]'] { color: var(--cosmos-text-primary) !important; }
+:root[data-theme='light'] [class*='text-[#A89EC4]'],
+:root[data-theme='light'] [class*='text-[#8B87AA]'],
+:root[data-theme='light'] [class*='text-[#8B87AD]'],
+:root[data-theme='light'] [class*='text-[#8B87A8]'] { color: var(--cosmos-text-secondary) !important; }
+:root[data-theme='light'] [class*='text-[#6B6890]'],
+:root[data-theme='light'] [class*='text-[#77739A]'] { color: var(--cosmos-text-muted) !important; }
+:root[data-theme='light'] [class*='text-[#4A4870]'],
+:root[data-theme='light'] [class*='text-[#5F5B80]'] { color: var(--cosmos-text-subtle) !important; }
+:root[data-theme='light'] [class*='text-[#3A3860]'] { color: var(--cosmos-text-faint) !important; }
+:root[data-theme='light'] [class*='text-[#8B7FC4]'],
+:root[data-theme='light'] [class*='text-[#C8B8F8]'] { color: var(--cosmos-text-purple) !important; }
+:root[data-theme='light'] [class*='text-[#C084FC]'],
+:root[data-theme='light'] [class*='text-[#D8B4FE]'] { color: var(--cosmos-accent-text) !important; }
+
+:root[data-theme='light'] [class*='border-[#1A1A2E]'],
+:root[data-theme='light'] [class*='border-[#1A1A30]'],
+:root[data-theme='light'] [class*='border-[#1E1D35]'] { border-color: var(--cosmos-border) !important; }
+:root[data-theme='light'] [class*='border-[#252342]'],
+:root[data-theme='light'] [class*='border-[#2A2845]'] { border-color: var(--cosmos-border-strong) !important; }
+
+:root[data-theme='light'] .text-sky-300,
+:root[data-theme='light'] .text-sky-400 { color: #0369A1 !important; }
+:root[data-theme='light'] .text-emerald-300,
+:root[data-theme='light'] .text-emerald-400 { color: #047857 !important; }
+:root[data-theme='light'] .text-amber-300,
+:root[data-theme='light'] .text-amber-400 { color: #A16207 !important; }
+:root[data-theme='light'] .text-orange-300,
+:root[data-theme='light'] .text-orange-400 { color: #C2410C !important; }
+:root[data-theme='light'] .text-rose-300,
+:root[data-theme='light'] .text-rose-400 { color: #BE123C !important; }
+:root[data-theme='light'] .text-violet-300 { color: #6D28D9 !important; }
+:root[data-theme='light'] .text-teal-300 { color: #0F766E !important; }
+:root[data-theme='light'] .text-green-300 { color: #15803D !important; }
+:root[data-theme='light'] .text-pink-300 { color: #BE185D !important; }
+:root[data-theme='light'] .text-cyan-300 { color: #0E7490 !important; }
+
+:root[data-theme='light'] textarea,
+:root[data-theme='light'] input {
+  caret-color: #7C3AED;
+}
 
 /* 수식(KaTeX)을 본문 글꼴·크기와 똑같이 표시 */
 .katex,

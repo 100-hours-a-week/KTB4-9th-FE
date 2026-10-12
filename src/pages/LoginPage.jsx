@@ -167,7 +167,7 @@ export default function LoginPage() {
 
         <h1 className="text-4xl font-bold tracking-wider mb-2" style={{
 		fontFamily: "'JetBrains Mono', monospace",
-		color: "#E2E0F0"
+		color: "var(--cosmos-text-primary)"
 	}}>
           COSMOS
         </h1>

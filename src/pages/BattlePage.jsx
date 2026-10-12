@@ -23,7 +23,7 @@ export default function BattlePage() {
               "0 0 0 1px rgba(168,85,247,0.08), 0 18px 60px rgba(124,58,237,0.28)",
           }}
         >
-          <CosmosLogo size={58} color="#C084FC" />
+          <CosmosLogo size={58} color="var(--cosmos-accent-text)" />
         </div>
 
         <p

@@ -17,6 +17,7 @@ export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
 export const USE_REAL_PROBLEM = !USE_MOCKS || import.meta.env.VITE_USE_REAL_PROBLEM === 'true'
 export const USE_REAL_APPROACH = !USE_MOCKS || import.meta.env.VITE_USE_REAL_APPROACH === 'true'
 export const USE_REAL_HINT = !USE_MOCKS || import.meta.env.VITE_USE_REAL_HINT === 'true'
+export const USE_REAL_SAVED = !USE_MOCKS || import.meta.env.VITE_USE_REAL_SAVED === 'true'
 export const USE_REAL_CODE = !USE_MOCKS || import.meta.env.VITE_USE_REAL_CODE === 'true'
 
 const LANGUAGE_FROM_API = Object.fromEntries(
@@ -70,6 +71,20 @@ function normalizeProblem(raw) {
     constraints: Array.isArray(raw.constraints) ? raw.constraints : [],
     categoryKnown: true,
     usedHintStage: raw.usedHintStage ?? raw.used_hint_stage ?? 0,
+    saved: raw.saved === true,
+    // 내가 이전에 제출한 접근 방식과 코드 (없으면 null)
+    myApproach: raw.myApproach
+      ? {
+          ...raw.myApproach,
+          selectedCategory: CATEGORY_FROM_API[raw.myApproach.selectedCategory] ?? raw.myApproach.selectedCategory,
+        }
+      : null,
+    myCode: raw.myCode
+      ? {
+          ...raw.myCode,
+          language: LANGUAGE_FROM_API[raw.myCode.language] ?? raw.myCode.language,
+        }
+      : null,
   }
 }
 
