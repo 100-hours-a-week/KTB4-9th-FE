@@ -14,6 +14,7 @@ import {
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
+import BookmarkButton from "../components/common/BookmarkButton.jsx";
 import MathText from "../components/common/MathText.jsx";
 import LeaveConfirmModal from "../components/common/LeaveConfirmModal.jsx";
 import {
@@ -478,6 +479,7 @@ const INITIAL_LANG = "Python";
 function SolvePage() {
   const navigate = useNavigate();
   const { problemId } = useParams();
+  const location = useLocation();
   const [problem, setProblem] = useState(() => {
     const storedProblem = getCurrentProblem();
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
@@ -503,7 +505,6 @@ function SolvePage() {
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
   const approachInputRef = useRef(null);
-  const location = useLocation();
   // 문제 생성으로 들어왔고 아직 풀이를 제출하지 않았을 때만 이탈을 막음
   const shouldConfirmLeave = !!location.state?.generated && submitStage === "idle";
   // 1. 화면 안 이동(뒤로가기, 홈 이동 등)은 다른 경로로 갈 때 막고 모달을 띄움
@@ -556,12 +557,35 @@ function SolvePage() {
               categoryKnown: prev.categoryKnown ?? loadedProblem.categoryKnown,
             }
           : loadedProblem);
-        // 3. 힌트를 연 적이 있으면 횟수를 채우고, 현재 언어의 힌트를 에디터에 표시
+        // 3. 이전에 제출한 접근 방식이 있으면 제출 직후와 같은 결과 화면으로 엶
+        if (loadedProblem.myApproach) {
+          const mine = loadedProblem.myApproach;
+          setApproach(mine.naturalSolution);
+          setSelectedCat(mine.selectedCategory);
+          setEvaluation(normalizeApproachEvaluation(mine, { ...loadedProblem, categoryKnown: false }));
+          setAnswerRevealed(initialResult?.answerRevealed ?? false);
+          setSubmitStage("done");
+        }
+        // 4. 이전에 제출한 코드가 있으면 에디터, 코드 제출 횟수, 마지막 채점 요약을 채움
+        if (loadedProblem.myCode) {
+          const lastCode = loadedProblem.myCode;
+          setLang(lastCode.language);
+          setCode(lastCode.sourceCode);
+          setSubmittedCount(lastCode.submittedCount);
+          setCodeReport({
+            result: lastCode.judgingResult,
+            passed: lastCode.passedTestCount,
+            total: lastCode.totalTestCount,
+            testResults: null
+          });
+          setCodeResult(lastCode.judgingResult === "CORRECT" ? "pass" : "fail");
+        }
+        // 5. 힌트를 연 적이 있으면 횟수를 채우고, 제출한 코드가 없을 때만 현재 언어의 힌트를 에디터에 표시
         if (USE_REAL_HINT && loadedProblem.usedHintStage >= 1) {
           setHintsUsed(loadedProblem.usedHintStage);
           setHintLoading(true);
           const hint = await getHintByStage(problemId, loadedProblem.usedHintStage, INITIAL_LANG);
-          if (!cancelled) setCode(hint.content);
+          if (!cancelled && !loadedProblem.myCode) setCode(hint.content);
         }
       })
       .catch((error) => {
@@ -577,7 +601,7 @@ function SolvePage() {
     return () => {
       cancelled = true;
     };
-  }, [problemId]);
+  }, [problemId, initialResult?.answerRevealed]);
   if (problemLoading) {
     return <div className="h-full flex items-center justify-center bg-[#05050F] text-sm text-[#6B6890]">
         문제를 불러오고 있어요...
@@ -762,7 +786,7 @@ function SolvePage() {
               {p.category}
             </span>}
         </div>
-        <div className="w-8" aria-hidden="true" />
+        <BookmarkButton key={p.id} problem={p} />
       </div>
 
       {
@@ -1062,7 +1086,7 @@ function SolvePage() {
                           <p className="text-xs text-[#6B6890]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>안내: 입력값과 기대 출력값은 공개되지 않아요.</p>
                         </div>
                       </div>
-                    : codeReport?.testResults ? <>
+                    : codeReport ? <>
                         {
     /* 1. 전체 결과 요약 — 통과/실패에 따라 색이 다른 박스 (제일 먼저 보이도록 맨 위) */
   }
@@ -1077,18 +1101,18 @@ function SolvePage() {
                             {codeResult === "pass" ? "모든 테스트를 통과했어요!" : CODE_RESULT_LABEL[codeReport.result] ?? "오답"}
                           </p>
                           <p className="text-xs text-[#8B87AD]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                            {codeResult === "pass" ? "정답 처리와 잔디·점수가 갱신됩니다." : `${codeReport.passed}/${codeReport.total} 통과 — 다시 시도해 보세요.`}
+                            {codeResult === "pass" ? `${codeReport.passed}/${codeReport.total} 통과` : `${codeReport.passed}/${codeReport.total} 통과 — 다시 시도해 보세요.`}
                           </p>
                         </div>
                         {
     /* 2. 테스트케이스별 통과/실패 상세 (요약 아래, 스크롤로 확인) */
   }
-                        <ul className="flex flex-col gap-1.5">
+                        {codeReport.testResults && <ul className="flex flex-col gap-1.5">
                           {codeReport.testResults.map((verdict, i) => <li key={i} className="flex items-center gap-2 text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                               <span className="font-bold" style={{ color: verdict === "CORRECT" ? "#34D399" : "#F87171" }}>{verdict === "CORRECT" ? "✓" : "✗"}</span>
                               <span className="text-[#C8C4E0]">테스트 {i + 1}</span>
                             </li>)}
-                        </ul>
+                        </ul>}
                       </>
                     : codeResult === "pass" ? <p className="text-emerald-400 text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>✓ 정답</p>
                     : codeResult === "fail" ? <p className="text-rose-400 text-sm font-bold" style={{ fontFamily: "'Outfit', sans-serif" }}>✗ 오답 — 다시 시도해 보세요</p>
