@@ -70,6 +70,8 @@ html, body, #root {
   --cosmos-rank-gold: #FFD700;
   --cosmos-rank-silver: #C0C0C0;
   --cosmos-rank-bronze: #CD7F32;
+  --cosmos-editor-shell: rgba(10, 10, 26, 0.95);
+  --cosmos-editor-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(124, 58, 237, 0.15) inset;
   --cosmos-root-border: rgba(42, 40, 69, 0.55);
   --cosmos-root-shadow: 0 0 80px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
@@ -94,6 +96,8 @@ html, body, #root {
   --cosmos-rank-gold: #9A6A00;
   --cosmos-rank-silver: #686875;
   --cosmos-rank-bronze: #9A5323;
+  --cosmos-editor-shell: rgba(255, 255, 255, 0.97);
+  --cosmos-editor-shadow: 0 10px 32px rgba(54, 34, 82, 0.16), 0 0 0 1px rgba(124, 58, 237, 0.1) inset;
   --cosmos-root-border: rgba(124, 58, 237, 0.12);
   --cosmos-root-shadow: 0 0 70px rgba(58, 38, 85, 0.12);
   color-scheme: light;
@@ -174,6 +178,11 @@ button:disabled { cursor: default; }
   border-color: rgba(124, 58, 237, 0.24);
   background: #F0E8FD;
   box-shadow: 0 4px 14px rgba(76, 29, 149, 0.08);
+}
+
+:root[data-theme='light'] .theme-example-fade {
+  --tw-gradient-from: #FFFFFF var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
 }
 
 /* 기존 COSMOS 색상 유틸리티를 라이트 팔레트로 대응시킵니다. */

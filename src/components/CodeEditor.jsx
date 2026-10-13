@@ -91,6 +91,26 @@ const lightEditorTheme = EditorView.theme({
   ".cm-cursor": {
     borderLeftColor: "#7C3AED",
   },
+  ".cm-tooltip": {
+    backgroundColor: "#FFFFFF",
+    color: "#241D35",
+    border: "1px solid #CBC3DC",
+    boxShadow: "0 8px 24px rgba(54, 34, 82, 0.14)",
+  },
+  ".cm-tooltip-autocomplete > ul > li[aria-selected]": {
+    backgroundColor: "#EADDFC",
+    color: "#4C1D95",
+  },
+  ".cm-completionLabel": {
+    color: "#241D35",
+  },
+  ".cm-completionDetail": {
+    color: "#70677F",
+  },
+  ".cm-panels": {
+    backgroundColor: "#F4F1FA",
+    color: "#241D35",
+  },
   "&.cm-focused": {
     outline: "none",
   },

@@ -909,9 +909,9 @@ function SolvePage() {
       left: codePos.x,
       top: codePos.y,
       width: "min(calc(100vw - 32px), 398px)",
-      background: "rgba(10,10,26,0.95)",
+      background: "var(--cosmos-editor-shell)",
       backdropFilter: "blur(16px)",
-      boxShadow: "0 8px 32px rgba(0,0,0,0.7), 0 0 0 1px rgba(124,58,237,0.15) inset",
+      boxShadow: "var(--cosmos-editor-shadow)",
       touchAction: "none"
     }}
     onMouseDown={(e) => onDragStart(e.clientX, e.clientY)}
@@ -998,21 +998,21 @@ function SolvePage() {
     className="flex-1 py-2 rounded-xl text-xs font-semibold transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
     style={{
       fontFamily: "'Outfit', sans-serif",
-      background: hintsUsed >= 2 ? "#1A1A2E" : "rgba(124,58,237,0.15)",
-      border: `1px solid ${hintsUsed >= 2 ? "#1E1D35" : "rgba(124,58,237,0.35)"}`,
-      color: hintsUsed >= 2 ? "#3A3860" : "#C084FC"
+      background: hintsUsed >= 2 ? "var(--cosmos-surface-soft)" : "rgba(124,58,237,0.15)",
+      border: `1px solid ${hintsUsed >= 2 ? "var(--cosmos-border)" : "rgba(124,58,237,0.35)"}`,
+      color: hintsUsed >= 2 ? "var(--cosmos-text-faint)" : "var(--cosmos-accent-text)"
     }}
   >
                     {hintLoading ? <span style={{ animation: "pulse-glow 0.8s ease infinite" }}>AI 분석 중...</span> : hintsUsed === 0 ? <>
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                          <circle cx="6" cy="6" r="5" stroke="#C084FC" strokeWidth="1.3" />
-                          <path d="M6 4v.5M6 6v2.5" stroke="#C084FC" strokeWidth="1.3" strokeLinecap="round" />
-                          <circle cx="6" cy="4" r="0.5" fill="#C084FC" />
+                          <circle cx="6" cy="6" r="5" stroke="var(--cosmos-accent-text)" strokeWidth="1.3" />
+                          <path d="M6 4v.5M6 6v2.5" stroke="var(--cosmos-accent-text)" strokeWidth="1.3" strokeLinecap="round" />
+                          <circle cx="6" cy="4" r="0.5" fill="var(--cosmos-accent-text)" />
                         </svg>
                         힌트 1/2
                       </> : hintsUsed === 1 ? <>
                         <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                          <path d="M6 1l1.2 3.6H11l-3 2.2 1.1 3.5L6 8.7l-3.1 1.6 1.1-3.5-3-2.2h3.8L6 1z" fill="#C084FC" fillOpacity="0.8" />
+                          <path d="M6 1l1.2 3.6H11l-3 2.2 1.1 3.5L6 8.7l-3.1 1.6 1.1-3.5-3-2.2h3.8L6 1z" fill="var(--cosmos-accent-text)" fillOpacity="0.8" />
                         </svg>
                         정답 공개
                       </> : "힌트 소진"}
@@ -1040,7 +1040,7 @@ function SolvePage() {
                     {[0, 1].map((i) => <div
     key={i}
     className="w-3.5 h-1.5 rounded-full transition-all duration-300"
-    style={{ background: i < hintsUsed ? "#7C3AED" : "#1E1D35" }}
+    style={{ background: i < hintsUsed ? "#7C3AED" : "var(--cosmos-border)" }}
   />)}
                   </div>
                   <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
