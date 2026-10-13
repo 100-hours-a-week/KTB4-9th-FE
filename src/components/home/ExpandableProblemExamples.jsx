@@ -2,8 +2,9 @@ import { useLayoutEffect, useRef, useState } from "react";
 
 export default function ExpandableProblemExamples({ examples }) {
   const contentRef = useRef(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expandedExamples, setExpandedExamples] = useState(null);
   const [canExpand, setCanExpand] = useState(false);
+  const expanded = expandedExamples === examples;
 
   useLayoutEffect(() => {
     const element = contentRef.current;
@@ -24,7 +25,7 @@ export default function ExpandableProblemExamples({ examples }) {
       <div
         ref={contentRef}
         className="relative px-3 pt-3"
-        style={!expanded ? { maxHeight: 164, overflow: "hidden" } : undefined}
+        style={!expanded ? { maxHeight: 112, overflow: "hidden" } : undefined}
       >
         <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#4A4870]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
           입출력 예시
@@ -57,7 +58,7 @@ export default function ExpandableProblemExamples({ examples }) {
       {canExpand && (
         <button
           type="button"
-          onClick={() => setExpanded((value) => !value)}
+          onClick={() => setExpandedExamples(expanded ? null : examples)}
           className="relative flex w-full items-center justify-center border-t border-[#1A1A30] bg-[#08081A] py-2 text-xs font-medium text-[#A855F7] transition-colors hover:text-[#C084FC]"
           style={{ fontFamily: "'Outfit', sans-serif" }}
         >

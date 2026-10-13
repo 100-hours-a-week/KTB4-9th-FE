@@ -256,7 +256,7 @@ export default function HomePage() {
                 {dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
               </p>}
           </div> : <>
-        <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
+        <div key={`${cardIndex}-${currentProblem.id}`} className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
 		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "var(--cosmos-border)",
 		background: "var(--cosmos-surface)",
 		boxShadow: isSolved ? "0 0 28px rgba(124,58,237,0.1)" : "none"
@@ -287,11 +287,11 @@ export default function HomePage() {
             </h2>
 
             {/* Description */}
-            <ExpandableProblemContent key={currentProblem.id} content={currentProblem.description} />
+            <ExpandableProblemContent content={currentProblem.description} />
 
             {/* Example box */}
             {currentProblem.examples.length > 0 && (
-              <ExpandableProblemExamples key={currentProblem.id} examples={currentProblem.examples} />
+              <ExpandableProblemExamples examples={currentProblem.examples} />
             )}
 
             {/* CTA */}
@@ -321,7 +321,7 @@ export default function HomePage() {
             </button>
 
             <div className="flex items-center gap-1.5">
-              {problems.map((p, i) => <button key={p.id} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
+              {problems.map((p, i) => <button key={`${p.id}-${i}`} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
 		width: i === cardIndex ? 20 : 6,
 		height: 6,
 		background: i === cardIndex ? "linear-gradient(90deg, #7C3AED, #A855F7)" : solved.has(p.id) ? "rgba(168,85,247,0.4)" : "var(--cosmos-border-strong)"
