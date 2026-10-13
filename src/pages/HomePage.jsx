@@ -2,6 +2,7 @@ import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import ThemeToggle from "../components/common/ThemeToggle.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import ExpandableProblemContent from "../components/home/ExpandableProblemContent.jsx";
+import ExpandableProblemExamples from "../components/home/ExpandableProblemExamples.jsx";
 import { useHomePage } from "../features/home/useHomePage.js";
 // ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
 const WEEKS = 20;
@@ -149,7 +150,6 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             {/* Progress ring */}
             <div className="flex flex-col items-center gap-0.5">
               <div className="relative w-11 h-11">
@@ -170,6 +170,7 @@ export default function HomePage() {
               <span className="text-[9px] text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 진행</span>
             </div>
 
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
@@ -255,7 +256,7 @@ export default function HomePage() {
                 {dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
               </p>}
           </div> : <>
-        <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
+        <div key={`${cardIndex}-${currentProblem.id}`} className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
 		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "var(--cosmos-border)",
 		background: "var(--cosmos-surface)",
 		boxShadow: isSolved ? "0 0 28px rgba(124,58,237,0.1)" : "none"
@@ -286,28 +287,12 @@ export default function HomePage() {
             </h2>
 
             {/* Description */}
-            <ExpandableProblemContent key={currentProblem.id} content={currentProblem.description} />
+            <ExpandableProblemContent content={currentProblem.description} />
 
             {/* Example box */}
-            {currentProblem.examples.length > 0 && <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
-              <p className="text-[10px] text-[#4A4870] mb-2 font-semibold tracking-wider uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                입출력 예시
-              </p>
-              {currentProblem.examples.map((ex, i) => <div key={i} className={`flex flex-col gap-1 ${i > 0 ? "mt-3 border-t border-[#1A1A30] pt-3" : ""}`}>
-                  {currentProblem.examples.length > 1 && <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    예시 {i + 1}
-                  </p>}
-                  <p className="text-xs text-[#8B7FC4] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
-                  </p>
-                  <p className="text-xs text-[#C084FC] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
-                  </p>
-                  {ex.description && <p className="text-[11px] text-[#6B6890] mt-1 leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
-                    {ex.description}
-                  </p>}
-                </div>)}
-            </div>}
+            {currentProblem.examples.length > 0 && (
+              <ExpandableProblemExamples examples={currentProblem.examples} />
+            )}
 
             {/* CTA */}
             <button onClick={handleSolve} disabled={problemOpening} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 disabled:cursor-wait disabled:opacity-70" style={{
@@ -336,7 +321,7 @@ export default function HomePage() {
             </button>
 
             <div className="flex items-center gap-1.5">
-              {problems.map((p, i) => <button key={p.id} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
+              {problems.map((p, i) => <button key={`${p.id}-${i}`} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
 		width: i === cardIndex ? 20 : 6,
 		height: 6,
 		background: i === cardIndex ? "linear-gradient(90deg, #7C3AED, #A855F7)" : solved.has(p.id) ? "rgba(168,85,247,0.4)" : "var(--cosmos-border-strong)"

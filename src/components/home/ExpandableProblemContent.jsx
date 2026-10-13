@@ -3,8 +3,9 @@ import MathText from "../common/MathText.jsx";
 
 export default function ExpandableProblemContent({ content }) {
   const contentRef = useRef(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expandedContent, setExpandedContent] = useState(null);
   const [canExpand, setCanExpand] = useState(false);
+  const expanded = expandedContent === content;
 
   useLayoutEffect(() => {
     const element = contentRef.current;
@@ -32,7 +33,7 @@ export default function ExpandableProblemContent({ content }) {
           ...(!expanded
             ? {
                 display: "-webkit-box",
-                WebkitLineClamp: 3,
+                WebkitLineClamp: 2,
                 WebkitBoxOrient: "vertical",
                 overflow: "hidden",
               }
@@ -45,7 +46,7 @@ export default function ExpandableProblemContent({ content }) {
       {canExpand && (
         <button
           type="button"
-          onClick={() => setExpanded((value) => !value)}
+          onClick={() => setExpandedContent(expanded ? null : content)}
           className="mt-1.5 text-xs font-medium text-[#A855F7] transition-colors hover:text-[#C084FC]"
           style={{ fontFamily: "'Outfit', sans-serif" }}
         >
