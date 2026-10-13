@@ -180,6 +180,14 @@ button:disabled { cursor: default; }
   box-shadow: 0 4px 14px rgba(76, 29, 149, 0.08);
 }
 
+:root[data-theme='light'] .theme-retry-button:not(:disabled) {
+  color: #FFFFFF !important;
+}
+
+:root[data-theme='light'] .theme-retry-button:disabled {
+  color: var(--cosmos-text-muted) !important;
+}
+
 :root[data-theme='light'] .theme-example-fade {
   --tw-gradient-from: #FFFFFF var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);

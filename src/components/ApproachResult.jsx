@@ -36,7 +36,7 @@ function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem }) 
           type="button"
           onClick={onRetry}
           disabled={limitReached}
-          className="w-full rounded-2xl bg-[#7C3AED] py-4 text-sm font-bold text-white transition-all active:scale-95 disabled:bg-[#2A2845] disabled:text-[#6B6890] disabled:active:scale-100"
+          className="theme-retry-button w-full rounded-2xl bg-[#7C3AED] py-4 text-sm font-bold text-white transition-all active:scale-95 disabled:bg-[#2A2845] disabled:text-[#6B6890] disabled:active:scale-100"
         >
           {retryLabel}
         </button>
