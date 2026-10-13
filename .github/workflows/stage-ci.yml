@@ -1,0 +1,63 @@
+name: Stage Frontend CI
+
+on:
+  push:
+    branches: [stage]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-stage-ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  artifact:
+    name: Build staging artifact
+    if: github.event_name == 'push' && github.ref == 'refs/heads/stage'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    env:
+      VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      VITE_USE_MOCKS: ${{ vars.VITE_USE_MOCKS }}
+      VITE_KAKAO_REST_API_KEY: ${{ vars.VITE_KAKAO_REST_API_KEY }}
+      VITE_KAKAO_REDIRECT_URI: ${{ vars.VITE_KAKAO_REDIRECT_URI }}
+      VITE_CLARITY_PROJECT_ID: ${{ vars.VITE_CLARITY_PROJECT_ID }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify staging configuration
+        run: |
+          set -euo pipefail
+          required=(
+            VITE_API_BASE_URL VITE_USE_MOCKS VITE_KAKAO_REST_API_KEY
+            VITE_KAKAO_REDIRECT_URI VITE_CLARITY_PROJECT_ID
+          )
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::Missing required staging Environment variable: ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build staging application
+        run: npm run build
+
+      - name: Upload staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-stage-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
