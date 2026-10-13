@@ -59,6 +59,7 @@ jobs:
           script: |
             const workflowId = "stage-ci.yml";
             const artifactName = process.env.ARTIFACT_NAME;
+            const headSha = process.env.PR_HEAD_SHA;
             const pullNumber = context.payload.pull_request.number;
             const runs = await github.paginate(
               github.rest.actions.listWorkflowRunsForRepo,
@@ -71,15 +72,15 @@ jobs:
               },
             );
 
-            const pullRuns = runs
+            const matchingRuns = runs
               .filter(
                 (run) =>
                   run.path === `.github/workflows/${workflowId}` &&
-                  run.pull_requests?.some((pull) => pull.number === pullNumber),
+                  run.head_sha === headSha,
               )
               .sort((left, right) => right.run_attempt - left.run_attempt || right.id - left.id);
 
-            for (const run of pullRuns) {
+            for (const run of matchingRuns) {
               const artifacts = await github.paginate(
                 github.rest.actions.listWorkflowRunArtifacts,
                 {
