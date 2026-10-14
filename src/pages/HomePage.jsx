@@ -38,11 +38,11 @@ function getMonthLabels(heatmap) {
 	return labels;
 }
 const HEAT_BG = [
-	"var(--cosmos-surface-soft)",
-	"rgba(124,58,237,0.22)",
-	"rgba(124,58,237,0.45)",
-	"rgba(168,85,247,0.68)",
-	"#A855F7"
+	"var(--cosmos-heat-0)",
+	"var(--cosmos-heat-1)",
+	"var(--cosmos-heat-2)",
+	"var(--cosmos-heat-3)",
+	"var(--cosmos-heat-4)"
 ];
 // ─── Diff / cat ───────────────────────────────────────────────────────────────
 const DIFF_STYLE = {
@@ -187,7 +187,7 @@ export default function HomePage() {
               <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>적게</span>
               {HEAT_BG.map((c, i) => <div key={i} className="w-2.5 h-2.5 rounded-[3px]" style={{
 		background: c,
-		border: "1px solid rgba(255,255,255,0.04)"
+		border: "1px solid var(--cosmos-heat-border)"
 	}} />)}
               <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>많이</span>
             </div>
@@ -213,7 +213,7 @@ export default function HomePage() {
 		}} className="rounded-[2px] transition-all duration-100 hover:brightness-150 active:scale-90" style={{
 			aspectRatio: "1",
 			background: HEAT_BG[v],
-			border: heatTip?.label === label ? "1px solid rgba(168,85,247,0.7)" : "1px solid rgba(255,255,255,0.03)"
+			border: heatTip?.label === label ? "1px solid rgba(168,85,247,0.7)" : "1px solid var(--cosmos-heat-border)"
 		}} />;
 	})}
               </div>)}
