@@ -72,6 +72,12 @@ html, body, #root {
   --cosmos-rank-bronze: #CD7F32;
   --cosmos-editor-shell: rgba(10, 10, 26, 0.95);
   --cosmos-editor-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(124, 58, 237, 0.15) inset;
+  --cosmos-heat-0: #22213A;
+  --cosmos-heat-1: rgba(124, 58, 237, 0.3);
+  --cosmos-heat-2: rgba(124, 58, 237, 0.5);
+  --cosmos-heat-3: rgba(168, 85, 247, 0.72);
+  --cosmos-heat-4: #A855F7;
+  --cosmos-heat-border: rgba(192, 132, 252, 0.1);
   --cosmos-root-border: rgba(42, 40, 69, 0.55);
   --cosmos-root-shadow: 0 0 80px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
@@ -98,6 +104,12 @@ html, body, #root {
   --cosmos-rank-bronze: #9A5323;
   --cosmos-editor-shell: rgba(255, 255, 255, 0.97);
   --cosmos-editor-shadow: 0 10px 32px rgba(54, 34, 82, 0.16), 0 0 0 1px rgba(124, 58, 237, 0.1) inset;
+  --cosmos-heat-0: #EFEBF7;
+  --cosmos-heat-1: rgba(124, 58, 237, 0.22);
+  --cosmos-heat-2: rgba(124, 58, 237, 0.45);
+  --cosmos-heat-3: rgba(168, 85, 247, 0.68);
+  --cosmos-heat-4: #A855F7;
+  --cosmos-heat-border: rgba(76, 29, 149, 0.07);
   --cosmos-root-border: rgba(124, 58, 237, 0.12);
   --cosmos-root-shadow: 0 0 70px rgba(58, 38, 85, 0.12);
   color-scheme: light;
