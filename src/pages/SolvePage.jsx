@@ -17,10 +17,7 @@ import ApproachResult from "../components/ApproachResult.jsx";
 import BookmarkButton from "../components/common/BookmarkButton.jsx";
 import MathText from "../components/common/MathText.jsx";
 import LeaveConfirmModal from "../components/common/LeaveConfirmModal.jsx";
-import {
-  ExecutionLimitsCard,
-  ProblemConditions,
-} from "../components/ProblemSpecifications.jsx";
+import { ProblemConditions } from "../components/ProblemSpecifications.jsx";
 import { APPROACH_KEYWORDS } from "../constants/approachKeywords.js";
 import {
   createMockApproachEvaluation,
@@ -816,10 +813,9 @@ function SolvePage() {
               outputFormat={p.outputFormat}
               inputConstraints={p.inputConstraints}
               legacyConstraints={p.constraints}
+              executionLimits={p.executionLimits}
             />
           </div>
-
-          <ExecutionLimitsCard limits={p.executionLimits} />
 
           {
     /* Category — only shown when category was not pre-selected */
