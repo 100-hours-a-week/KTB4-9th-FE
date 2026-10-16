@@ -1,6 +1,8 @@
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
+import ThemeToggle from "../components/common/ThemeToggle.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import ExpandableProblemContent from "../components/home/ExpandableProblemContent.jsx";
+import ExpandableProblemExamples from "../components/home/ExpandableProblemExamples.jsx";
 import { useHomePage } from "../features/home/useHomePage.js";
 // ─── Heatmap (20 weeks = 140 cells, col-major: col 0 = oldest week) ───────────
 const WEEKS = 20;
@@ -36,11 +38,11 @@ function getMonthLabels(heatmap) {
 	return labels;
 }
 const HEAT_BG = [
-	"#1A1A2E",
-	"rgba(124,58,237,0.22)",
-	"rgba(124,58,237,0.45)",
-	"rgba(168,85,247,0.68)",
-	"#A855F7"
+	"var(--cosmos-heat-0)",
+	"var(--cosmos-heat-1)",
+	"var(--cosmos-heat-2)",
+	"var(--cosmos-heat-3)",
+	"var(--cosmos-heat-4)"
 ];
 // ─── Diff / cat ───────────────────────────────────────────────────────────────
 const DIFF_STYLE = {
@@ -135,7 +137,7 @@ export default function HomePage() {
       <div className="relative z-50 px-5 pt-10 pb-3 shrink-0">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
-            <CosmosLogo size={34} color="#C084FC" className="shrink-0" />
+            <CosmosLogo size={34} color="var(--cosmos-accent-text)" className="shrink-0" />
             <div className="min-w-0">
             <p className="text-[11px] text-[#4A4870] mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
               {dateLabel(recommendDate)}
@@ -147,12 +149,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Progress ring */}
             <div className="flex flex-col items-center gap-0.5">
               <div className="relative w-11 h-11">
                 <svg width="44" height="44" viewBox="0 0 44 44" style={{ transform: "rotate(-90deg)" }}>
-                  <circle cx="22" cy="22" r="14" stroke="#1E1D35" strokeWidth="3.5" fill="none" />
+                  <circle cx="22" cy="22" r="14" stroke="var(--cosmos-border)" strokeWidth="3.5" fill="none" />
                   <circle cx="22" cy="22" r="14" stroke="url(#pr)" strokeWidth="3.5" fill="none" strokeDasharray={`${solvedCount / dailyGoal * circumference} ${circumference}`} strokeLinecap="round" style={{ transition: "stroke-dasharray 0.5s ease" }} />
                   <defs>
                     <linearGradient id="pr" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -168,6 +170,7 @@ export default function HomePage() {
               <span className="text-[9px] text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>오늘 진행</span>
             </div>
 
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
@@ -184,7 +187,7 @@ export default function HomePage() {
               <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>적게</span>
               {HEAT_BG.map((c, i) => <div key={i} className="w-2.5 h-2.5 rounded-[3px]" style={{
 		background: c,
-		border: "1px solid rgba(255,255,255,0.04)"
+		border: "1px solid var(--cosmos-heat-border)"
 	}} />)}
               <span className="text-[10px] text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>많이</span>
             </div>
@@ -210,7 +213,7 @@ export default function HomePage() {
 		}} className="rounded-[2px] transition-all duration-100 hover:brightness-150 active:scale-90" style={{
 			aspectRatio: "1",
 			background: HEAT_BG[v],
-			border: heatTip?.label === label ? "1px solid rgba(168,85,247,0.7)" : "1px solid rgba(255,255,255,0.03)"
+			border: heatTip?.label === label ? "1px solid rgba(168,85,247,0.7)" : "1px solid var(--cosmos-heat-border)"
 		}} />;
 	})}
               </div>)}
@@ -220,7 +223,7 @@ export default function HomePage() {
           <div className="relative h-4 mt-1.5">
             {getMonthLabels(heatmap).map(({ col, label }) => <span key={label + col} className="absolute text-[9px] font-medium tracking-wide" style={{
 		left: `${col / WEEKS * 100}%`,
-		color: "#3A3860",
+		color: "var(--cosmos-text-faint)",
 		fontFamily: "'JetBrains Mono', monospace",
 		transform: "translateX(-0%)"
 	}}>
@@ -253,9 +256,9 @@ export default function HomePage() {
                 {dailyProblemsError ? "오늘의 문제를 불러오지 못했습니다." : "오늘 추천된 문제가 없습니다."}
               </p>}
           </div> : <>
-        <div className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
-		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "#1E1D35",
-		background: "#0D0D1F",
+        <div key={`${cardIndex}-${currentProblem.id}`} className="rounded-2xl border overflow-hidden transition-all duration-300" style={{
+		borderColor: isSolved ? "rgba(168,85,247,0.3)" : "var(--cosmos-border)",
+		background: "var(--cosmos-surface)",
 		boxShadow: isSolved ? "0 0 28px rgba(124,58,237,0.1)" : "none"
 	}}>
           <div className="h-[2px]" style={{ background: "linear-gradient(90deg, #7C3AED, #A855F7 60%, transparent)" }} />
@@ -278,40 +281,24 @@ export default function HomePage() {
             {/* Title */}
             <h2 className="text-lg font-bold mb-2 leading-snug" style={{
 		fontFamily: "'Outfit', sans-serif",
-		color: isSolved ? "#8B7FC4" : "#E2E0F0"
+		color: isSolved ? "var(--cosmos-text-purple)" : "var(--cosmos-text-primary)"
 	}}>
               {currentProblem.title}
             </h2>
 
             {/* Description */}
-            <ExpandableProblemContent key={currentProblem.id} content={currentProblem.description} />
+            <ExpandableProblemContent content={currentProblem.description} />
 
             {/* Example box */}
-            {currentProblem.examples.length > 0 && <div className="rounded-xl border border-[#1A1A30] bg-[#08081A] p-3 mb-4">
-              <p className="text-[10px] text-[#4A4870] mb-2 font-semibold tracking-wider uppercase" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                입출력 예시
-              </p>
-              {currentProblem.examples.map((ex, i) => <div key={i} className={`flex flex-col gap-1 ${i > 0 ? "mt-3 border-t border-[#1A1A30] pt-3" : ""}`}>
-                  {currentProblem.examples.length > 1 && <p className="text-[10px] text-[#4A4870] mb-0.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    예시 {i + 1}
-                  </p>}
-                  <p className="text-xs text-[#8B7FC4] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    <span className="text-[#4A4870] mr-1">입력</span>{ex.input}
-                  </p>
-                  <p className="text-xs text-[#C084FC] whitespace-pre-wrap" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    <span className="text-[#4A4870] mr-1">출력</span>{ex.output}
-                  </p>
-                  {ex.description && <p className="text-[11px] text-[#6B6890] mt-1 leading-relaxed" style={{ fontFamily: "'Outfit', sans-serif" }}>
-                    {ex.description}
-                  </p>}
-                </div>)}
-            </div>}
+            {currentProblem.examples.length > 0 && (
+              <ExpandableProblemExamples examples={currentProblem.examples} />
+            )}
 
             {/* CTA */}
             <button onClick={handleSolve} disabled={problemOpening} className="w-full py-3.5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 disabled:cursor-wait disabled:opacity-70" style={{
 		fontFamily: "'Outfit', sans-serif",
 		background: isSolved ? "rgba(124,58,237,0.12)" : "linear-gradient(135deg, #7C3AED, #A855F7)",
-		color: isSolved ? "#A855F7" : "white",
+		color: isSolved ? "var(--cosmos-accent-text)" : "white",
 		boxShadow: isSolved ? "none" : "0 4px 18px rgba(124,58,237,0.4)",
 		border: isSolved ? "1px solid rgba(124,58,237,0.28)" : "none"
 	}}>
@@ -327,23 +314,23 @@ export default function HomePage() {
 
           {/* Carousel nav */}
           <div className="flex items-center justify-between px-4 pb-4">
-            <button onClick={() => setCardIndex((i) => Math.max(0, i - 1))} disabled={cardIndex === 0} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
+            <button onClick={() => setCardIndex((i) => Math.max(0, i - 1))} disabled={cardIndex === 0} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "var(--cosmos-surface-soft)" }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M9 2L4 7l5 5" stroke="#8B7FC4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M9 2L4 7l5 5" stroke="var(--cosmos-text-purple)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
 
             <div className="flex items-center gap-1.5">
-              {problems.map((p, i) => <button key={p.id} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
+              {problems.map((p, i) => <button key={`${p.id}-${i}`} onClick={() => setCardIndex(i)} className="rounded-full transition-all duration-200" style={{
 		width: i === cardIndex ? 20 : 6,
 		height: 6,
-		background: i === cardIndex ? "linear-gradient(90deg, #7C3AED, #A855F7)" : solved.has(p.id) ? "rgba(168,85,247,0.4)" : "#2A2845"
+		background: i === cardIndex ? "linear-gradient(90deg, #7C3AED, #A855F7)" : solved.has(p.id) ? "rgba(168,85,247,0.4)" : "var(--cosmos-border-strong)"
 	}} />)}
             </div>
 
-            <button onClick={() => setCardIndex((i) => Math.min(problems.length - 1, i + 1))} disabled={cardIndex === problems.length - 1} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "#151525" }}>
+            <button onClick={() => setCardIndex((i) => Math.min(problems.length - 1, i + 1))} disabled={cardIndex === problems.length - 1} className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-25" style={{ background: "var(--cosmos-surface-soft)" }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                <path d="M5 2l5 5-5 5" stroke="#8B7FC4" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5 2l5 5-5 5" stroke="var(--cosmos-text-purple)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           </div>
@@ -367,14 +354,14 @@ export default function HomePage() {
 		left: heatTip.x,
 		top: heatTip.y,
 		transform: "translate(-50%, -100%)",
-		background: "#0F0E1E",
+		background: "var(--cosmos-popover)",
 		border: "1px solid rgba(168,85,247,0.3)",
 		boxShadow: "0 8px 24px rgba(0,0,0,0.6)",
 		fontFamily: "'Outfit', sans-serif",
 		whiteSpace: "nowrap"
 	}} onClick={() => setHeatTip(null)}>
           <p className="text-[#8B7FC4] mb-0.5">{heatTip.label}</p>
-          <p className="font-semibold" style={{ color: heatTip.count > 0 ? "#C084FC" : "#4A4870" }}>
+          <p className="font-semibold" style={{ color: heatTip.count > 0 ? "var(--cosmos-accent-text)" : "var(--cosmos-text-subtle)" }}>
             {heatTip.count > 0 ? `정답 ${heatTip.count}개` : "정답 없음"}
           </p>
         </div>}

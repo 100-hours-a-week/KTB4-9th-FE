@@ -9,6 +9,7 @@ import { indentUnit } from "@codemirror/language";
 import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";
 import { oneDark } from "@codemirror/theme-one-dark";
+import { useTheme } from "../features/theme/theme.js";
 
 const LANGUAGE_EXTENSIONS = {
   Python: python,
@@ -17,7 +18,7 @@ const LANGUAGE_EXTENSIONS = {
   "C++": cpp,
 };
 
-const editorTheme = EditorView.theme({
+const darkEditorTheme = EditorView.theme({
   "&": {
     height: "100%",
     backgroundColor: "#06060E",
@@ -56,13 +57,75 @@ const editorTheme = EditorView.theme({
   },
 }, { dark: true });
 
+const lightEditorTheme = EditorView.theme({
+  "&": {
+    height: "100%",
+    backgroundColor: "#FBFAFE",
+    color: "#241D35",
+    fontSize: "13px",
+  },
+  ".cm-scroller": {
+    overflow: "auto",
+    fontFamily: "'JetBrains Mono', monospace",
+    lineHeight: "1.75",
+  },
+  ".cm-content": {
+    padding: "12px 0",
+    caretColor: "#7C3AED",
+  },
+  ".cm-line": {
+    padding: "0 12px",
+  },
+  ".cm-gutters": {
+    backgroundColor: "#F4F1FA",
+    color: "#7B7289",
+    borderRight: "1px solid #DED8EA",
+    minWidth: "34px",
+  },
+  ".cm-activeLine, .cm-activeLineGutter": {
+    backgroundColor: "rgba(124, 58, 237, 0.07)",
+  },
+  ".cm-selectionBackground, &.cm-focused .cm-selectionBackground": {
+    backgroundColor: "rgba(124, 58, 237, 0.18) !important",
+  },
+  ".cm-cursor": {
+    borderLeftColor: "#7C3AED",
+  },
+  ".cm-tooltip": {
+    backgroundColor: "#FFFFFF",
+    color: "#241D35",
+    border: "1px solid #CBC3DC",
+    boxShadow: "0 8px 24px rgba(54, 34, 82, 0.14)",
+  },
+  ".cm-tooltip-autocomplete > ul > li[aria-selected]": {
+    backgroundColor: "#EADDFC",
+    color: "#4C1D95",
+  },
+  ".cm-completionLabel": {
+    color: "#241D35",
+  },
+  ".cm-completionDetail": {
+    color: "#70677F",
+  },
+  ".cm-panels": {
+    backgroundColor: "#F4F1FA",
+    color: "#241D35",
+  },
+  "&.cm-focused": {
+    outline: "none",
+  },
+}, { dark: false });
+
 export default function CodeEditor({ value, onChange, lang }) {
+  const { theme } = useTheme();
   const hostRef = useRef(null);
   const viewRef = useRef(null);
   const onChangeRef = useRef(onChange);
   const languageCompartment = useRef(new Compartment());
+  const themeCompartment = useRef(new Compartment());
   const initialValueRef = useRef(value);
   const initialLangRef = useRef(lang);
+  const initialThemeRef = useRef(theme);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -78,8 +141,11 @@ export default function CodeEditor({ value, onChange, lang }) {
         basicSetup,
         keymap.of([indentWithTab]),
         indentUnit.of("    "),
-        oneDark,
-        editorTheme,
+        themeCompartment.current.of(
+          initialThemeRef.current === "light"
+            ? lightEditorTheme
+            : [oneDark, darkEditorTheme],
+        ),
         languageCompartment.current.of(language()),
         EditorView.updateListener.of((update) => {
           if (update.docChanged) onChangeRef.current(update.state.doc.toString());
@@ -104,6 +170,16 @@ export default function CodeEditor({ value, onChange, lang }) {
       effects: languageCompartment.current.reconfigure(language()),
     });
   }, [lang]);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view) return;
+    view.dispatch({
+      effects: themeCompartment.current.reconfigure(
+        theme === "light" ? lightEditorTheme : [oneDark, darkEditorTheme],
+      ),
+    });
+  }, [theme]);
 
   useEffect(() => {
     const view = viewRef.current;
