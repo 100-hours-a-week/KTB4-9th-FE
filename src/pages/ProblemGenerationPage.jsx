@@ -177,7 +177,7 @@ export default function ProblemGenerationPage() {
           <style>{`@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }`}</style>
         </div>}
 
-      <PageHeader eyebrow="AI Problem Generator" title="문제 생성" subtitle="난이도와 카테고리를 선택해 맞춤 문제를 만들어보세요" action={<UserMenu rounded="rounded-full" />} />
+      <PageHeader eyebrow="AI Problem Generator" title="문제 생성" subtitle="난이도와 카테고리를 선택해 맞춤 문제를 만들어보세요" action={<UserMenu />} />
 
       <div className="relative z-10 px-5 flex-1">
         <div className="mb-6">

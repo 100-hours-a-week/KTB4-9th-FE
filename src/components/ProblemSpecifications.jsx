@@ -31,11 +31,11 @@ function formatRange(constraint) {
 
 function FormatRow({ label, children }) {
   return (
-    <div className="grid grid-cols-[42px_1fr] gap-3 border-b border-[#1A1A2E] py-3 last:border-b-0">
-      <span className="flex h-6 items-center justify-center rounded-md bg-[#7C3AED]/15 text-[10px] font-semibold text-[#A78BFA]">
+    <div className="grid grid-cols-[36px_1fr] items-start gap-2.5 border-b border-[#1A1A2E] py-2.5 last:border-b-0">
+      <span className="flex h-5 items-center justify-center rounded-md bg-[#7C3AED]/15 text-[9px] font-semibold text-[#A78BFA]">
         {label}
       </span>
-      <p className="break-words whitespace-pre-line text-xs leading-6 text-[#8B87AA]"><MathText text={children} /></p>
+      <p className="break-words whitespace-pre-line text-[11px] leading-5 text-[#8B87AA]"><MathText text={children} /></p>
     </div>
   );
 }
@@ -45,29 +45,32 @@ export function ProblemConditions({
   outputFormat,
   inputConstraints = [],
   legacyConstraints = [],
+  executionLimits = [],
 }) {
   const hasFormats = Boolean(inputFormat || outputFormat);
   const hasStructuredConstraints = inputConstraints.length > 0;
   const hasLegacyConstraints = legacyConstraints.length > 0;
+  const hasExecutionLimits = executionLimits.length > 0;
 
-  if (!hasFormats && !hasStructuredConstraints && !hasLegacyConstraints) return null;
+  if (!hasFormats && !hasStructuredConstraints && !hasLegacyConstraints && !hasExecutionLimits) return null;
 
   return (
     <section className="mt-4 border-t border-[#1E1D35] pt-4">
-      {hasFormats && (
-        <div>
-          <h3 className="mb-2 text-[11px] font-semibold tracking-wider text-[#6B6890]">입출력 형식</h3>
-          <div className="rounded-xl border border-[#1E1D35] bg-[#080814] px-3">
+      <div className="rounded-xl border border-[#1E1D35] bg-[#080814] p-3">
+        {hasFormats && (
+          <div>
+            <h3 className="mb-1.5 text-[10px] font-semibold tracking-wider text-[#6B6890]">입출력 형식</h3>
+            <div className="px-1">
             {inputFormat && <FormatRow label="입력">{inputFormat}</FormatRow>}
             {outputFormat && <FormatRow label="출력">{outputFormat}</FormatRow>}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {(hasStructuredConstraints || hasLegacyConstraints) && (
-        <div className={hasFormats ? "mt-4" : ""}>
-          <h3 className="mb-2 text-[11px] font-semibold tracking-wider text-[#6B6890]">제약 조건</h3>
-          <div className="space-y-2">
+        {(hasStructuredConstraints || hasLegacyConstraints) && (
+          <div className={hasFormats ? "mt-3 border-t border-[#1A1A2E] pt-3" : ""}>
+            <h3 className="mb-2 text-[10px] font-semibold tracking-wider text-[#6B6890]">제약 조건</h3>
+            <div className="grid grid-cols-2 gap-1.5">
             {inputConstraints.map((constraint, index) => {
               const conditions = [
                 constraint.dataCount != null ? `원소 수 ${formatNumber(constraint.dataCount)}개` : null,
@@ -75,33 +78,53 @@ export function ProblemConditions({
               ].filter(Boolean);
 
               return (
-                <div key={`${constraint.target}-${index}`} className="rounded-xl border border-[#1E1D35] bg-[#080814] px-3.5 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div key={`${constraint.target}-${index}`} className="min-w-0 rounded-lg border border-[#1E1D35] bg-[#0D0D1F] px-2.5 py-2">
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                     {constraint.scope === "OUTPUT" && (
-                      <span className="rounded-md bg-[#A855F7]/15 px-1.5 py-0.5 text-[9px] font-semibold text-[#C084FC]">출력</span>
+                      <span className="rounded bg-[#A855F7]/15 px-1.5 py-0.5 text-[8px] font-semibold text-[#C084FC]">출력</span>
                     )}
-                    <code className="text-xs font-semibold text-[#C8B8F8]"><MathText text={formatRange(constraint)} /></code>
+                    <code className="text-[11px] font-semibold leading-5 text-[#C8B8F8]"><MathText text={formatRange(constraint)} /></code>
                     {constraint.dataType && (
-                      <span className="rounded-md border border-[#2A2845] px-1.5 py-0.5 text-[9px] text-[#6B6890]">
+                      <span className="rounded border border-[#2A2845] px-1 py-px text-[8px] text-[#6B6890]">
                         {DATA_TYPE_LABELS[constraint.dataType] ?? constraint.dataType}
                       </span>
                     )}
                   </div>
                   {conditions.length > 0 && (
-                    <p className="mt-1.5 text-[10px] leading-5 text-[#5F5B80]"><MathText text={conditions.join(" · ")} /></p>
+                    <p className="mt-1 text-[9px] leading-4 text-[#5F5B80]"><MathText text={conditions.join(" · ")} /></p>
                   )}
                 </div>
               );
             })}
 
             {!hasStructuredConstraints && legacyConstraints.map((constraint, index) => (
-              <div key={`${constraint}-${index}`} className="rounded-xl border border-[#1E1D35] bg-[#080814] px-3.5 py-3">
-                <code className="text-xs text-[#8B87AA]"><MathText text={constraint} /></code>
+              <div key={`${constraint}-${index}`} className="rounded-lg border border-[#1E1D35] bg-[#0D0D1F] px-2.5 py-2">
+                <code className="text-[10px] leading-4 text-[#8B87AA]"><MathText text={constraint} /></code>
               </div>
             ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {hasExecutionLimits && (
+          <div className={(hasFormats || hasStructuredConstraints || hasLegacyConstraints) ? "mt-3 border-t border-[#1A1A2E] pt-3" : ""}>
+            <div className="mb-2 flex items-center gap-1.5">
+              <div className="h-1 w-1 rounded-full bg-[#A855F7] shadow-[0_0_6px_#A855F7]" />
+              <h3 className="text-[10px] font-semibold tracking-wider text-[#6B6890]">언어별 제한</h3>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5">
+              {executionLimits.map((limit) => (
+                <div key={limit.language} className="min-w-0 rounded-lg border border-[#1E1D35] bg-[#0D0D1F] px-1.5 py-2 text-center">
+                  <p className="truncate text-[10px] font-semibold text-[#C8B8F8]">{limit.language}</p>
+                  <p className="mt-1 whitespace-nowrap text-[8px] text-[#8B87AA]">
+                    {formatTime(limit.timeLimitMs)} · {formatMemory(limit.memoryLimitKb)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -116,34 +139,4 @@ function formatMemory(kilobytes) {
   const megabytes = Number(kilobytes) / 1024;
   if (!Number.isFinite(megabytes)) return "-";
   return `${formatNumber(megabytes)}MB`;
-}
-
-export function ExecutionLimitsCard({ limits = [] }) {
-  if (limits.length === 0) return null;
-
-  return (
-    <section className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <div className="h-1.5 w-1.5 rounded-full bg-[#A855F7] shadow-[0_0_8px_#A855F7]" />
-        <h3 className="text-xs font-semibold tracking-wider text-[#8B87AA]">언어별 제한</h3>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        {limits.map((limit) => (
-          <div key={limit.language} className="rounded-xl border border-[#1E1D35] bg-[#080814] px-3 py-3">
-            <p className="mb-2 truncate text-xs font-semibold text-[#C8B8F8]">{limit.language}</p>
-            <div className="space-y-1 text-[10px]">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[#4A4870]">시간</span>
-                <span className="font-medium text-[#8B87AA]">{formatTime(limit.timeLimitMs)}</span>
-              </div>
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[#4A4870]">메모리</span>
-                <span className="font-medium text-[#8B87AA]">{formatMemory(limit.memoryLimitKb)}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
 }
