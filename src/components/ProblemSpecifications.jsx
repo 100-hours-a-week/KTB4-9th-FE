@@ -69,8 +69,8 @@ export function ProblemConditions({
 
         {(hasStructuredConstraints || hasLegacyConstraints) && (
           <div className={hasFormats ? "mt-3 border-t border-[#1A1A2E] pt-3" : ""}>
-            <h3 className="mb-2 text-[10px] font-semibold tracking-wider text-[#6B6890]">제약 조건</h3>
-            <div className="grid grid-cols-2 gap-1.5">
+            <h3 className="mb-1 text-[10px] font-semibold tracking-wider text-[#6B6890]">제약 조건</h3>
+            <div className="divide-y divide-[#1A1A2E] px-1">
             {inputConstraints.map((constraint, index) => {
               const conditions = [
                 constraint.dataCount != null ? `원소 수 ${formatNumber(constraint.dataCount)}개` : null,
@@ -78,28 +78,26 @@ export function ProblemConditions({
               ].filter(Boolean);
 
               return (
-                <div key={`${constraint.target}-${index}`} className="min-w-0 rounded-lg border border-[#1E1D35] bg-[#0D0D1F] px-2.5 py-2">
-                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <div key={`${constraint.target}-${index}`} className="flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 py-1.5 text-[10px] leading-4">
+                  <span className="text-[#7C3AED]">•</span>
                     {constraint.scope === "OUTPUT" && (
-                      <span className="rounded bg-[#A855F7]/15 px-1.5 py-0.5 text-[8px] font-semibold text-[#C084FC]">출력</span>
+                      <span className="font-semibold text-[#C084FC]">출력</span>
                     )}
-                    <code className="text-[11px] font-semibold leading-5 text-[#C8B8F8]"><MathText text={formatRange(constraint)} /></code>
+                    <code className="font-semibold text-[#C8B8F8]"><MathText text={formatRange(constraint)} /></code>
                     {constraint.dataType && (
-                      <span className="rounded border border-[#2A2845] px-1 py-px text-[8px] text-[#6B6890]">
-                        {DATA_TYPE_LABELS[constraint.dataType] ?? constraint.dataType}
-                      </span>
+                      <span className="text-[9px] text-[#6B6890]">({DATA_TYPE_LABELS[constraint.dataType] ?? constraint.dataType})</span>
                     )}
-                  </div>
                   {conditions.length > 0 && (
-                    <p className="mt-1 text-[9px] leading-4 text-[#5F5B80]"><MathText text={conditions.join(" · ")} /></p>
+                    <span className="text-[9px] text-[#5F5B80]">· <MathText text={conditions.join(" · ")} /></span>
                   )}
                 </div>
               );
             })}
 
             {!hasStructuredConstraints && legacyConstraints.map((constraint, index) => (
-              <div key={`${constraint}-${index}`} className="rounded-lg border border-[#1E1D35] bg-[#0D0D1F] px-2.5 py-2">
-                <code className="text-[10px] leading-4 text-[#8B87AA]"><MathText text={constraint} /></code>
+              <div key={`${constraint}-${index}`} className="flex gap-1.5 py-1.5 text-[10px] leading-4 text-[#8B87AA]">
+                <span className="text-[#7C3AED]">•</span>
+                <code><MathText text={constraint} /></code>
               </div>
             ))}
             </div>
