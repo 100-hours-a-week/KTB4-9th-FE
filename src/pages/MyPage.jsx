@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import UserMenu from "../components/common/UserMenu.jsx";
+import ProfileAvatar from "../components/common/ProfileAvatar.jsx";
 import { useAuth } from "../features/auth/authContext.js";
 import DeleteSavedProblemModal from "../components/saved/DeleteSavedProblemModal.jsx";
 import SavedProblemCard from "../components/saved/SavedProblemCard.jsx";
@@ -92,8 +93,13 @@ export default function MyPage() {
   return (
     <div className="h-full overflow-y-auto bg-[#05050F] px-5 pb-8">
       <header className="flex items-center gap-4 pb-7 pt-8">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#7C3AED]/70 bg-[#24103F] text-xl font-bold text-[#C084FC]">
-          {(user.name || "?")[0]}
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#7C3AED]/70 bg-[#24103F] text-xl font-bold text-[#C084FC]">
+          <ProfileAvatar
+            src={user.profileImageUrl}
+            name={user.name}
+            alt=""
+            className="h-full w-full object-cover"
+          />
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-lg font-semibold text-[#E2E0F0]">
