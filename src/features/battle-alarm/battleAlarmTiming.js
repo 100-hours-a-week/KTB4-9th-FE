@@ -16,11 +16,19 @@ const UNKNOWN_OPEN_WAIT_MS = 60 * 1000;
 // 배너는 12:00 전후(한국 시각 11:55~12:15)에만 보여준다. 다른 시간대의 서버 장애로 배너가 뜨지 않게 한다.
 const BANNER_START_MINUTE = 11 * 60 + 55;
 const BANNER_END_MINUTE = 12 * 60 + 15;
+// 서버에 물어보는 시간대(한국 시각 11:50~12:15). 이 밖에서는 요청을 보내지 않는다. 시계가 조금 틀려도 놓치지 않게 여유를 둔다.
+const CHECK_START_MINUTE = 11 * 60 + 50;
+const CHECK_END_MINUTE = 12 * 60 + 15;
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
-// 다음 날 확인은 자정에서 이만큼(ms) 지난 뒤로 잡는다.
-const NEXT_DAY_CHECK_DELAY_MS = 5000;
+const MINUTE_MS = 60 * 1000;
+
+// 한국 시각 기준으로 하루 중 몇 분째인지 구한다.
+function kstMinuteOfDay(ms) {
+  const kst = new Date(ms + KST_OFFSET_MS);
+  return kst.getUTCHours() * 60 + kst.getUTCMinutes();
+}
 
 // 서버 시각과 내 시계의 차이를 계산한다.
 export function computeClockOffset(serverTimeMs, requestedAtMs, respondedAtMs) {
@@ -56,16 +64,22 @@ export function nextCheckDelay(status, serverNowMs, opensAtMs, random = Math.ran
   return POLL_INTERVAL_MS;
 }
 
-// 다음 날 자정(한국 시각) 직후까지 남은 시간(ms). 탭을 오래 열어 둔 사용자가 다음 날에도 모달을 받게 한다.
-export function msUntilNextKstMidnight(serverNowMs, random = Math.random()) {
-  const kstMs = serverNowMs + KST_OFFSET_MS;
-  const nextMidnightKstMs = (Math.floor(kstMs / DAY_MS) + 1) * DAY_MS;
-  return nextMidnightKstMs - kstMs + NEXT_DAY_CHECK_DELAY_MS + random * POLL_JITTER_MAX_MS;
+// 지금이 서버에 물어봐도 되는 시간대(11:50~12:15)인지 확인한다.
+export function isInCheckWindow(nowMs) {
+  const minute = kstMinuteOfDay(nowMs);
+  return minute >= CHECK_START_MINUTE && minute <= CHECK_END_MINUTE;
+}
+
+// 다음 11:50(한국 시각)까지 남은 시간(ms). 사용자마다 어긋나게 무작위 지연을 더한다.
+export function msUntilNextCheckStart(nowMs, random = Math.random()) {
+  const kstMs = nowMs + KST_OFFSET_MS;
+  let startKstMs = Math.floor(kstMs / DAY_MS) * DAY_MS + CHECK_START_MINUTE * MINUTE_MS;
+  if (startKstMs <= kstMs) startKstMs += DAY_MS;
+  return startKstMs - kstMs + random * POLL_JITTER_MAX_MS;
 }
 
 // 지금(서버 시각 기준)이 배너를 보여줘도 되는 12:00 전후인지 확인한다.
 export function isNearOpenWindow(serverNowMs) {
-  const kst = new Date(serverNowMs + KST_OFFSET_MS);
-  const minutes = kst.getUTCHours() * 60 + kst.getUTCMinutes();
+  const minutes = kstMinuteOfDay(serverNowMs);
   return minutes >= BANNER_START_MINUTE && minutes <= BANNER_END_MINUTE;
 }

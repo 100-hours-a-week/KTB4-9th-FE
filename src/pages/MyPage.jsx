@@ -109,7 +109,7 @@ export default function MyPage() {
             {user.email || "로그인 계정"}
           </p>
         </div>
-        <UserMenu menuIcon rounded="rounded-2xl" />
+        <UserMenu />
       </header>
 
       <main className="space-y-5">
