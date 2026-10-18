@@ -2,8 +2,8 @@ name: Frontend CD Pipeline (S3 + CloudFront)
 
 on:
   workflow_run:
-    workflows: ["Frontend (React) CI Pipeline"] 
-    branches: [ main ]                        
+    workflows: ["Frontend (React) CI Pipeline"]
+    branches: [dev]
     types: [ completed ]
 
 concurrency:
@@ -13,7 +13,12 @@ concurrency:
 jobs:
   deploy:
     name: Build, Deploy to S3 & Invalidate CDN
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: >-
+      ${{
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'dev' &&
+        github.event.workflow_run.conclusion == 'success'
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
