@@ -45,6 +45,18 @@ jobs:
               exit 1
             fi
           done
+          if [[ "${VITE_API_BASE_URL}" != "https://cosmoscode.site/api" ]]; then
+            echo "::error::VITE_API_BASE_URL must target the staging API on cosmoscode.site"
+            exit 1
+          fi
+          if [[ "${VITE_KAKAO_REDIRECT_URI}" != "https://cosmoscode.site/api/auth/oauth/kakao/callback" ]]; then
+            echo "::error::VITE_KAKAO_REDIRECT_URI must target the staging callback on cosmoscode.site"
+            exit 1
+          fi
+          if [[ "${VITE_USE_MOCKS}" != "false" ]]; then
+            echo "::error::VITE_USE_MOCKS must be false for staging"
+            exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4

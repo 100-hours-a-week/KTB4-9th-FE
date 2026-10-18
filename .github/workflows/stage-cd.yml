@@ -28,6 +28,7 @@ jobs:
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
       CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
       ARTIFACT_NAME: frontend-stage-${{ github.event.pull_request.head.sha }}
 
     steps:
@@ -39,7 +40,7 @@ jobs:
           set -euo pipefail
           required=(
             AWS_REGION AWS_STAGE_CD_ROLE_ARN AWS_ACCOUNT_ID
-            S3_BUCKET_NAME CLOUDFRONT_DISTRIBUTION_ID
+            S3_BUCKET_NAME CLOUDFRONT_DISTRIBUTION_ID FRONTEND_URL
           )
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
@@ -152,4 +153,4 @@ jobs:
           curl --fail --show-error --silent \
             --retry 10 --retry-all-errors --retry-delay 10 \
             --max-time 15 \
-            https://stage.cosmoscode.site/
+            "${FRONTEND_URL}/"
