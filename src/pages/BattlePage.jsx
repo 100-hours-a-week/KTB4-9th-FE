@@ -108,9 +108,9 @@ function AccessDeniedState({
           <button
             type="button"
             onClick={() => navigate("/daily-battles", { replace: true })}
-            className="mt-2 w-full rounded-2xl border border-[#2A2845] py-3.5 text-xs font-semibold text-[#A89EC4] active:bg-[#12121F]"
+            className="mt-2 w-full rounded-2xl border border-[#2A2845] py-4 text-sm font-bold text-[#A89EC4] active:bg-[#12121F]"
           >
-            오늘의 배틀 일정 보기
+            배틀 페이지로 돌아가기
           </button>
         )}
       </section>
