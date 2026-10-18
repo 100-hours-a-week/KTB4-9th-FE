@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import AppShell from "./components/layout/AppShell.jsx";
 import RootLayout from "./components/layout/RootLayout.jsx";
-import BattlePage from "./pages/BattlePage.jsx";
+import BattlePage, { InvalidBattleRoutePage } from "./pages/BattlePage.jsx";
 import HomePage from "./pages/HomePage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import MyPage from "./pages/MyPage.jsx";
@@ -33,6 +33,7 @@ export const router = createBrowserRouter([
           { index: true, Component: HomePage },
           { path: "problems/new", Component: ProblemGenerationPage },
           { path: "daily-battles", Component: BattlePage },
+          { path: "daily-battles/*", Component: InvalidBattleRoutePage },
           { path: "rankings", Component: RankingPage },
           { path: "mypage", Component: MyPage },
         ],

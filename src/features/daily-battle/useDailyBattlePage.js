@@ -48,6 +48,28 @@ function messageForError(error) {
   return "배틀 정보를 불러오지 못했습니다.";
 }
 
+function accessIssueForError(error) {
+  if (error?.status === 400) {
+    return {
+      title: "올바르지 않은 배틀 주소입니다",
+      description: "주소를 다시 확인하거나 배틀 메뉴에서 오늘의 배틀을 확인해 주세요.",
+    };
+  }
+  if (error?.status === 403) {
+    return {
+      title: "배틀 참여 시간이 아닙니다",
+      description: "데일리 배틀은 매일 낮 12시부터 10분 동안 참여할 수 있어요.",
+    };
+  }
+  if (error?.status === 404) {
+    return {
+      title: "참여할 수 없는 배틀입니다",
+      description: "존재하지 않거나 이미 종료된 배틀이에요. 오늘의 배틀 일정을 확인해 주세요.",
+    };
+  }
+  return null;
+}
+
 export function formatBattleTime(totalSeconds) {
   const safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
   const days = Math.floor(safe / 86400);
@@ -69,6 +91,7 @@ export function useDailyBattlePage() {
   const [untilOpenSeconds, setUntilOpenSeconds] = useState(0);
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [accessIssue, setAccessIssue] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [droppingOut, setDroppingOut] = useState(false);
   const pollTimerRef = useRef(null);
@@ -113,6 +136,7 @@ export function useDailyBattlePage() {
     setBattleId(id);
     rememberBattle(id);
     setErrorMessage("");
+    setAccessIssue(null);
     try {
       const participation = await joinOnce(id);
       if (!mountedRef.current) return;
@@ -140,6 +164,12 @@ export function useDailyBattlePage() {
         pollResult(id);
         return;
       }
+      const issue = accessIssueForError(error);
+      if (issue) {
+        setAccessIssue(issue);
+        setPhase("access-denied");
+        return;
+      }
       setErrorMessage(messageForError(error));
       setPhase("error");
     }
@@ -149,6 +179,7 @@ export function useDailyBattlePage() {
     stopPolling();
     setPhase("loading");
     setErrorMessage("");
+    setAccessIssue(null);
     try {
       const nextAlarm = await getBattleAlarmStatus();
       if (!mountedRef.current) return;
@@ -325,6 +356,7 @@ export function useDailyBattlePage() {
   }, [battleId, load, pollResult]);
 
   return {
+    accessIssue,
     alarm,
     answers,
     battle,

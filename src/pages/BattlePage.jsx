@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
@@ -56,6 +57,64 @@ function ErrorButton({ onClick, children = "다시 시도" }) {
     <button type="button" onClick={onClick} className="w-full rounded-xl border border-[#7C3AED]/45 bg-[#7C3AED]/15 px-4 py-3 text-sm font-semibold text-[#C084FC] active:scale-[0.98]">
       {children}
     </button>
+  );
+}
+
+function AccessDeniedState({
+  eyebrow = "BATTLE ACCESS",
+  title = "배틀에 참여할 수 없어요",
+  description = "배틀 참여 시간과 주소를 다시 확인해 주세요.",
+  showBattleGuide = false,
+}) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="relative z-10 flex min-h-full items-center justify-center px-6 py-10">
+      <section className="w-full max-w-sm text-center">
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[24px] border border-[#7C3AED]/35 bg-[#121126] shadow-[0_18px_55px_rgba(124,58,237,0.2)]">
+          <svg width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+            <path d="M21 4.5 35 10v9.7c0 8.3-5.2 14.8-14 18-8.8-3.2-14-9.7-14-18V10l14-5.5Z" stroke="var(--cosmos-accent-text)" strokeWidth="2" strokeLinejoin="round" />
+            <path d="M21 13v9" stroke="var(--cosmos-accent-text)" strokeWidth="2.4" strokeLinecap="round" />
+            <circle cx="21" cy="28" r="1.5" fill="var(--cosmos-accent-text)" />
+          </svg>
+        </div>
+        <p className="mb-3 text-[10px] font-semibold tracking-[0.3em] text-[#8B7FC4]" style={MONO}>{eyebrow}</p>
+        <h1 className="text-2xl font-bold text-[#F2F0FA]" style={FONT}>{title}</h1>
+        <p className="mx-auto mt-3 max-w-[290px] whitespace-pre-line text-sm leading-6 text-[#8B87AA]" style={FONT}>{description}</p>
+
+        <div className="mt-7 rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-4 py-3.5 text-left">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#7C3AED]/15 text-[#C084FC]">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <div>
+              <p className="text-xs font-semibold text-[#E2E0F0]">배틀 참여 안내</p>
+              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">매일 12:00–12:09:59에만 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="mt-5 w-full rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#A855F7] py-4 text-sm font-bold text-white shadow-[0_12px_30px_rgba(124,58,237,0.24)] active:scale-[0.98]"
+        >
+          홈으로 돌아가기
+        </button>
+        {showBattleGuide && (
+          <button
+            type="button"
+            onClick={() => navigate("/daily-battles", { replace: true })}
+            className="mt-2 w-full rounded-2xl border border-[#2A2845] py-3.5 text-xs font-semibold text-[#A89EC4] active:bg-[#12121F]"
+          >
+            오늘의 배틀 일정 보기
+          </button>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -295,6 +354,7 @@ function BattleResult({ result }) {
 
 export default function BattlePage() {
   const {
+    accessIssue,
     alarm,
     answers,
     battle,
@@ -324,6 +384,8 @@ export default function BattlePage() {
     content = <CenterState title="배틀 문제를 준비하고 있어요" description="잠시 후 다시 확인해 주세요." action={<ErrorButton onClick={load} />} />;
   } else if (phase === "closed") {
     content = <CenterState title="오늘의 배틀이 마감되었습니다" description={"결과를 조회할 참여 기록이 없습니다.\n내일 낮 12시에 다시 도전해 주세요."} />;
+  } else if (phase === "access-denied") {
+    content = <AccessDeniedState title={accessIssue?.title} description={accessIssue?.description} />;
   } else if (phase === "in-progress" && battle) {
     content = <BattleForm battle={battle} answers={answers} remainingSeconds={remainingSeconds} errorMessage={errorMessage} canSubmit={canSubmit} submitting={submitting} droppingOut={droppingOut} onAnswer={updateAnswer} onSubmit={submit} onDropOut={dropOut} />;
   } else if (phase === "result-pending") {
@@ -345,6 +407,20 @@ export default function BattlePage() {
       <BattleBackdrop />
       {content}
       <span className="sr-only" aria-live="polite">{alarm?.status}</span>
+    </div>
+  );
+}
+
+export function InvalidBattleRoutePage() {
+  return (
+    <div className="relative h-full overflow-hidden bg-[#05050F]">
+      <BattleBackdrop />
+      <AccessDeniedState
+        eyebrow="INVALID BATTLE"
+        title="잘못된 배틀 접근입니다"
+        description={"주소로 직접 참여할 수 없는 배틀이에요.\n현재 진행 중인 배틀은 배틀 메뉴에서 확인해 주세요."}
+        showBattleGuide
+      />
     </div>
   );
 }
