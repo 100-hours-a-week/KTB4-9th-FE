@@ -5,8 +5,9 @@ import {
   MAX_RETRIES,
   RETRY_INTERVAL_MS,
   computeClockOffset,
+  isInCheckWindow,
   isNearOpenWindow,
-  msUntilNextKstMidnight,
+  msUntilNextCheckStart,
   nextCheckDelay,
   toServerNow,
 } from "./battleAlarmTiming.js";
@@ -52,6 +53,13 @@ export function useBattleAlarm(enabled) {
       const generation = ++generationRef.current;
       clearTimeout(timerRef.current);
 
+      // 12시 전후(11:50~12:15)가 아니면 서버에 묻지 않고 다음 11:50까지 기다린다.
+      if (!isBattleAlarmMocked() && !isInCheckWindow(toServerNow(offsetRef.current))) {
+        setBanner(null);
+        timerRef.current = setTimeout(() => run(0), msUntilNextCheckStart(toServerNow(offsetRef.current)));
+        return;
+      }
+
       // 확인이 오래 걸릴 때만 "확인 중"을 보여준다. 금방 끝나면 깜빡이지 않는다.
       const bannerTimer = setTimeout(() => {
         if (generation === generationRef.current && showBannerNow()) setBanner("checking");
@@ -67,9 +75,9 @@ export function useBattleAlarm(enabled) {
         setBanner(null);
         applyStatus(next);
 
-        // 더 확인할 필요가 없으면 다음 날 자정 뒤에 한 번 다시 확인한다.
+        // 더 확인할 필요가 없으면 다음 날 11:50에 다시 확인한다.
         const serverNow = toServerNow(offsetRef.current);
-        const delay = nextCheckDelay(next.status, serverNow, next.opensAt?.getTime()) ?? msUntilNextKstMidnight(serverNow);
+        const delay = nextCheckDelay(next.status, serverNow, next.opensAt?.getTime()) ?? msUntilNextCheckStart(serverNow);
         timerRef.current = setTimeout(() => run(0), delay);
       } catch {
         clearTimeout(bannerTimer);

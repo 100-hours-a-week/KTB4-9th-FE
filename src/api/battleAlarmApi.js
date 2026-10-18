@@ -17,6 +17,13 @@ export function isBattleAlarmMocked() {
 function normalizeStatus(payload) {
   const data = payload?.data ?? {};
   const closesAt = data.closes_at ? new Date(data.closes_at) : null;
+
+  // 상태나 시각이 이상한 응답은 실패로 처리한다. (시각 계산이 NaN이 되어 요청이 쉬지 않고 나가는 것을 막는다.)
+  const serverTime = new Date(data.server_time);
+  if (!data.status || Number.isNaN(serverTime.getTime()) || (closesAt && Number.isNaN(closesAt.getTime()))) {
+    throw new Error("invalid_battle_alarm_response");
+  }
+
   const opensAt = data.opens_at
     ? new Date(data.opens_at)
     : closesAt
@@ -25,7 +32,7 @@ function normalizeStatus(payload) {
 
   return {
     status: data.status,
-    serverTime: new Date(data.server_time),
+    serverTime,
     battleId: data.battle_id ?? null,
     participated: Boolean(data.participated),
     dismissed: Boolean(data.dismissed),
