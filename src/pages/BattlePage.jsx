@@ -97,22 +97,24 @@ function AccessDeniedState({
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => navigate("/")}
-          className="mt-5 w-full rounded-2xl bg-gradient-to-r from-[#7C3AED] to-[#A855F7] py-4 text-sm font-bold text-white shadow-[0_12px_30px_rgba(124,58,237,0.24)] active:scale-[0.98]"
-        >
-          홈으로 돌아가기
-        </button>
-        {showBattleGuide && (
+        <div className={`mt-5 ${showBattleGuide ? "grid grid-cols-2 gap-2" : ""}`}>
           <button
             type="button"
-            onClick={() => navigate("/daily-battles", { replace: true })}
-            className="mt-2 w-full rounded-2xl border border-[#2A2845] py-4 text-sm font-bold text-[#A89EC4] active:bg-[#12121F]"
+            onClick={() => navigate("/")}
+            className="min-h-11 w-full rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#A855F7] px-3 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(124,58,237,0.2)] active:scale-[0.98]"
           >
-            배틀 페이지로 돌아가기
+            홈으로 돌아가기
           </button>
-        )}
+          {showBattleGuide && (
+            <button
+              type="button"
+              onClick={() => navigate("/daily-battles", { replace: true })}
+              className="min-h-11 w-full rounded-xl border border-[#2A2845] px-3 py-3 text-xs font-bold text-[#A89EC4] active:bg-[#12121F]"
+            >
+              배틀 페이지로 돌아가기
+            </button>
+          )}
+        </div>
       </section>
     </div>
   );
