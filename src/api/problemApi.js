@@ -4,6 +4,7 @@ import {
   CATEGORY_TO_API,
   RANDOM_CATEGORY,
 } from '../constants/problemOptions.js'
+import { isMockModeEnabled } from '../config/runtimeFlags.js'
 
 const LANGUAGE_TO_API = {
   Python: 'PYTHON',
@@ -12,7 +13,7 @@ const LANGUAGE_TO_API = {
   'C++': 'CPP',
 }
 
-export const USE_MOCKS = import.meta.env.VITE_USE_MOCKS !== 'false'
+export const USE_MOCKS = isMockModeEnabled(import.meta.env.VITE_USE_MOCKS)
 // 기능별로 진짜 API를 켜는 스위치. USE_MOCKS가 false면 전부 켜짐
 export const USE_REAL_PROBLEM = !USE_MOCKS || import.meta.env.VITE_USE_REAL_PROBLEM === 'true'
 export const USE_REAL_APPROACH = !USE_MOCKS || import.meta.env.VITE_USE_REAL_APPROACH === 'true'
