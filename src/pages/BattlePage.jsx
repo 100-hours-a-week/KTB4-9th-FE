@@ -3,7 +3,6 @@ import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
-import ProfileAvatar from "../components/common/ProfileAvatar.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import { useAuth } from "../features/auth/authContext.js";
 import {
@@ -249,7 +248,6 @@ function BlurredResultPreview() {
           <p className="text-[9px] text-[#6B6890]">내 순위</p>
           <p className="mt-1 text-2xl font-bold text-[#C084FC]">2위</p>
         </div>
-        <div className="h-10 w-10 shrink-0 rounded-full border border-[#7C3AED]/35 bg-[#7C3AED]/25" />
         <div className="min-w-0 flex-1">
           <div className="h-3 w-24 rounded-full bg-[#C8B8F8]" />
           <div className="mt-2 h-2 w-14 rounded-full bg-emerald-400" />
@@ -266,7 +264,6 @@ function BlurredResultPreview() {
           {[1, 2, 3, 4, 5].map((rank) => (
             <div key={rank} className="flex items-center gap-3 px-4 py-3">
               <span className={`w-7 text-center font-bold ${rank <= 3 ? "text-xl text-[#E2E0F0]" : "text-sm text-[#8B87AA]"}`}>{rank}</span>
-              <div className="h-9 w-9 shrink-0 rounded-full border border-[#2A2845] bg-[#7C3AED]/20" />
               <div className="h-3 flex-1 rounded-full bg-[#A89EC4]" />
               <span className="text-[11px] text-[#A89EC4]" style={MONO}>0{rank}:2{rank}</span>
             </div>
@@ -345,9 +342,6 @@ function ResultRankings({ rankings }) {
         {rankings.map((entry) => (
           <div key={`${entry.rank}-${entry.user_id}`} className="flex items-center gap-3 px-4 py-3">
             <span className={`w-7 text-center font-bold ${entry.rank <= 3 ? "text-xl text-[#E2E0F0]" : "text-sm text-[#8B87AA]"}`}>{entry.rank}</span>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#2A2845] bg-[#7C3AED]/15 text-[10px] font-bold text-[#C084FC]">
-              <ProfileAvatar src={entry.profile_image_url} name={entry.name} className="h-full w-full object-cover" />
-            </div>
             <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#E2E0F0]">{entry.name}</p>
             <span className={`text-[11px] ${entry.rank === 1 ? "font-bold text-[#C084FC]" : "text-[#A89EC4]"}`} style={MONO}>{formatElapsed(entry.elapsed_seconds)}</span>
           </div>
@@ -429,9 +423,6 @@ function BattleResult({ result }) {
             <div className="min-w-[54px] border-r border-[#2A2845] pr-3">
               <p className="text-[9px] text-[#6B6890]">내 순위</p>
               <p className="mt-1 text-2xl font-bold text-[#C084FC]">{mine.my_rank == null ? "-" : `${mine.my_rank}위`}</p>
-            </div>
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#7C3AED]/35 bg-[#7C3AED]/20 text-xs font-bold text-[#C084FC]">
-              <ProfileAvatar src={user?.profileImageUrl} name={user?.name} className="h-full w-full object-cover" />
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-[#E2E0F0]">{user?.name || "사용자"}</p>
