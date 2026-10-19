@@ -12,7 +12,7 @@ const MAX_RESULT_FAILURES = 3;
 const STORAGE_KEY = "cosmos:last-daily-battle";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 // 첫 데일리 배틀 공개 시각. 이 시각 이후에는 평소의 서버 상태 흐름만 사용한다.
-const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T13:20:00+09:00");
+const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T12:50:00+09:00");
 const joinRequests = new Map();
 
 function getSubmissionDeadline(serverTime) {
@@ -20,7 +20,15 @@ function getSubmissionDeadline(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T16:50:00+09:00`);
+  return new Date(`${year}-${month}-${date}T12:59:59+09:00`);
+}
+
+function getResultAvailableAt(serverTime) {
+  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
+  const year = koreanTime.getUTCFullYear();
+  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
+  return new Date(`${year}-${month}-${date}T13:00:00+09:00`);
 }
 
 function getRemainingSeconds(deadline, clockOffset) {
@@ -30,8 +38,8 @@ function getRemainingSeconds(deadline, clockOffset) {
 }
 
 function getInitialPhase() {
-  const todayDeadline = getSubmissionDeadline(new Date());
-  return getRemainingSeconds(todayDeadline, 0) === 0 ? "result-loading" : "loading";
+  const resultAvailableAt = getResultAvailableAt(new Date());
+  return getRemainingSeconds(resultAvailableAt, 0) === 0 ? "result-loading" : "loading";
 }
 
 function joinOnce(battleId) {
@@ -78,7 +86,7 @@ function accessIssueForError(error) {
   if (error?.status === 403) {
     return {
       title: "배틀 참여 시간이 아닙니다",
-      description: "현재 테스트 배틀은 오후 1시 20분부터 4시 50분까지 참여할 수 있어요.",
+      description: "데일리 배틀은 매일 낮 12시 50분부터 12시 59분 59초까지 참여할 수 있어요.",
     };
   }
   if (error?.status === 404) {
@@ -119,6 +127,7 @@ export function useDailyBattlePage() {
   const mountedRef = useRef(true);
   const clockOffsetRef = useRef(0);
   const submissionDeadlineRef = useRef(null);
+  const resultAvailableAtRef = useRef(null);
 
   const stopPolling = useCallback(() => {
     clearTimeout(pollTimerRef.current);
@@ -128,8 +137,10 @@ export function useDailyBattlePage() {
   const pollResult = useCallback(async function poll(id) {
     stopPolling();
 
-    // 결과는 마감 이후에만 조회한다. 마감 전에는 참여 상태와 로컬 타이머만 사용한다.
-    if (getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current) > 0) {
+    // 제출은 12:59:59에 닫지만 결과는 13:00부터 조회한다.
+    const secondsUntilResult = getRemainingSeconds(resultAvailableAtRef.current, clockOffsetRef.current);
+    if (secondsUntilResult > 0) {
+      setRemainingSeconds(secondsUntilResult);
       setPhase("result-pending");
       return;
     }
@@ -163,7 +174,7 @@ export function useDailyBattlePage() {
   }, [stopPolling]);
 
   const waitUntilDeadlineOrPoll = useCallback((id) => {
-    const seconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
+    const seconds = getRemainingSeconds(resultAvailableAtRef.current, clockOffsetRef.current);
     setRemainingSeconds(seconds);
 
     // 마감 전에는 참여 상태만으로 대기 화면을 보여주고 결과 API를 호출하지 않는다.
@@ -187,12 +198,16 @@ export function useDailyBattlePage() {
       rememberBattle(id, participation.battleDate);
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
-        submissionDeadlineRef.current = new Date(`${participation.battleDate}T16:50:00+09:00`);
+        submissionDeadlineRef.current = new Date(`${participation.battleDate}T12:59:59+09:00`);
       }
-      setRemainingSeconds(getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current));
+      if (!resultAvailableAtRef.current && participation.battleDate) {
+        resultAvailableAtRef.current = new Date(`${participation.battleDate}T13:00:00+09:00`);
+      }
+      const submissionSeconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
+      setRemainingSeconds(submissionSeconds);
       setAnswers(Object.fromEntries(participation.cases.map((item) => [item.displayOrder, ""])));
 
-      if (participation.participationStatus === "IN_PROGRESS") {
+      if (participation.participationStatus === "IN_PROGRESS" && submissionSeconds > 0) {
         setPhase("in-progress");
       } else {
         waitUntilDeadlineOrPoll(id);
@@ -236,11 +251,14 @@ export function useDailyBattlePage() {
 
       if (nextAlarm.status === "OPEN" && nextAlarm.battleId) {
         submissionDeadlineRef.current = getSubmissionDeadline(nextAlarm.serverTime);
+        resultAvailableAtRef.current = getResultAvailableAt(nextAlarm.serverTime);
         await enterBattle(nextAlarm.battleId);
         return;
       }
 
       if (nextAlarm.status === "CLOSED") {
+        submissionDeadlineRef.current = getSubmissionDeadline(nextAlarm.serverTime);
+        resultAvailableAtRef.current = getResultAvailableAt(nextAlarm.serverTime);
         const resultBattleId = nextAlarm.battleId ?? readRememberedBattle();
         if (resultBattleId) {
           setBattleId(resultBattleId);
@@ -286,12 +304,16 @@ export function useDailyBattlePage() {
     let deadlineHandled = false;
 
     const updateTimer = () => {
-      const seconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
+      const targetTime = phase === "in-progress"
+        ? submissionDeadlineRef.current
+        : resultAvailableAtRef.current;
+      const seconds = getRemainingSeconds(targetTime, clockOffsetRef.current);
       setRemainingSeconds(seconds);
       if (seconds === 0 && !deadlineHandled) {
         deadlineHandled = true;
         if (phase === "in-progress") {
-          setPhase("result-loading");
+          if (battleId) waitUntilDeadlineOrPoll(battleId);
+          return;
         }
         if (battleId) pollResult(battleId);
       }
@@ -300,7 +322,7 @@ export function useDailyBattlePage() {
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, [battleId, phase, pollResult]);
+  }, [battleId, phase, pollResult, waitUntilDeadlineOrPoll]);
 
   useEffect(() => {
     if ((phase !== "waiting" && phase !== "launch-waiting") || !alarm?.opensAt) return undefined;
