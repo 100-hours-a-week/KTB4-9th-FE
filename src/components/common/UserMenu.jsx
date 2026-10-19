@@ -34,7 +34,7 @@ export default function UserMenu({ rounded = "rounded-xl", menuIcon = false }) {
 
   return (
     <div ref={containerRef} className="relative">
-      <button type="button" aria-label="사용자 메뉴" aria-expanded={open} onClick={() => setOpen((value) => !value)} className={`flex items-center justify-center overflow-hidden ${menuIcon ? "h-12 w-12 border-[#252342] bg-[#0D0D1F]" : "h-9 w-9 border-[#7C3AED]/40 bg-[#7C3AED]/30"} ${rounded} border text-xs font-bold text-[#C084FC] transition-transform active:scale-95`} style={{ fontFamily: "'Outfit', sans-serif" }}>
+      <button type="button" aria-label="사용자 메뉴" aria-expanded={open} onClick={() => setOpen((value) => !value)} className={`flex items-center justify-center overflow-hidden ${menuIcon ? "h-12 w-12 border-transparent bg-transparent" : "h-9 w-9 border-[#7C3AED]/40 bg-[#7C3AED]/30"} ${rounded} border text-xs font-bold text-[#C084FC] transition-transform active:scale-95`} style={{ fontFamily: "'Outfit', sans-serif" }}>
         {menuIcon ? (
           <svg width="22" height="18" viewBox="0 0 22 18" fill="none" aria-hidden="true">
             <path d="M1 1h20M1 9h20M1 17h20" stroke="var(--cosmos-text-secondary)" strokeWidth="1.8" strokeLinecap="round" />

@@ -73,7 +73,13 @@ export function useHomePage() {
 
     try {
       const problem = await getProblem(currentProblem.id);
-      setCurrentProblem({ ...problem, isDailyProblem: true });
+      // 데일리 목록이 알려준 카테고리를 유지 (상세 조회는 카테고리를 숨김)
+      setCurrentProblem({
+        ...problem,
+        category: currentProblem.category,
+        categoryKnown: true,
+        isDailyProblem: true,
+      });
       navigate(`/problems/${currentProblem.id}`);
     } catch (error) {
       setProblemOpenError(getApiErrorMessage(error));

@@ -35,16 +35,23 @@ export async function fetchProblemDescription(item) {
   return description
 }
 
-// 문제를 저장(saved=true)하거나 해제(saved=false)
-export async function setProblemSaved(problem, saved) {
+// 문제를 저장(saved=true)하거나 해제(saved=false). categoryKnown은 저장할 때만 서버에 알려줌
+export async function setProblemSaved(problem, saved, categoryKnown = false) {
   // 1. 목업 모드면 이미 원하는 상태가 아닐 때만 토글
   if (!USE_REAL_SAVED) {
     if (isProblemSaved(problem.id) !== saved) toggleSavedProblem(problem)
     return
   }
 
-  // 2. 저장은 POST, 해제는 DELETE
-  await request(`/problems/${problem.id}/saved`, { method: saved ? 'POST' : 'DELETE' })
+  // 2. 저장은 카테고리를 알고 있었는지를 담아 POST, 해제는 DELETE
+  if (saved) {
+    await request(`/problems/${problem.id}/saved`, {
+      method: 'POST',
+      body: JSON.stringify({ categoryKnown }),
+    })
+    return
+  }
+  await request(`/problems/${problem.id}/saved`, { method: 'DELETE' })
 }
 
 // 풀이 화면에서 처음 보여줄 저장 여부 (서버 모드는 문제 상세 응답의 saved 값)

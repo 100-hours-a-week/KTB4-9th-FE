@@ -93,7 +93,7 @@ export default function MyPage() {
   return (
     <div className="h-full overflow-y-auto bg-[#05050F] px-5 pb-8">
       <header className="flex items-center gap-4 pb-7 pt-8">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#7C3AED]/70 bg-[#24103F] text-xl font-bold text-[#C084FC]">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border-2 border-[#7C3AED]/70 bg-[#24103F] text-xl font-bold text-[#C084FC]">
           <ProfileAvatar
             src={user.profileImageUrl}
             name={user.name}
@@ -109,7 +109,7 @@ export default function MyPage() {
             {user.email || "로그인 계정"}
           </p>
         </div>
-        <UserMenu />
+        <UserMenu menuIcon />
       </header>
 
       <main className="space-y-5">
@@ -130,13 +130,13 @@ export default function MyPage() {
           ))}
         </section>
 
-        <section className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <section className="grid grid-cols-6 gap-2">
           {["전체", ...LEVELS].map((level) => (
             <button
               key={level}
               type="button"
               onClick={() => handleFilter(level)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+              className={`rounded-full border py-2 text-xs font-medium transition-colors ${
                 filter === level
                   ? "border-[#7C3AED] bg-[#351060] text-[#D8B4FE]"
                   : "border-[#252342] bg-[#0D0D1F] text-[#77739A]"

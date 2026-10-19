@@ -551,7 +551,9 @@ function SolvePage() {
           ? {
               ...prev,
               ...loadedProblem,
-              categoryKnown: prev.categoryKnown ?? loadedProblem.categoryKnown,
+              category: loadedProblem.category ?? prev.category,
+              categoryKnown: !!(loadedProblem.category ?? prev.category)
+                && (prev.categoryKnown ?? loadedProblem.categoryKnown),
             }
           : loadedProblem);
         // 3. 이전에 제출한 접근 방식이 있으면 제출 직후와 같은 결과 화면으로 엶
@@ -783,7 +785,7 @@ function SolvePage() {
               {p.category}
             </span>}
         </div>
-        <BookmarkButton key={p.id} problem={p} />
+        <BookmarkButton key={p.id} problem={p} categoryKnown={categoryKnown} />
       </div>
 
       {
