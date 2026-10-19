@@ -62,47 +62,57 @@ jobs:
             const artifactName = process.env.ARTIFACT_NAME;
             const headSha = process.env.PR_HEAD_SHA;
             const pullNumber = context.payload.pull_request.number;
-            const runs = await github.paginate(
-              github.rest.actions.listWorkflowRunsForRepo,
-              {
+            const maxAttempts = 60;
+            const retryDelayMs = 15_000;
+
+            for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+              const response = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
+                workflow_id: workflowId,
                 event: "pull_request",
-                status: "success",
                 per_page: 100,
-              },
-            );
+              });
+              const runs = response.data.workflow_runs;
 
-            const matchingRuns = runs
-              .filter(
-                (run) =>
-                  run.path === `.github/workflows/${workflowId}` &&
-                  run.head_sha === headSha,
-              )
-              .sort((left, right) => right.run_attempt - left.run_attempt || right.id - left.id);
+              const matchingRuns = runs
+                .filter(
+                  (run) =>
+                    run.head_sha === headSha &&
+                    run.conclusion === "success",
+                )
+                .sort((left, right) => right.run_attempt - left.run_attempt || right.id - left.id);
 
-            for (const run of matchingRuns) {
-              const artifacts = await github.paginate(
-                github.rest.actions.listWorkflowRunArtifacts,
-                {
+              for (const run of matchingRuns) {
+                const artifactResponse = await github.rest.actions.listWorkflowRunArtifacts({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   run_id: run.id,
                   per_page: 100,
-                },
-              );
-              const exactArtifact = artifacts.find(
-                (artifact) => artifact.name === artifactName && !artifact.expired,
-              );
-              if (exactArtifact) {
-                core.setOutput("run-id", String(run.id));
-                core.info(`Using ${artifactName} from successful run ${run.id}`);
-                return;
+                });
+                const artifacts = artifactResponse.data.artifacts;
+                const exactArtifact = artifacts.find(
+                  (artifact) => artifact.name === artifactName && !artifact.expired,
+                );
+                if (exactArtifact) {
+                  core.setOutput("run-id", String(run.id));
+                  core.info(`Using ${artifactName} from successful run ${run.id}`);
+                  return;
+                }
+              }
+
+              if (attempt < maxAttempts) {
+                core.info(
+                  `Waiting for ${artifactName} from ${workflowId} ` +
+                    `(attempt ${attempt}/${maxAttempts})`,
+                );
+                await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
               }
             }
 
             core.setFailed(
-              `No successful ${workflowId} run for PR #${pullNumber} contains ${artifactName}`,
+              `Timed out waiting for successful ${workflowId} run for PR #${pullNumber} ` +
+                `containing ${artifactName}`,
             );
 
       - name: Download exact staging artifact
