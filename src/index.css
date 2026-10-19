@@ -297,6 +297,8 @@ button:disabled { cursor: default; }
   --battle-card-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
   --battle-soft-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
   --battle-accent-shadow: 0 14px 38px rgba(124, 58, 237, 0.16);
+  --battle-skeleton-base: #18172A;
+  --battle-skeleton-highlight: #2A2647;
 }
 
 :root[data-theme='light'] .battle-result-theme {
@@ -326,6 +328,40 @@ button:disabled { cursor: default; }
   --battle-card-shadow: 0 14px 38px rgba(76, 29, 149, 0.08);
   --battle-soft-shadow: 0 10px 28px rgba(76, 29, 149, 0.07);
   --battle-accent-shadow: 0 12px 32px rgba(124, 58, 237, 0.12);
+  --battle-skeleton-base: #E9E4F0;
+  --battle-skeleton-highlight: #F8F5FC;
+}
+
+.battle-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--battle-skeleton-base);
+}
+
+.battle-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    100deg,
+    transparent 18%,
+    var(--battle-skeleton-highlight) 48%,
+    transparent 78%
+  );
+  transform: translateX(-110%);
+  animation: battle-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+
+@keyframes battle-skeleton-shimmer {
+  to {
+    transform: translateX(110%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-skeleton::after {
+    animation: none;
+  }
 }
 
 /* 수식(KaTeX)을 본문 글꼴·크기와 똑같이 표시 */

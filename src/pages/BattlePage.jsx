@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
@@ -327,6 +327,132 @@ function PendingBattleResult({ battle, remainingSeconds }) {
   );
 }
 
+function BattleSkeletonBlock({ className = "" }) {
+  return <div className={`battle-skeleton rounded-full ${className}`} aria-hidden="true" />;
+}
+
+function BattleResultSkeleton({ onRefresh }) {
+  const touchStartYRef = useRef(null);
+  const touchCurrentYRef = useRef(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [swipeDistance, setSwipeDistance] = useState(0);
+
+  const refresh = () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    setSwipeDistance(0);
+    Promise.resolve(onRefresh?.()).finally(() => {
+      window.setTimeout(() => setRefreshing(false), 550);
+    });
+  };
+
+  const handleTouchStart = (event) => {
+    const y = event.touches[0]?.clientY;
+    touchStartYRef.current = y ?? null;
+    touchCurrentYRef.current = y ?? null;
+  };
+
+  const handleTouchMove = (event) => {
+    const y = event.touches[0]?.clientY;
+    if (touchStartYRef.current == null || y == null) return;
+    touchCurrentYRef.current = y;
+    setSwipeDistance(Math.max(0, Math.min(90, touchStartYRef.current - y)));
+  };
+
+  const handleTouchEnd = () => {
+    const distance = touchStartYRef.current != null && touchCurrentYRef.current != null
+      ? touchStartYRef.current - touchCurrentYRef.current
+      : 0;
+    touchStartYRef.current = null;
+    touchCurrentYRef.current = null;
+    setSwipeDistance(0);
+    if (distance >= 64) refresh();
+  };
+
+  const swipeReady = swipeDistance >= 64;
+
+  return (
+    <div
+      className="battle-result-theme relative z-10 h-full min-h-0 overflow-hidden bg-[var(--battle-bg)]"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
+      <div
+        className="pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-center transition-transform duration-150"
+        style={{ transform: `translateY(${Math.min(swipeDistance * 0.45, 34)}px)` }}
+      >
+        <div className="flex items-center gap-2 rounded-full border border-[var(--battle-border)] bg-[var(--battle-surface)] px-3 py-1.5 text-[10px] font-semibold text-[var(--battle-muted)] shadow-[var(--battle-soft-shadow)]">
+          <svg className={refreshing ? "animate-spin" : ""} width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <path d="M20 4v6h-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          {refreshing ? "결과 확인 중" : swipeReady ? "놓아서 새로고침" : "위로 밀어 새로고침"}
+        </div>
+      </div>
+
+      <div className="px-5 pt-12 pb-5">
+        <div className="mb-2 flex items-center gap-2">
+          <BattleSkeletonBlock className="h-1.5 w-1.5" />
+          <BattleSkeletonBlock className="h-2.5 w-24" />
+        </div>
+        <BattleSkeletonBlock className="h-6 w-[72%] rounded-lg" />
+        <BattleSkeletonBlock className="mt-2.5 h-3 w-24 rounded-md" />
+      </div>
+
+      <div className="space-y-4 px-5 pb-8">
+        <section className="rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] p-5 shadow-[var(--battle-card-shadow)]">
+          <div className="flex items-center gap-4">
+            <BattleSkeletonBlock className="h-16 w-16 shrink-0 rounded-2xl" />
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <BattleSkeletonBlock className="h-4 w-28 rounded-md" />
+              <BattleSkeletonBlock className="h-3 w-36 rounded-md" />
+              <BattleSkeletonBlock className="h-3 w-20 rounded-md" />
+            </div>
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] shadow-[var(--battle-card-shadow)]">
+          <div className="flex items-center justify-between border-b border-[var(--battle-border)] px-5 py-4">
+            <BattleSkeletonBlock className="h-4 w-28 rounded-md" />
+            <BattleSkeletonBlock className="h-2.5 w-24 rounded-md" />
+          </div>
+          <div className="divide-y divide-[var(--battle-divider)]">
+            {[1, 2, 3, 4].map((rank) => (
+              <div key={rank} className="flex min-h-16 items-center gap-3 px-5 py-3.5">
+                <BattleSkeletonBlock className="h-5 w-7 rounded-md" />
+                <BattleSkeletonBlock className="h-9 w-9 shrink-0 rounded-xl" />
+                <BattleSkeletonBlock className="h-3.5 flex-1 rounded-md" />
+                <BattleSkeletonBlock className="h-3 w-12 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] p-4 shadow-[var(--battle-card-shadow)]">
+          <BattleSkeletonBlock className="mb-4 h-4 w-24 rounded-md" />
+          <div className="space-y-3">
+            {[1, 2].map((order) => (
+              <div key={order} className="rounded-2xl border border-[var(--battle-border)] bg-[var(--battle-answer-bg)] p-4">
+                <div className="flex items-center justify-between">
+                  <BattleSkeletonBlock className="h-2.5 w-14 rounded-md" />
+                  <BattleSkeletonBlock className="h-5 w-12" />
+                </div>
+                <BattleSkeletonBlock className="mt-4 h-3 w-[82%] rounded-md" />
+                <BattleSkeletonBlock className="mt-2 h-3 w-[58%] rounded-md" />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <button type="button" onClick={refresh} className="sr-only">배틀 결과 새로고침</button>
+      <span className="sr-only" role="status" aria-live="polite">{refreshing ? "배틀 결과를 다시 확인하고 있습니다." : "배틀 결과를 불러오고 있습니다."}</span>
+    </div>
+  );
+}
+
 const INCOMPLETE_STATUS = {
   DROPPED_OUT: "중도 이탈한 배틀은 순위에 반영되지 않습니다.",
   TIME_OVER: "제출 시간이 초과되어 순위에 반영되지 않습니다.",
@@ -521,7 +647,7 @@ export default function BattlePage() {
 
   let content;
   if (phase === "result-loading") {
-    content = <CenterState eyebrow="BATTLE RESULT" title="배틀 결과를 불러오고 있어요" description="잠시만 기다려 주세요." busy />;
+    content = <BattleResultSkeleton onRefresh={retryResult} />;
   } else if (phase === "loading") {
     content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
   } else if (phase === "launch-waiting") {
