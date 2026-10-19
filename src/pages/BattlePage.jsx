@@ -253,6 +253,91 @@ function formatElapsed(seconds) {
   return minutes ? `${minutes}분 ${remain}초` : `${remain}초`;
 }
 
+function BlurredResultPreview() {
+  return (
+    <div className="pointer-events-none space-y-4 select-none" aria-hidden="true" style={{ filter: "blur(6px)", opacity: 0.58 }}>
+      <section className="flex items-center gap-3 rounded-2xl border border-[#7C3AED]/35 bg-[#7C3AED]/10 px-4 py-4">
+        <div className="min-w-[54px] border-r border-[#2A2845] pr-3">
+          <p className="text-[9px] text-[#6B6890]">내 순위</p>
+          <p className="mt-1 text-2xl font-bold text-[#C084FC]">2위</p>
+        </div>
+        <div className="h-10 w-10 shrink-0 rounded-full border border-[#7C3AED]/35 bg-[#7C3AED]/25" />
+        <div className="min-w-0 flex-1">
+          <div className="h-3 w-24 rounded-full bg-[#C8B8F8]" />
+          <div className="mt-2 h-2 w-14 rounded-full bg-emerald-400" />
+        </div>
+        <span className="text-xs font-semibold text-[#E2E0F0]" style={MONO}>00:42</span>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-[#1E1D35] bg-[#0D0D1F]">
+        <div className="flex items-center gap-2 border-b border-[#1E1D35] px-4 py-3">
+          <span className="text-[#C084FC]">★</span>
+          <h3 className="text-sm font-semibold text-[#E2E0F0]">TOP 5 랭킹</h3>
+        </div>
+        <div className="divide-y divide-[#1E1D35]">
+          {[1, 2, 3, 4, 5].map((rank) => (
+            <div key={rank} className="flex items-center gap-3 px-4 py-3">
+              <span className={`w-7 text-center font-bold ${rank <= 3 ? "text-xl text-[#E2E0F0]" : "text-sm text-[#8B87AA]"}`}>{rank}</span>
+              <div className="h-9 w-9 shrink-0 rounded-full border border-[#2A2845] bg-[#7C3AED]/20" />
+              <div className="h-3 flex-1 rounded-full bg-[#A89EC4]" />
+              <span className="text-[11px] text-[#A89EC4]" style={MONO}>0{rank}:2{rank}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
+        <h3 className="mb-3 text-sm font-semibold text-[#E2E0F0]">정답 확인</h3>
+        <div className="space-y-2">
+          {[1, 2].map((order) => (
+            <div key={order} className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-3">
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-[10px] text-[#6B6890]">케이스 {order}</span>
+                <span className="text-[10px] font-semibold text-emerald-400">✓ 정답</span>
+              </div>
+              <div className="h-2.5 w-3/4 rounded-full bg-[#8B87AA]" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function PendingBattleResult({ battle, remainingSeconds }) {
+  return (
+    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
+      <PageHeader eyebrow="오늘의 배틀" title={battle?.title ?? "오늘의 데일리 배틀"} action={<UserMenu />} />
+      <div className="space-y-5 px-5 pb-6">
+        <section className="flex items-center gap-4 rounded-2xl border border-[#7C3AED]/40 bg-[#7C3AED]/10 px-4 py-4 shadow-[0_14px_36px_rgba(124,58,237,0.12)]">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/25 text-[#C084FC]">
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8" />
+              <path d="M12 7.5V12l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-bold text-[#E2E0F0]">배틀 진행 중</h2>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className="text-2xl font-bold tracking-wider text-[#C084FC]" style={MONO}>{formatBattleTime(remainingSeconds)}</p>
+            <p className="mt-1 text-[10px] text-[#6B6890]">후 결과 공개</p>
+          </div>
+        </section>
+
+        <div className="relative overflow-hidden rounded-2xl">
+          <BlurredResultPreview />
+          <div className="absolute inset-x-5 top-16 flex justify-center">
+            <span className="rounded-full border border-[#7C3AED]/35 bg-[#0D0D1F]/90 px-4 py-2 text-[11px] font-semibold text-[#C084FC] shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-sm">
+              배틀 마감 후 결과가 공개됩니다
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const INCOMPLETE_STATUS = {
   DROPPED_OUT: "중도 이탈한 배틀은 순위에 반영되지 않습니다.",
   TIME_OVER: "제출 시간이 초과되어 순위에 반영되지 않습니다.",
@@ -430,6 +515,8 @@ export default function BattlePage() {
     content = <AccessDeniedState title={accessIssue?.title} description={accessIssue?.description} />;
   } else if (phase === "in-progress" && battle) {
     content = <BattleForm battle={battle} answers={answers} remainingSeconds={remainingSeconds} errorMessage={errorMessage} canSubmit={canSubmit} submitting={submitting} droppingOut={droppingOut} onAnswer={updateAnswer} onSubmit={submit} onDropOut={dropOut} />;
+  } else if (phase === "result-pending" && remainingSeconds > 0) {
+    content = <PendingBattleResult battle={battle} remainingSeconds={remainingSeconds} />;
   } else if (phase === "result-pending") {
     content = <CenterState eyebrow="GRADING" title="배틀 결과 채점 중..." description={"제출은 완료되었습니다.\n채점이 끝나면 결과가 자동으로 표시됩니다."} busy />;
   } else if (phase === "dropped-out") {

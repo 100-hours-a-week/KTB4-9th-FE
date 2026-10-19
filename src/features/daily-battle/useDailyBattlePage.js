@@ -133,6 +133,14 @@ export function useDailyBattlePage() {
         return;
       }
 
+      // 배틀 마감 전에는 서버 응답 여부와 관계없이 결과를 공개하지 않는다.
+      if (getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current) > 0) {
+        pollFailuresRef.current = 0;
+        setPhase(pendingPhase);
+        pollTimerRef.current = setTimeout(() => poll(id, pendingPhase), RESULT_POLL_MS);
+        return;
+      }
+
       setResult(response.result);
       setPhase("result");
       setErrorMessage("");
@@ -263,7 +271,7 @@ export function useDailyBattlePage() {
   }, [load, stopPolling]);
 
   useEffect(() => {
-    if (phase !== "in-progress") return undefined;
+    if (phase !== "in-progress" && phase !== "result-pending") return undefined;
     let deadlineHandled = false;
 
     const updateTimer = () => {
@@ -271,8 +279,10 @@ export function useDailyBattlePage() {
       setRemainingSeconds(seconds);
       if (seconds === 0 && !deadlineHandled) {
         deadlineHandled = true;
-        setPhase("time-over");
-        if (battleId) pollResult(battleId, "time-over");
+        if (phase === "in-progress") {
+          setPhase("time-over");
+          if (battleId) pollResult(battleId, "time-over");
+        }
       }
     };
 
