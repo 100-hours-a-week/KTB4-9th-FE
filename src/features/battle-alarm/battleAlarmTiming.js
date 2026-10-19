@@ -13,12 +13,12 @@ export const MAX_RETRIES = 3;
 export const CHECKING_BANNER_DELAY_MS = 500;
 // 열리는 시각을 알 수 없을 때 다음 확인까지 기다리는 시간(ms)
 const UNKNOWN_OPEN_WAIT_MS = 60 * 1000;
-// 테스트 배틀 전후(한국 시각 13:15~16:05)에만 배너를 보여준다.
+// 테스트 배틀 전후(한국 시각 13:15~16:55)에만 배너를 보여준다.
 const BANNER_START_MINUTE = 13 * 60 + 15;
-const BANNER_END_MINUTE = 16 * 60 + 5;
-// 서버에 물어보는 시간대(한국 시각 13:10~16:05).
+const BANNER_END_MINUTE = 16 * 60 + 55;
+// 서버에 물어보는 시간대(한국 시각 13:10~16:55).
 const CHECK_START_MINUTE = 13 * 60 + 10;
-const CHECK_END_MINUTE = 16 * 60 + 5;
+const CHECK_END_MINUTE = 16 * 60 + 55;
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -64,7 +64,7 @@ export function nextCheckDelay(status, serverNowMs, opensAtMs, random = Math.ran
   return POLL_INTERVAL_MS;
 }
 
-// 지금이 서버에 물어봐도 되는 테스트 시간대(13:10~16:05)인지 확인한다.
+// 지금이 서버에 물어봐도 되는 테스트 시간대(13:10~16:55)인지 확인한다.
 export function isInCheckWindow(nowMs) {
   const minute = kstMinuteOfDay(nowMs);
   return minute >= CHECK_START_MINUTE && minute <= CHECK_END_MINUTE;
