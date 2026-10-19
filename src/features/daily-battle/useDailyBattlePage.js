@@ -31,10 +31,10 @@ function getRemainingSeconds(deadline, clockOffset) {
 
 function joinOnce(battleId) {
   if (!joinRequests.has(battleId)) {
-    const request = participateDailyBattle(battleId).catch((error) => {
-      joinRequests.delete(battleId);
-      throw error;
-    });
+    // 동시에 발생한 참여 요청만 합치고, 완료된 응답은 캐시하지 않는다.
+    // 그래야 재진입 시 서버의 최신 참여 상태를 다시 확인할 수 있다.
+    const request = participateDailyBattle(battleId)
+      .finally(() => joinRequests.delete(battleId));
     joinRequests.set(battleId, request);
   }
   return joinRequests.get(battleId);
