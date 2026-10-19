@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
 import PageHeader from "../components/common/PageHeader.jsx";
+import ProfileAvatar from "../components/common/ProfileAvatar.jsx";
 import UserMenu from "../components/common/UserMenu.jsx";
 import { useAuth } from "../features/auth/authContext.js";
 import {
@@ -366,6 +367,13 @@ function ResultRankings({ rankings, currentUserId }) {
               <span className={`w-9 shrink-0 text-center font-bold ${entry.rank <= 3 ? "text-lg text-[var(--battle-text)]" : "text-sm text-[var(--battle-muted)]"}`}>
                 {medal ?? entry.rank}
               </span>
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[var(--battle-accent-box)] text-xs font-bold text-[var(--cosmos-accent-text)]">
+                <ProfileAvatar
+                  src={entry.profile_image_url ?? entry.profileImageUrl}
+                  name={entry.name}
+                  className="h-full w-full rounded-xl object-cover"
+                />
+              </div>
               <p className={`min-w-0 flex-1 truncate text-sm font-semibold ${mine ? "text-[var(--cosmos-accent-text)]" : "text-[var(--battle-text-secondary)]"}`}>
                 {entry.name}{mine && <span className="ml-1.5 text-[10px] font-medium text-[var(--battle-muted)]">나</span>}
               </p>
