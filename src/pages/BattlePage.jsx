@@ -120,18 +120,6 @@ function AccessDeniedState({
   );
 }
 
-function IncompleteState({ description }) {
-  return (
-    <div className="relative z-10 flex min-h-full items-center justify-center px-6">
-      <section className="w-full rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-5 py-5 shadow-[0_16px_45px_rgba(0,0,0,0.24)]">
-        <h1 className="text-lg font-bold text-[#E2E0F0]">배틀을 완료하지 못했어요</h1>
-        <p className="mt-2 text-sm leading-6 text-[#8B87AA]">{description}</p>
-        <p className="mt-4 text-[10px] text-[#4A4870]">결과가 공개되면 TOP 5를 자동으로 보여드릴게요.</p>
-      </section>
-    </div>
-  );
-}
-
 function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit, submitting, droppingOut, onAnswer, onSubmit, onDropOut }) {
   const [dialogType, setDialogType] = useState(null);
   const malformed = battle.cases.length !== 3;
@@ -519,10 +507,6 @@ export default function BattlePage() {
     content = <PendingBattleResult battle={battle} remainingSeconds={remainingSeconds} />;
   } else if (phase === "result-pending") {
     content = <CenterState eyebrow="GRADING" title="배틀 결과 채점 중..." description={"제출은 완료되었습니다.\n채점이 끝나면 결과가 자동으로 표시됩니다."} busy />;
-  } else if (phase === "dropped-out") {
-    content = <IncompleteState description="중도 이탈한 배틀은 순위에 반영되지 않습니다." />;
-  } else if (phase === "time-over") {
-    content = <IncompleteState description="제출 시간이 초과되어 순위에 반영되지 않습니다." />;
   } else if (phase === "result" && result) {
     content = <BattleResult result={result} />;
   } else if (phase === "result-error") {
