@@ -464,7 +464,7 @@ function BattleResultHeader({ result }) {
     <header className="px-5 pt-12 pb-4">
       <div className="mb-1.5 flex items-center gap-1.5">
         <span className="h-1.5 w-1.5 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--battle-muted)]" style={MONO}>오늘의 배틀 종료</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--battle-muted)]" style={MONO}>데일리 배틀 결과</span>
       </div>
       <h1 className="text-xl font-bold leading-tight text-[var(--battle-text)]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
       {result?.battle_date && <p className="mt-1.5 text-xs leading-relaxed text-[var(--battle-muted)]" style={MONO}>{result.battle_date}</p>}
@@ -530,7 +530,7 @@ function EmptyBattleResult({ result }) {
           </div>
           <p className="mt-6 text-[10px] font-semibold tracking-[0.25em] text-[var(--battle-muted)]" style={MONO}>NO PARTICIPANTS</p>
           <h2 className="mt-2 text-xl font-bold text-[var(--battle-text)]">이번 배틀에는 참여자가 없어요</h2>
-          <p className="mt-3 text-sm leading-6 text-[var(--battle-muted)]">오늘의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
+          <p className="mt-3 text-sm leading-6 text-[var(--battle-muted)]">해당 배틀의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
           <div className="mx-auto mt-6 flex max-w-[250px] items-center justify-center gap-2 rounded-xl border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-4 py-3">
             <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
             <span className="text-xs font-semibold text-[#C084FC]">매일 12:50 배틀 시작</span>
@@ -618,7 +618,7 @@ function BattleResult({ result }) {
           </section>
         )}
 
-        <p className="py-6 text-center text-[11px] text-[var(--battle-subtle)]">내일 또 다른 문제가 기다리고 있어요</p>
+        <p className="py-6 text-center text-[11px] text-[var(--battle-subtle)]">다음 배틀에서 또 만나요</p>
       </div>
     </div>
   );
@@ -627,7 +627,6 @@ function BattleResult({ result }) {
 export default function BattlePage() {
   const {
     accessIssue,
-    alarm,
     answers,
     battle,
     canSubmit,
@@ -650,8 +649,6 @@ export default function BattlePage() {
     content = <BattleResultSkeleton onRefresh={retryResult} />;
   } else if (phase === "loading") {
     content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
-  } else if (phase === "launch-waiting") {
-    content = <CenterState eyebrow="BATTLE OPEN" title="데일리 배틀이 곧 시작됩니다" description={"오늘 낮 12시 50분에 데일리 배틀이 열려요.\n세 문제를 가장 빠르게 풀고 TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "waiting") {
     content = <CenterState title="오늘의 배틀을 기다리는 중" description={"오늘 낮 12시 50분에 모든 사용자가\n같은 세 문제로 경쟁합니다."} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
@@ -676,7 +673,7 @@ export default function BattlePage() {
     <div className="relative h-full overflow-hidden bg-[#05050F]">
       <BattleBackdrop />
       {content}
-      <span className="sr-only" aria-live="polite">{alarm?.status}</span>
+      <span className="sr-only" aria-live="polite">{phase}</span>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getBattleAlarmStatus } from "../../api/battleAlarmApi.js";
 import {
   dropOutDailyBattle,
+  getCurrentDailyBattle,
   getDailyBattleResult,
   participateDailyBattle,
   submitDailyBattle,
@@ -9,11 +9,17 @@ import {
 
 const RESULT_POLL_MS = 1000;
 const MAX_RESULT_FAILURES = 3;
-const STORAGE_KEY = "cosmos:last-daily-battle";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
-// 첫 데일리 배틀 공개 시각. 이 시각 이후에는 평소의 서버 상태 흐름만 사용한다.
-const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T12:50:00+09:00");
+const DAY_MS = 24 * 60 * 60 * 1000;
 const joinRequests = new Map();
+
+function getBattleOpenTime(serverTime) {
+  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
+  const year = koreanTime.getUTCFullYear();
+  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
+  return new Date(`${year}-${month}-${date}T12:50:00+09:00`);
+}
 
 function getSubmissionDeadline(serverTime) {
   const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
@@ -51,21 +57,6 @@ function joinOnce(battleId) {
     joinRequests.set(battleId, request);
   }
   return joinRequests.get(battleId);
-}
-
-function rememberBattle(battleId, battleDate = null) {
-  if (typeof window === "undefined" || !Number.isFinite(Number(battleId))) return;
-  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ battleId: Number(battleId), battleDate }));
-}
-
-function readRememberedBattle() {
-  if (typeof window === "undefined") return null;
-  try {
-    const saved = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY));
-    return Number.isFinite(Number(saved?.battleId)) ? Number(saved.battleId) : null;
-  } catch {
-    return null;
-  }
 }
 
 function messageForError(error) {
@@ -111,12 +102,13 @@ export function formatBattleTime(totalSeconds) {
 
 export function useDailyBattlePage() {
   const [phase, setPhase] = useState(getInitialPhase);
-  const [alarm, setAlarm] = useState(null);
   const [battle, setBattle] = useState(null);
   const [battleId, setBattleId] = useState(null);
   const [answers, setAnswers] = useState({});
   const [remainingSeconds, setRemainingSeconds] = useState(0);
   const [untilOpenSeconds, setUntilOpenSeconds] = useState(0);
+  const [nextOpenAt, setNextOpenAt] = useState(null);
+  const [viewingPreviousResult, setViewingPreviousResult] = useState(false);
   const [result, setResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [accessIssue, setAccessIssue] = useState(null);
@@ -189,13 +181,11 @@ export function useDailyBattlePage() {
 
   const enterBattle = useCallback(async (id) => {
     setBattleId(id);
-    rememberBattle(id);
     setErrorMessage("");
     setAccessIssue(null);
     try {
       const participation = await joinOnce(id);
       if (!mountedRef.current) return;
-      rememberBattle(id, participation.battleDate);
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
         submissionDeadlineRef.current = new Date(`${participation.battleDate}T12:59:59+09:00`);
@@ -235,60 +225,77 @@ export function useDailyBattlePage() {
     setErrorMessage("");
     setAccessIssue(null);
     try {
-      const nextAlarm = await getBattleAlarmStatus();
+      const current = await getCurrentDailyBattle();
       if (!mountedRef.current) return;
-      clockOffsetRef.current = nextAlarm.serverTime.getTime() - Date.now();
-      setAlarm(nextAlarm);
+      clockOffsetRef.current = current.serverTime.getTime() - Date.now();
 
-      // 정식 오픈 전에는 오늘 상태(CLOSED 등)와 무관하게 출시 예고 화면을 우선 표시한다.
-      if (nextAlarm.serverTime.getTime() < FIRST_BATTLE_OPENS_AT.getTime()) {
-        const serverNow = Date.now() + clockOffsetRef.current;
-        setAlarm({ ...nextAlarm, opensAt: FIRST_BATTLE_OPENS_AT });
-        setUntilOpenSeconds(Math.max(0, Math.ceil((FIRST_BATTLE_OPENS_AT.getTime() - serverNow) / 1000)));
-        setPhase("launch-waiting");
-        return;
-      }
+      const opensAt = getBattleOpenTime(current.serverTime);
+      const submissionDeadline = getSubmissionDeadline(current.serverTime);
+      const resultAvailableAt = getResultAvailableAt(current.serverTime);
+      const serverNow = current.serverTime.getTime();
 
-      if (nextAlarm.status === "OPEN" && nextAlarm.battleId) {
-        submissionDeadlineRef.current = getSubmissionDeadline(nextAlarm.serverTime);
-        resultAvailableAtRef.current = getResultAvailableAt(nextAlarm.serverTime);
-        await enterBattle(nextAlarm.battleId);
-        return;
-      }
+      submissionDeadlineRef.current = submissionDeadline;
+      resultAvailableAtRef.current = resultAvailableAt;
+      setNextOpenAt(opensAt);
 
-      if (nextAlarm.status === "CLOSED") {
-        submissionDeadlineRef.current = getSubmissionDeadline(nextAlarm.serverTime);
-        resultAvailableAtRef.current = getResultAvailableAt(nextAlarm.serverTime);
-        const resultBattleId = nextAlarm.battleId ?? readRememberedBattle();
-        if (resultBattleId) {
-          setBattleId(resultBattleId);
-          waitUntilDeadlineOrPoll(resultBattleId);
+      // 오늘 배틀이 열리기 전에는 가장 최근에 공개된 배틀 결과를 유지한다.
+      if (serverNow < opensAt.getTime()) {
+        const secondsUntilOpen = Math.max(0, Math.ceil((opensAt.getTime() - serverNow) / 1000));
+        setUntilOpenSeconds(secondsUntilOpen);
+
+        if (current.latestResultBattleId) {
+          setViewingPreviousResult(true);
+          setBattleId(current.latestResultBattleId);
+          resultAvailableAtRef.current = new Date(0);
+          setPhase("result-loading");
+          pollResult(current.latestResultBattleId);
         } else {
-          setPhase("closed");
+          setViewingPreviousResult(false);
+          setPhase("waiting");
         }
         return;
       }
 
-      if (nextAlarm.status === "NO_BATTLE") {
-        setPhase("no-battle");
+      setViewingPreviousResult(false);
+
+      // 12:50부터 제출 마감 전까지는 오늘 배틀에 참여한다.
+      if (serverNow < submissionDeadline.getTime()) {
+        if (current.currentBattleId) {
+          await enterBattle(current.currentBattleId);
+        } else {
+          setPhase("no-battle");
+        }
+        return;
+      }
+
+      // 12:59:59부터 13:00까지는 제출을 막고 오늘 결과 공개를 기다린다.
+      if (serverNow < resultAvailableAt.getTime()) {
+        if (current.currentBattleId) {
+          setBattleId(current.currentBattleId);
+          waitUntilDeadlineOrPoll(current.currentBattleId);
+        } else {
+          setPhase("no-battle");
+        }
+        return;
+      }
+
+      // 13:00 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
+      const resultBattleId = current.currentBattleId ?? current.latestResultBattleId;
+      setNextOpenAt(new Date(opensAt.getTime() + DAY_MS));
+      setViewingPreviousResult(true);
+      if (resultBattleId) {
+        setBattleId(resultBattleId);
+        setPhase("result-loading");
+        pollResult(resultBattleId);
       } else {
-        const serverNow = Date.now() + clockOffsetRef.current;
-        setUntilOpenSeconds(Math.max(0, Math.ceil((nextAlarm.opensAt.getTime() - serverNow) / 1000)));
-        setPhase("waiting");
+        setPhase("closed");
       }
     } catch (error) {
       if (!mountedRef.current) return;
-      if (Date.now() < FIRST_BATTLE_OPENS_AT.getTime()) {
-        clockOffsetRef.current = 0;
-        setAlarm({ opensAt: FIRST_BATTLE_OPENS_AT, status: "LAUNCH_WAITING" });
-        setUntilOpenSeconds(Math.max(0, Math.ceil((FIRST_BATTLE_OPENS_AT.getTime() - Date.now()) / 1000)));
-        setPhase("launch-waiting");
-        return;
-      }
       setErrorMessage(messageForError(error));
       setPhase("error");
     }
-  }, [enterBattle, stopPolling, waitUntilDeadlineOrPoll]);
+  }, [enterBattle, pollResult, stopPolling, waitUntilDeadlineOrPoll]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -325,17 +332,17 @@ export function useDailyBattlePage() {
   }, [battleId, phase, pollResult, waitUntilDeadlineOrPoll]);
 
   useEffect(() => {
-    if ((phase !== "waiting" && phase !== "launch-waiting") || !alarm?.opensAt) return undefined;
+    if ((!viewingPreviousResult && phase !== "waiting") || !nextOpenAt) return undefined;
     const update = () => {
       const serverNow = Date.now() + clockOffsetRef.current;
-      const seconds = Math.max(0, Math.ceil((alarm.opensAt.getTime() - serverNow) / 1000));
+      const seconds = Math.max(0, Math.ceil((nextOpenAt.getTime() - serverNow) / 1000));
       setUntilOpenSeconds(seconds);
       if (seconds === 0) load();
     };
     const timer = setInterval(update, 1000);
     update();
     return () => clearInterval(timer);
-  }, [alarm, load, phase]);
+  }, [load, nextOpenAt, phase, viewingPreviousResult]);
 
   useEffect(() => {
     if (phase !== "no-battle") return undefined;
@@ -421,7 +428,6 @@ export function useDailyBattlePage() {
 
   return {
     accessIssue,
-    alarm,
     answers,
     battle,
     canSubmit,
