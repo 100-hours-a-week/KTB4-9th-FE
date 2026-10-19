@@ -229,10 +229,10 @@ export function useDailyBattlePage() {
       }
 
       if (nextAlarm.status === "CLOSED") {
-        const rememberedBattleId = readRememberedBattle();
-        if (rememberedBattleId) {
-          setBattleId(rememberedBattleId);
-          waitUntilDeadlineOrPoll(rememberedBattleId);
+        const resultBattleId = nextAlarm.battleId ?? readRememberedBattle();
+        if (resultBattleId) {
+          setBattleId(resultBattleId);
+          waitUntilDeadlineOrPoll(resultBattleId);
         } else {
           setPhase("closed");
         }

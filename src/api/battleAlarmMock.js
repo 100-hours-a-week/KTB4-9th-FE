@@ -62,12 +62,13 @@ export async function mockStatusPayload(params) {
   else if (nowMs - mock.openMs < mock.readyAfterMs) status = "NO_BATTLE";
 
   const open = status === "OPEN";
+  const resultAvailable = status === "CLOSED";
   return {
     message: "battle_alarm_status_retrieval_success",
     data: {
       status,
       server_time: toKstIso(nowMs),
-      battle_id: open ? 1 : null,
+      battle_id: open || resultAvailable ? 1 : null,
       participated: open && mock.participated,
       dismissed: open && mock.dismissed,
       opens_at: toKstIso(mock.openMs),
