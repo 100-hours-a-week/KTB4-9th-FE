@@ -4,6 +4,20 @@ function unwrap(payload) {
   return payload?.data ?? payload ?? null;
 }
 
+function nullableId(value) {
+  if (value == null) return null;
+  const id = Number(value);
+  return Number.isFinite(id) ? id : null;
+}
+
+function parseKstServerTime(value) {
+  if (!value) return new Date(Number.NaN);
+  // LocalDateTime의 마이크로초가 길게 내려와도 모바일 Safari에서 파싱되도록 밀리초까지만 사용한다.
+  const text = String(value).replace(/(\.\d{3})\d+/, "$1");
+  const hasTimeZone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(text);
+  return new Date(hasTimeZone ? text : `${text}+09:00`);
+}
+
 function normalizeCase(battleCase) {
   return {
     input: battleCase?.input ?? "",
@@ -23,6 +37,22 @@ export function normalizeParticipation(payload) {
     content: data.content ?? "",
     participationStatus: data.participationStatus ?? data.participation_status ?? "IN_PROGRESS",
     cases: (data.cases ?? []).map(normalizeCase).sort((a, b) => a.displayOrder - b.displayOrder),
+  };
+}
+
+export async function getCurrentDailyBattle() {
+  const payload = await request("/daily-battles/current");
+  const data = unwrap(payload) ?? {};
+  const serverTime = parseKstServerTime(data.server_time ?? data.serverTime);
+
+  if (Number.isNaN(serverTime.getTime())) {
+    throw new Error("invalid_current_daily_battle_response");
+  }
+
+  return {
+    serverTime,
+    currentBattleId: nullableId(data.current_battle_id ?? data.currentBattleId),
+    latestResultBattleId: nullableId(data.latest_result_battle_id ?? data.latestResultBattleId),
   };
 }
 

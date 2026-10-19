@@ -9,7 +9,8 @@ export default function BattleAlarmRoot() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const { view, banner, retry, dismiss, challenge } = useBattleAlarm(pathname !== "/login");
+  const alarmEnabled = pathname !== "/login" && !pathname.startsWith("/daily-battles");
+  const { view, banner, retry, dismiss, challenge } = useBattleAlarm(alarmEnabled);
 
   // 1. 서버에 다시 확인한다.
   // 2. 아직 열려 있으면 배틀 화면으로 이동한다.
@@ -20,7 +21,7 @@ export default function BattleAlarmRoot() {
     if (stillOpen) navigate("/daily-battles");
   }
 
-  if (pathname === "/login") return null;
+  if (!alarmEnabled) return null;
 
   return (
     <>
