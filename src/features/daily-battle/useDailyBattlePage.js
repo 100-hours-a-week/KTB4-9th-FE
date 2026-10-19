@@ -29,6 +29,11 @@ function getRemainingSeconds(deadline, clockOffset) {
   return Math.max(0, Math.ceil((deadline.getTime() - serverNow) / 1000));
 }
 
+function getInitialPhase() {
+  const todayDeadline = getSubmissionDeadline(new Date());
+  return getRemainingSeconds(todayDeadline, 0) === 0 ? "result-loading" : "loading";
+}
+
 function joinOnce(battleId) {
   if (!joinRequests.has(battleId)) {
     // 동시에 발생한 참여 요청만 합치고, 완료된 응답은 캐시하지 않는다.
@@ -97,7 +102,7 @@ export function formatBattleTime(totalSeconds) {
 }
 
 export function useDailyBattlePage() {
-  const [phase, setPhase] = useState("loading");
+  const [phase, setPhase] = useState(getInitialPhase);
   const [alarm, setAlarm] = useState(null);
   const [battle, setBattle] = useState(null);
   const [battleId, setBattleId] = useState(null);
@@ -135,7 +140,9 @@ export function useDailyBattlePage() {
 
       if (response.pending) {
         pollFailuresRef.current = 0;
-        setPhase("result-pending");
+        // 결과 공개 시각 이후에는 참여 확인/채점 화면으로 되돌아가지 않고
+        // 하나의 결과 로딩 화면을 유지한다.
+        setPhase("result-loading");
         pollTimerRef.current = setTimeout(() => poll(id), RESULT_POLL_MS);
         return;
       }
@@ -158,10 +165,15 @@ export function useDailyBattlePage() {
   const waitUntilDeadlineOrPoll = useCallback((id) => {
     const seconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
     setRemainingSeconds(seconds);
-    setPhase("result-pending");
 
     // 마감 전에는 참여 상태만으로 대기 화면을 보여주고 결과 API를 호출하지 않는다.
-    if (seconds === 0) pollResult(id);
+    if (seconds > 0) {
+      setPhase("result-pending");
+      return;
+    }
+
+    setPhase("result-loading");
+    pollResult(id);
   }, [pollResult]);
 
   const enterBattle = useCallback(async (id) => {
@@ -204,7 +216,7 @@ export function useDailyBattlePage() {
 
   const load = useCallback(async () => {
     stopPolling();
-    setPhase("loading");
+    setPhase(getInitialPhase());
     setErrorMessage("");
     setAccessIssue(null);
     try {
@@ -279,7 +291,7 @@ export function useDailyBattlePage() {
       if (seconds === 0 && !deadlineHandled) {
         deadlineHandled = true;
         if (phase === "in-progress") {
-          setPhase("result-pending");
+          setPhase("result-loading");
         }
         if (battleId) pollResult(battleId);
       }

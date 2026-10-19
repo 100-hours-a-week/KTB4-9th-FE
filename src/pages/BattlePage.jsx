@@ -350,9 +350,12 @@ function ResultRankings({ rankings, currentUserId }) {
 
   return (
     <section className="overflow-hidden rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] shadow-[var(--battle-card-shadow)]">
-      <div className="flex items-center gap-2 border-b border-[var(--battle-border)] px-5 py-4">
-        <span className="text-base text-[var(--battle-gold)]">★</span>
-        <h3 className="text-sm font-bold text-[var(--battle-text)]">TOP 5 랭킹</h3>
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--battle-border)] px-5 py-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="text-base text-[var(--battle-gold)]">★</span>
+          <h3 className="shrink-0 text-sm font-bold text-[var(--battle-text)]">TOP 5 랭킹</h3>
+        </div>
+        <span className="shrink-0 text-[10px] font-medium text-[var(--battle-muted)]">전체 정답자만 집계</span>
       </div>
       <div className="divide-y divide-[var(--battle-divider)]">
         {rankings.map((entry) => {
@@ -509,7 +512,9 @@ export default function BattlePage() {
   } = useDailyBattlePage();
 
   let content;
-  if (phase === "loading") {
+  if (phase === "result-loading") {
+    content = <CenterState eyebrow="BATTLE RESULT" title="배틀 결과를 불러오고 있어요" description="잠시만 기다려 주세요." busy />;
+  } else if (phase === "loading") {
     content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
   } else if (phase === "launch-waiting") {
     content = <CenterState eyebrow="BATTLE OPEN" title="데일리 배틀이 곧 시작됩니다" description={"오늘 오후 1시 20분 테스트 배틀이 열려요.\n세 문제를 가장 빠르게 풀고 TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
@@ -525,8 +530,6 @@ export default function BattlePage() {
     content = <BattleForm battle={battle} answers={answers} remainingSeconds={remainingSeconds} errorMessage={errorMessage} canSubmit={canSubmit} submitting={submitting} droppingOut={droppingOut} onAnswer={updateAnswer} onSubmit={submit} onDropOut={dropOut} />;
   } else if (phase === "result-pending" && remainingSeconds > 0) {
     content = <PendingBattleResult battle={battle} remainingSeconds={remainingSeconds} />;
-  } else if (phase === "result-pending") {
-    content = <CenterState eyebrow="GRADING" title="배틀 결과 채점 중..." description={"제출은 완료되었습니다.\n채점이 끝나면 결과가 자동으로 표시됩니다."} busy />;
   } else if (phase === "result" && result) {
     content = <BattleResult result={result} />;
   } else if (phase === "result-error") {
