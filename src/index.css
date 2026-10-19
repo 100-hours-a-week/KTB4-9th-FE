@@ -269,6 +269,26 @@ button:disabled { cursor: default; }
   caret-color: #7C3AED;
 }
 
+/* 배틀 결과는 경기 화면의 집중감을 위해 선택한 앱 테마와 관계없이 다크 팔레트를 유지합니다. */
+:root.battle-result-active nav[aria-label='주요 메뉴'] {
+  --cosmos-accent-text: #C084FC;
+  --cosmos-text-muted: #6B6890;
+  --cosmos-text-faint: #3A3860;
+  --cosmos-text-subtle: #4A4870;
+  --cosmos-border-strong: #2A2845;
+  --cosmos-nav-home-icon: #FFFFFF;
+  border-color: #1E1D35 !important;
+  background: rgba(8, 8, 26, 0.98) !important;
+}
+
+:root.battle-result-active nav[aria-label='주요 메뉴'] [class*='bg-[#2A1355]'] {
+  background-color: #2A1355 !important;
+}
+
+:root.battle-result-active nav[aria-label='주요 메뉴'] [class*='text-[#6B6890]'] {
+  color: #6B6890 !important;
+}
+
 /* 수식(KaTeX)을 본문 글꼴·크기와 똑같이 표시 */
 .katex,
 .katex * {

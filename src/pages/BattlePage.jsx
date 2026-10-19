@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
@@ -234,10 +234,13 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
 
 function formatElapsed(seconds) {
   if (seconds == null) return "-";
-  const value = Math.max(0, Number(seconds));
-  const minutes = Math.floor(value / 60);
+  const value = Math.max(0, Math.floor(Number(seconds)));
+  const hours = Math.floor(value / 3600);
+  const minutes = Math.floor((value % 3600) / 60);
   const remain = value % 60;
-  return minutes ? `${minutes}분 ${remain}초` : `${remain}초`;
+  return hours > 0
+    ? `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(remain).padStart(2, "0")}`
+    : `${String(minutes).padStart(2, "0")}:${String(remain).padStart(2, "0")}`;
 }
 
 function BlurredResultPreview() {
@@ -292,7 +295,7 @@ function BlurredResultPreview() {
 function PendingBattleResult({ battle, remainingSeconds }) {
   return (
     <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
-      <PageHeader eyebrow="오늘의 배틀" title={battle?.title ?? "오늘의 데일리 배틀"} action={<UserMenu />} />
+      <PageHeader eyebrow="오늘의 배틀" title={battle?.title ?? "오늘의 데일리 배틀"} />
       <div className="space-y-5 px-5 pb-6">
         <section className="flex items-center gap-4 rounded-2xl border border-[#7C3AED]/40 bg-[#7C3AED]/10 px-4 py-4 shadow-[0_14px_36px_rgba(124,58,237,0.12)]">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/25 text-[#C084FC]">
@@ -329,23 +332,44 @@ const INCOMPLETE_STATUS = {
   GRADING_FAILED: "채점 중 문제가 발생했습니다. 오답으로 처리된 것은 아닙니다.",
 };
 
-function ResultRankings({ rankings }) {
+function BattleResultHeader({ result }) {
+  return (
+    <header className="px-5 pt-10 pb-5">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_10px_rgba(168,85,247,0.85)]" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#77719D]" style={MONO}>오늘의 배틀 종료</span>
+      </div>
+      <h1 className="text-[25px] font-bold leading-tight text-[#F4F1FF]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
+      {result?.battle_date && <p className="mt-2 text-xs text-[#77719D]" style={MONO}>{result.battle_date}</p>}
+    </header>
+  );
+}
+
+function ResultRankings({ rankings, currentUserId }) {
   if (rankings.length === 0) return null;
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-[#1E1D35] bg-[#0D0D1F]">
-      <div className="flex items-center gap-2 border-b border-[#1E1D35] px-4 py-3">
-        <span className="text-[#C084FC]">★</span>
-        <h3 className="text-sm font-semibold text-[#E2E0F0]">TOP 5 랭킹</h3>
+    <section className="overflow-hidden rounded-[22px] border border-[#24213F] bg-[#0B0B1D] shadow-[0_16px_44px_rgba(0,0,0,0.22)]">
+      <div className="flex items-center gap-2 border-b border-[#24213F] px-5 py-4">
+        <span className="text-base text-[#F5A524]">★</span>
+        <h3 className="text-sm font-bold text-[#F4F1FF]">TOP 5 랭킹</h3>
       </div>
-      <div className="divide-y divide-[#1E1D35]">
-        {rankings.map((entry) => (
-          <div key={`${entry.rank}-${entry.user_id}`} className="flex items-center gap-3 px-4 py-3">
-            <span className={`w-7 text-center font-bold ${entry.rank <= 3 ? "text-xl text-[#E2E0F0]" : "text-sm text-[#8B87AA]"}`}>{entry.rank}</span>
-            <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#E2E0F0]">{entry.name}</p>
-            <span className={`text-[11px] ${entry.rank === 1 ? "font-bold text-[#C084FC]" : "text-[#A89EC4]"}`} style={MONO}>{formatElapsed(entry.elapsed_seconds)}</span>
-          </div>
-        ))}
+      <div className="divide-y divide-[#1C1A32]">
+        {rankings.map((entry) => {
+          const mine = currentUserId != null && String(entry.user_id) === String(currentUserId);
+          const medal = ["🥇", "🥈", "🥉"][entry.rank - 1];
+          return (
+            <div key={`${entry.rank}-${entry.user_id}`} className={`flex min-h-16 items-center gap-3 px-5 py-3.5 ${mine ? "bg-[#19112F]" : "bg-[#0B0B1D]"}`}>
+              <span className={`w-9 shrink-0 text-center font-bold ${entry.rank <= 3 ? "text-lg text-[#F4F1FF]" : "text-sm text-[#716C91]"}`}>
+                {medal ?? entry.rank}
+              </span>
+              <p className={`min-w-0 flex-1 truncate text-sm font-semibold ${mine ? "text-[#C084FC]" : "text-[#CBC6DF]"}`}>
+                {entry.name}{mine && <span className="ml-1.5 text-[10px] font-medium text-[#8B7FC4]">나</span>}
+              </p>
+              <span className={`text-xs font-bold tracking-wide ${entry.rank === 1 ? "text-[#FFD22E]" : mine ? "text-[#C084FC]" : "text-[#827D9F]"}`} style={MONO}>{formatElapsed(entry.elapsed_seconds)}</span>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -355,10 +379,10 @@ function EmptyBattleResult({ result }) {
   const navigate = useNavigate();
 
   return (
-    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
-      <PageHeader eyebrow="오늘의 배틀 종료" title={result?.title ?? "오늘의 데일리 배틀"} subtitle={result?.battle_date} action={<UserMenu />} />
+    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[#060611] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}>
+      <BattleResultHeader result={result} />
       <div className="px-5 pt-5">
-        <section className="rounded-[24px] border border-[#2A2845] bg-[#0D0D1F] px-6 py-9 text-center shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+        <section className="rounded-[24px] border border-[#24213F] bg-[#0B0B1D] px-6 py-9 text-center shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
           <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[22px] border border-[#2A2845] bg-[#121126]">
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
               <rect x="6" y="23" width="7" height="9" rx="2" fill="#6B6890" />
@@ -401,50 +425,55 @@ function BattleResult({ result }) {
   }
 
   return (
-    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
-      <PageHeader eyebrow="오늘의 배틀 종료" title={result?.title ?? "오늘의 데일리 배틀"} subtitle={result?.battle_date} action={<UserMenu />} />
-      <div className="space-y-4 px-5 pb-6">
+    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[#060611] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehaviorY: "contain" }}>
+      <BattleResultHeader result={result} />
+      <div className="space-y-4 px-5 pb-8">
         {!mine && (
-          <section className="rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-5 py-4">
-            <h2 className="text-base font-bold text-[#E2E0F0]">이번 배틀에 참여하지 않았어요</h2>
-            <p className="mt-1.5 text-xs text-[#8B87AA]">다음 배틀에 도전해 보세요.</p>
+          <section className="rounded-[22px] border border-[#2D2949] bg-[#0E0D22] px-5 py-5 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
+            <h2 className="text-base font-bold text-[#F4F1FF]">이번 배틀에 참여하지 않았어요</h2>
+            <p className="mt-1.5 text-xs text-[#817C9E]">다음 배틀에 도전해 보세요.</p>
           </section>
         )}
 
         {mine && incompleteMessage && (
-          <section className="rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-5 py-4">
-            <h2 className="text-base font-bold text-[#E2E0F0]">배틀을 완료하지 못했어요</h2>
-            <p className="mt-1.5 text-xs leading-5 text-[#8B87AA]">{incompleteMessage}</p>
+          <section className="rounded-[22px] border border-[#2D2949] bg-[#0E0D22] px-5 py-5 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
+            <h2 className="text-base font-bold text-[#F4F1FF]">배틀을 완료하지 못했어요</h2>
+            <p className="mt-1.5 text-xs leading-5 text-[#817C9E]">{incompleteMessage}</p>
           </section>
         )}
 
         {mine && completed && (
-          <section className="flex items-center gap-3 rounded-2xl border border-[#7C3AED]/35 bg-[#7C3AED]/10 px-4 py-4">
-            <div className="min-w-[54px] border-r border-[#2A2845] pr-3">
-              <p className="text-[9px] text-[#6B6890]">내 순위</p>
-              <p className="mt-1 text-2xl font-bold text-[#C084FC]">{mine.my_rank == null ? "-" : `${mine.my_rank}위`}</p>
+          <section className="flex items-center gap-4 rounded-[22px] border border-[#5B2E91] bg-[#140C2A] px-5 py-5 shadow-[0_14px_38px_rgba(124,58,237,0.16)]">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#32166B] text-2xl font-black text-[#C084FC] shadow-[inset_0_0_0_1px_rgba(192,132,252,0.12)]" style={MONO}>
+              {mine.my_rank == null ? "✓" : `#${mine.my_rank}`}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-[#E2E0F0]">{user?.name || "사용자"}</p>
-              <p className={`mt-0.5 text-[10px] ${mine.all_correct ? "text-emerald-400" : "text-rose-400"}`}>{mine.all_correct ? "전체 정답" : "오답 포함"}</p>
+              <p className="truncate text-base font-bold text-[#F4F1FF]">{mine.my_rank == null ? "배틀 완료" : `${mine.my_rank}위 달성!`}</p>
+              <p className="mt-1 text-[11px] text-[#817C9E]">{user?.name || "사용자"} · {mine.all_correct ? "전체 정답" : "오답 포함"}</p>
+              {mine.elapsed_seconds != null && <p className="mt-1 text-xs font-bold text-[#C084FC]" style={MONO}>기록 {formatElapsed(mine.elapsed_seconds)}</p>}
             </div>
-            <span className="text-xs font-semibold text-[#E2E0F0]" style={MONO}>{formatElapsed(mine.elapsed_seconds)}</span>
           </section>
         )}
 
-        <ResultRankings rankings={rankings} />
+        <ResultRankings rankings={rankings} currentUserId={user?.id} />
 
         {answers.length > 0 && (
-          <section className="rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-4">
-            <h3 className="mb-3 text-sm font-semibold text-[#E2E0F0]">정답 확인</h3>
-            <div className="space-y-2">
+          <section className="rounded-[22px] border border-[#24213F] bg-[#0B0B1D] p-4 shadow-[0_16px_44px_rgba(0,0,0,0.22)]">
+            <div className="mb-4 flex items-center gap-2 px-1">
+              <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.75)]" />
+              <h3 className="text-sm font-bold text-[#F4F1FF]">내 답안 확인</h3>
+            </div>
+            <div className="space-y-3">
               {answers.map((answer) => (
-                <div key={answer.battle_case_id} className={`rounded-xl border p-3 ${answer.is_correct ? "border-emerald-500/25 bg-emerald-500/5" : "border-rose-500/25 bg-rose-500/5"}`}>
-                  <div className="mb-2 flex items-center justify-between"><span className="text-[10px] text-[#6B6890]">케이스 {answer.display_order}</span><span className={`text-[10px] font-semibold ${answer.is_correct ? "text-emerald-400" : "text-rose-400"}`}>{answer.is_correct ? "✓ 정답" : "× 오답"}</span></div>
-                  <div className="grid grid-cols-[36px_1fr] gap-x-2 gap-y-1 text-[10px] leading-4">
-                    <span className="text-[#4A4870]">IN</span><pre className="whitespace-pre-wrap break-words text-[#A89EC4]" style={MONO}>{answer.input}</pre>
-                    <span className="text-[#4A4870]">정답</span><pre className="whitespace-pre-wrap break-words font-semibold text-[#C8B8F8]" style={MONO}>{answer.expected_output}</pre>
-                    {!answer.is_correct && <><span className="text-[#4A4870]">내 답</span><pre className="whitespace-pre-wrap break-words text-rose-400" style={MONO}>{answer.submitted_output}</pre></>}
+                <div key={answer.battle_case_id} className={`rounded-2xl border bg-[#070711] p-4 ${answer.is_correct ? "border-[#21483D]" : "border-[#54263A]"}`}>
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-[10px] font-semibold tracking-wider text-[#716C91]" style={MONO}>CASE {answer.display_order}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${answer.is_correct ? "bg-[#0E2E27] text-[#45D6A5]" : "bg-[#351522] text-[#FB7185]"}`}>{answer.is_correct ? "✓ 정답" : "× 오답"}</span>
+                  </div>
+                  <div className="grid grid-cols-[46px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[11px] leading-5">
+                    <span className="text-[#575272]">입력</span><pre className="min-w-0 whitespace-pre-wrap break-words text-[#A9A3C4]" style={MONO}>{answer.input}</pre>
+                    <span className="text-[#575272]">정답</span><pre className="min-w-0 whitespace-pre-wrap break-words font-semibold text-[#C9B7F6]" style={MONO}>{answer.expected_output}</pre>
+                    <span className="text-[#575272]">내 답</span><pre className={`min-w-0 whitespace-pre-wrap break-words font-bold ${answer.is_correct ? "text-[#45D6A5]" : "text-[#FB7185]"}`} style={MONO}>{answer.submitted_output || "-"}</pre>
                   </div>
                 </div>
               ))}
@@ -452,7 +481,7 @@ function BattleResult({ result }) {
           </section>
         )}
 
-        <p className="py-5 text-center text-[11px] text-[#4A4870]">내일 또 다른 문제가 기다리고 있어요</p>
+        <p className="py-6 text-center text-[11px] text-[#575272]">내일 또 다른 문제가 기다리고 있어요</p>
       </div>
     </div>
   );
@@ -478,6 +507,13 @@ export default function BattlePage() {
     submit,
     updateAnswer,
   } = useDailyBattlePage();
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const resultVisible = phase === "result";
+    root.classList.toggle("battle-result-active", resultVisible);
+    return () => root.classList.remove("battle-result-active");
+  }, [phase]);
 
   let content;
   if (phase === "loading") {
