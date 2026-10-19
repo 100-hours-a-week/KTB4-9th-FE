@@ -92,7 +92,7 @@ function AccessDeniedState({
             </span>
             <div>
               <p className="text-xs font-semibold text-[#E2E0F0]">배틀 참여 안내</p>
-              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">매일 12:00–12:09:59에만 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
+              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">현재 테스트 배틀은 13:20–13:29:59에 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 px-4 py-3">
           <div>
             <p className="text-[9px] tracking-widest text-[#8B7FC4]" style={MONO}>SUBMISSION TIME LEFT</p>
-            <p className="mt-0.5 text-[11px] text-[#6B6890]">12:09:59 제출 마감</p>
+            <p className="mt-0.5 text-[11px] text-[#6B6890]">13:29:59 제출 마감</p>
           </div>
           <p className={`text-2xl font-bold tracking-wider ${remainingSeconds <= 60 ? "text-[#F87171]" : "text-[#C084FC]"}`} style={MONO}>
             {formatBattleTime(remainingSeconds)}
@@ -387,10 +387,10 @@ function EmptyBattleResult({ result }) {
           </div>
           <p className="mt-6 text-[10px] font-semibold tracking-[0.25em] text-[#8B7FC4]" style={MONO}>NO PARTICIPANTS</p>
           <h2 className="mt-2 text-xl font-bold text-[#E2E0F0]">이번 배틀에는 참여자가 없어요</h2>
-          <p className="mt-3 text-sm leading-6 text-[#8B87AA]">오늘의 TOP 5는 비어 있습니다.<br />내일 낮 12시에 첫 번째 기록을 남겨보세요!</p>
+          <p className="mt-3 text-sm leading-6 text-[#8B87AA]">오늘의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
           <div className="mx-auto mt-6 flex max-w-[250px] items-center justify-center gap-2 rounded-xl border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-4 py-3">
             <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-            <span className="text-xs font-semibold text-[#C084FC]">매일 12:00 데일리 배틀</span>
+            <span className="text-xs font-semibold text-[#C084FC]">테스트 배틀 13:20 시작</span>
           </div>
           <button
             type="button"
@@ -504,13 +504,13 @@ export default function BattlePage() {
   if (phase === "loading") {
     content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
   } else if (phase === "launch-waiting") {
-    content = <CenterState eyebrow="BATTLE OPEN D-1" title="내일, 데일리 배틀이 시작됩니다" description={"10월 19일 낮 12시 첫 배틀이 열려요.\n세 문제를 가장 빠르게 풀고 TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
+    content = <CenterState eyebrow="BATTLE OPEN" title="데일리 배틀이 곧 시작됩니다" description={"오늘 오후 1시 20분 테스트 배틀이 열려요.\n세 문제를 가장 빠르게 풀고 TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "waiting") {
-    content = <CenterState title="오늘의 배틀을 기다리는 중" description={"매일 낮 12시에 모든 사용자가\n같은 세 문제로 경쟁합니다."} time={untilOpenSeconds} />;
+    content = <CenterState title="오늘의 배틀을 기다리는 중" description={"오늘 오후 1시 20분에 모든 사용자가\n같은 세 문제로 경쟁합니다."} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
     content = <CenterState title="배틀 문제를 준비하고 있어요" description="잠시 후 다시 확인해 주세요." action={<ErrorButton onClick={load} />} />;
   } else if (phase === "closed") {
-    content = <CenterState title="오늘의 배틀이 마감되었습니다" description={"결과를 조회할 참여 기록이 없습니다.\n내일 낮 12시에 다시 도전해 주세요."} />;
+    content = <CenterState title="오늘의 배틀이 마감되었습니다" description={"결과를 조회할 참여 기록이 없습니다.\n테스트 배틀 참여 시간이 종료되었습니다."} />;
   } else if (phase === "access-denied") {
     content = <AccessDeniedState title={accessIssue?.title} description={accessIssue?.description} />;
   } else if (phase === "in-progress" && battle) {

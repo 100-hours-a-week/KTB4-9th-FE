@@ -19,10 +19,10 @@ export default function BattleAlarmModal({ view, busy, onChallenge, onDismiss })
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-6">
       <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-2xl border border-[#1E1D35] bg-[#0D0D1F] p-5">
         <h3 className="mb-2 whitespace-pre-line text-center text-xl font-bold text-[#E2E0F0]" style={FONT}>
-          {isOpen ? "PM 12:00!\n오늘의 배틀이 열렸습니다." : "오늘의 배틀 참여가\n마감되었습니다."}
+          {isOpen ? "PM 01:20!\n오늘의 배틀이 열렸습니다." : "오늘의 배틀 참여가\n마감되었습니다."}
         </h3>
         <p className="mb-5 text-center text-sm leading-relaxed text-[#A89EC4]" style={FONT}>
-          {isOpen ? "오늘의 TOP5에 도전하세요!" : "내일 낮 12시에 다시 도전해 주세요."}
+          {isOpen ? "오늘의 TOP5에 도전하세요!" : "테스트 배틀이 마감되었습니다."}
         </p>
         <div className="flex gap-2">
           <button

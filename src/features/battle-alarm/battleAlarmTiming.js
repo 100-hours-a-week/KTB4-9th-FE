@@ -2,7 +2,7 @@
 
 // 아직 안 열렸거나 배틀이 준비 안 됐을 때 다시 확인하는 간격(ms)
 export const POLL_INTERVAL_MS = 2000;
-// 열리기 이만큼(ms) 전부터 확인을 시작한다. (12:00 기준 11:59:58)
+// 열리기 이만큼(ms) 전부터 확인을 시작한다. (13:20 기준 13:19:58)
 export const POLL_LEAD_MS = 2000;
 // 사용자마다 확인 시작을 어긋나게 하는 최대 무작위 지연(ms). 요청이 한꺼번에 몰리지 않게 한다.
 export const POLL_JITTER_MAX_MS = 2000;
@@ -13,12 +13,12 @@ export const MAX_RETRIES = 3;
 export const CHECKING_BANNER_DELAY_MS = 500;
 // 열리는 시각을 알 수 없을 때 다음 확인까지 기다리는 시간(ms)
 const UNKNOWN_OPEN_WAIT_MS = 60 * 1000;
-// 배너는 12:00 전후(한국 시각 11:55~12:15)에만 보여준다. 다른 시간대의 서버 장애로 배너가 뜨지 않게 한다.
-const BANNER_START_MINUTE = 11 * 60 + 55;
-const BANNER_END_MINUTE = 12 * 60 + 15;
-// 서버에 물어보는 시간대(한국 시각 11:50~12:15). 이 밖에서는 요청을 보내지 않는다. 시계가 조금 틀려도 놓치지 않게 여유를 둔다.
-const CHECK_START_MINUTE = 11 * 60 + 50;
-const CHECK_END_MINUTE = 12 * 60 + 15;
+// 테스트 배틀 전후(한국 시각 13:15~13:35)에만 배너를 보여준다.
+const BANNER_START_MINUTE = 13 * 60 + 15;
+const BANNER_END_MINUTE = 13 * 60 + 35;
+// 서버에 물어보는 시간대(한국 시각 13:10~13:35).
+const CHECK_START_MINUTE = 13 * 60 + 10;
+const CHECK_END_MINUTE = 13 * 60 + 35;
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -64,13 +64,13 @@ export function nextCheckDelay(status, serverNowMs, opensAtMs, random = Math.ran
   return POLL_INTERVAL_MS;
 }
 
-// 지금이 서버에 물어봐도 되는 시간대(11:50~12:15)인지 확인한다.
+// 지금이 서버에 물어봐도 되는 테스트 시간대(13:10~13:35)인지 확인한다.
 export function isInCheckWindow(nowMs) {
   const minute = kstMinuteOfDay(nowMs);
   return minute >= CHECK_START_MINUTE && minute <= CHECK_END_MINUTE;
 }
 
-// 다음 11:50(한국 시각)까지 남은 시간(ms). 사용자마다 어긋나게 무작위 지연을 더한다.
+// 다음 13:10(한국 시각)까지 남은 시간(ms). 사용자마다 어긋나게 무작위 지연을 더한다.
 export function msUntilNextCheckStart(nowMs, random = Math.random()) {
   const kstMs = nowMs + KST_OFFSET_MS;
   let startKstMs = Math.floor(kstMs / DAY_MS) * DAY_MS + CHECK_START_MINUTE * MINUTE_MS;
@@ -78,7 +78,7 @@ export function msUntilNextCheckStart(nowMs, random = Math.random()) {
   return startKstMs - kstMs + random * POLL_JITTER_MAX_MS;
 }
 
-// 지금(서버 시각 기준)이 배너를 보여줘도 되는 12:00 전후인지 확인한다.
+// 지금(서버 시각 기준)이 배너를 보여줘도 되는 13:20 전후인지 확인한다.
 export function isNearOpenWindow(serverNowMs) {
   const minutes = kstMinuteOfDay(serverNowMs);
   return minutes >= BANNER_START_MINUTE && minutes <= BANNER_END_MINUTE;

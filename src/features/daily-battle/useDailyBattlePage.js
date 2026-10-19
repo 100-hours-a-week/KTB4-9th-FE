@@ -12,7 +12,7 @@ const MAX_RESULT_FAILURES = 3;
 const STORAGE_KEY = "cosmos:last-daily-battle";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 // 첫 데일리 배틀 공개 시각. 이 시각 이후에는 평소의 서버 상태 흐름만 사용한다.
-const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T12:00:00+09:00");
+const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T13:20:00+09:00");
 const joinRequests = new Map();
 
 function getSubmissionDeadline(serverTime) {
@@ -20,7 +20,7 @@ function getSubmissionDeadline(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T12:10:00+09:00`);
+  return new Date(`${year}-${month}-${date}T13:30:00+09:00`);
 }
 
 function getRemainingSeconds(deadline, clockOffset) {
@@ -73,7 +73,7 @@ function accessIssueForError(error) {
   if (error?.status === 403) {
     return {
       title: "배틀 참여 시간이 아닙니다",
-      description: "데일리 배틀은 매일 낮 12시부터 10분 동안 참여할 수 있어요.",
+      description: "현재 테스트 배틀은 오후 1시 20분부터 10분 동안 참여할 수 있어요.",
     };
   }
   if (error?.status === 404) {
@@ -167,7 +167,7 @@ export function useDailyBattlePage() {
       rememberBattle(id, participation.battleDate);
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
-        submissionDeadlineRef.current = new Date(`${participation.battleDate}T12:10:00+09:00`);
+        submissionDeadlineRef.current = new Date(`${participation.battleDate}T13:30:00+09:00`);
       }
       setRemainingSeconds(getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current));
       setAnswers(Object.fromEntries(participation.cases.map((item) => [item.displayOrder, ""])));
