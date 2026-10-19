@@ -92,7 +92,7 @@ function AccessDeniedState({
             </span>
             <div>
               <p className="text-xs font-semibold text-[#E2E0F0]">배틀 참여 안내</p>
-              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">현재 테스트 배틀은 13:20–13:29:59에 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
+              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">현재 테스트 배틀은 13:20–13:59:59에 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 px-4 py-3">
           <div>
             <p className="text-[9px] tracking-widest text-[#8B7FC4]" style={MONO}>SUBMISSION TIME LEFT</p>
-            <p className="mt-0.5 text-[11px] text-[#6B6890]">13:29:59 제출 마감</p>
+            <p className="mt-0.5 text-[11px] text-[#6B6890]">13:59:59 제출 마감</p>
           </div>
           <p className={`text-2xl font-bold tracking-wider ${remainingSeconds <= 60 ? "text-[#F87171]" : "text-[#C084FC]"}`} style={MONO}>
             {formatBattleTime(remainingSeconds)}
