@@ -334,13 +334,13 @@ const INCOMPLETE_STATUS = {
 
 function BattleResultHeader({ result }) {
   return (
-    <header className="px-5 pt-10 pb-5">
-      <div className="mb-2 flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_10px_rgba(168,85,247,0.85)]" />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#77719D]" style={MONO}>오늘의 배틀 종료</span>
+    <header className="px-5 pt-12 pb-4">
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-[#77719D]" style={MONO}>오늘의 배틀 종료</span>
       </div>
-      <h1 className="text-[25px] font-bold leading-tight text-[#F4F1FF]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
-      {result?.battle_date && <p className="mt-2 text-xs text-[#77719D]" style={MONO}>{result.battle_date}</p>}
+      <h1 className="text-xl font-bold leading-tight text-[#F4F1FF]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
+      {result?.battle_date && <p className="mt-1.5 text-xs leading-relaxed text-[#77719D]" style={MONO}>{result.battle_date}</p>}
     </header>
   );
 }
