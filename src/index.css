@@ -269,24 +269,63 @@ button:disabled { cursor: default; }
   caret-color: #7C3AED;
 }
 
-/* 배틀 결과는 경기 화면의 집중감을 위해 선택한 앱 테마와 관계없이 다크 팔레트를 유지합니다. */
-:root.battle-result-active nav[aria-label='주요 메뉴'] {
-  --cosmos-accent-text: #C084FC;
-  --cosmos-text-muted: #6B6890;
-  --cosmos-text-faint: #3A3860;
-  --cosmos-text-subtle: #4A4870;
-  --cosmos-border-strong: #2A2845;
-  --cosmos-nav-home-icon: #FFFFFF;
-  border-color: #1E1D35 !important;
-  background: rgba(8, 8, 26, 0.98) !important;
+/* 배틀 결과 전용 토큰. 구조는 유지하고 선택한 테마에 맞춰 색과 그림자만 전환합니다. */
+.battle-result-theme {
+  --battle-bg: #060611;
+  --battle-surface: #0B0B1D;
+  --battle-surface-soft: #0E0D22;
+  --battle-answer-bg: #070711;
+  --battle-border: #24213F;
+  --battle-border-strong: #2D2949;
+  --battle-divider: #1C1A32;
+  --battle-text: #F4F1FF;
+  --battle-text-secondary: #CBC6DF;
+  --battle-answer-text: #C9B7F6;
+  --battle-muted: #817C9E;
+  --battle-subtle: #575272;
+  --battle-row-highlight: #19112F;
+  --battle-accent-surface: #140C2A;
+  --battle-accent-box: #32166B;
+  --battle-accent-border: #5B2E91;
+  --battle-gold: #FFD22E;
+  --battle-correct-bg: #0E2E27;
+  --battle-correct-border: #21483D;
+  --battle-correct-text: #45D6A5;
+  --battle-wrong-bg: #351522;
+  --battle-wrong-border: #54263A;
+  --battle-wrong-text: #FB7185;
+  --battle-card-shadow: 0 16px 44px rgba(0, 0, 0, 0.22);
+  --battle-soft-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  --battle-accent-shadow: 0 14px 38px rgba(124, 58, 237, 0.16);
 }
 
-:root.battle-result-active nav[aria-label='주요 메뉴'] [class*='bg-[#2A1355]'] {
-  background-color: #2A1355 !important;
-}
-
-:root.battle-result-active nav[aria-label='주요 메뉴'] [class*='text-[#6B6890]'] {
-  color: #6B6890 !important;
+:root[data-theme='light'] .battle-result-theme {
+  --battle-bg: #F7F5FC;
+  --battle-surface: #FFFFFF;
+  --battle-surface-soft: #FBFAFE;
+  --battle-answer-bg: #FBFAFE;
+  --battle-border: #DED8EA;
+  --battle-border-strong: #CBC3DC;
+  --battle-divider: #E9E4F0;
+  --battle-text: #241D35;
+  --battle-text-secondary: #514864;
+  --battle-answer-text: #5B3A91;
+  --battle-muted: #70677F;
+  --battle-subtle: #7B7289;
+  --battle-row-highlight: #F3EAFF;
+  --battle-accent-surface: #F3EAFF;
+  --battle-accent-box: #E7D6FF;
+  --battle-accent-border: #C9AEF7;
+  --battle-gold: #9A6A00;
+  --battle-correct-bg: #ECFDF5;
+  --battle-correct-border: #A7F3D0;
+  --battle-correct-text: #047857;
+  --battle-wrong-bg: #FFF1F2;
+  --battle-wrong-border: #FECDD3;
+  --battle-wrong-text: #BE123C;
+  --battle-card-shadow: 0 14px 38px rgba(76, 29, 149, 0.08);
+  --battle-soft-shadow: 0 10px 28px rgba(76, 29, 149, 0.07);
+  --battle-accent-shadow: 0 12px 32px rgba(124, 58, 237, 0.12);
 }
 
 /* 수식(KaTeX)을 본문 글꼴·크기와 똑같이 표시 */

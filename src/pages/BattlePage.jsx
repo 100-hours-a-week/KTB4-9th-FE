@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import MathText from "../components/common/MathText.jsx";
@@ -337,10 +337,10 @@ function BattleResultHeader({ result }) {
     <header className="px-5 pt-12 pb-4">
       <div className="mb-1.5 flex items-center gap-1.5">
         <span className="h-1.5 w-1.5 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[#77719D]" style={MONO}>오늘의 배틀 종료</span>
+        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--battle-muted)]" style={MONO}>오늘의 배틀 종료</span>
       </div>
-      <h1 className="text-xl font-bold leading-tight text-[#F4F1FF]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
-      {result?.battle_date && <p className="mt-1.5 text-xs leading-relaxed text-[#77719D]" style={MONO}>{result.battle_date}</p>}
+      <h1 className="text-xl font-bold leading-tight text-[var(--battle-text)]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
+      {result?.battle_date && <p className="mt-1.5 text-xs leading-relaxed text-[var(--battle-muted)]" style={MONO}>{result.battle_date}</p>}
     </header>
   );
 }
@@ -349,24 +349,24 @@ function ResultRankings({ rankings, currentUserId }) {
   if (rankings.length === 0) return null;
 
   return (
-    <section className="overflow-hidden rounded-[22px] border border-[#24213F] bg-[#0B0B1D] shadow-[0_16px_44px_rgba(0,0,0,0.22)]">
-      <div className="flex items-center gap-2 border-b border-[#24213F] px-5 py-4">
-        <span className="text-base text-[#F5A524]">★</span>
-        <h3 className="text-sm font-bold text-[#F4F1FF]">TOP 5 랭킹</h3>
+    <section className="overflow-hidden rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] shadow-[var(--battle-card-shadow)]">
+      <div className="flex items-center gap-2 border-b border-[var(--battle-border)] px-5 py-4">
+        <span className="text-base text-[var(--battle-gold)]">★</span>
+        <h3 className="text-sm font-bold text-[var(--battle-text)]">TOP 5 랭킹</h3>
       </div>
-      <div className="divide-y divide-[#1C1A32]">
+      <div className="divide-y divide-[var(--battle-divider)]">
         {rankings.map((entry) => {
           const mine = currentUserId != null && String(entry.user_id) === String(currentUserId);
           const medal = ["🥇", "🥈", "🥉"][entry.rank - 1];
           return (
-            <div key={`${entry.rank}-${entry.user_id}`} className={`flex min-h-16 items-center gap-3 px-5 py-3.5 ${mine ? "bg-[#19112F]" : "bg-[#0B0B1D]"}`}>
-              <span className={`w-9 shrink-0 text-center font-bold ${entry.rank <= 3 ? "text-lg text-[#F4F1FF]" : "text-sm text-[#716C91]"}`}>
+            <div key={`${entry.rank}-${entry.user_id}`} className={`flex min-h-16 items-center gap-3 px-5 py-3.5 ${mine ? "bg-[var(--battle-row-highlight)]" : "bg-[var(--battle-surface)]"}`}>
+              <span className={`w-9 shrink-0 text-center font-bold ${entry.rank <= 3 ? "text-lg text-[var(--battle-text)]" : "text-sm text-[var(--battle-muted)]"}`}>
                 {medal ?? entry.rank}
               </span>
-              <p className={`min-w-0 flex-1 truncate text-sm font-semibold ${mine ? "text-[#C084FC]" : "text-[#CBC6DF]"}`}>
-                {entry.name}{mine && <span className="ml-1.5 text-[10px] font-medium text-[#8B7FC4]">나</span>}
+              <p className={`min-w-0 flex-1 truncate text-sm font-semibold ${mine ? "text-[var(--cosmos-accent-text)]" : "text-[var(--battle-text-secondary)]"}`}>
+                {entry.name}{mine && <span className="ml-1.5 text-[10px] font-medium text-[var(--battle-muted)]">나</span>}
               </p>
-              <span className={`text-xs font-bold tracking-wide ${entry.rank === 1 ? "text-[#FFD22E]" : mine ? "text-[#C084FC]" : "text-[#827D9F]"}`} style={MONO}>{formatElapsed(entry.elapsed_seconds)}</span>
+              <span className={`text-xs font-bold tracking-wide ${entry.rank === 1 ? "text-[var(--battle-gold)]" : mine ? "text-[var(--cosmos-accent-text)]" : "text-[var(--battle-muted)]"}`} style={MONO}>{formatElapsed(entry.elapsed_seconds)}</span>
             </div>
           );
         })}
@@ -379,11 +379,11 @@ function EmptyBattleResult({ result }) {
   const navigate = useNavigate();
 
   return (
-    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[#060611] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}>
+    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[var(--battle-bg)] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y" }}>
       <BattleResultHeader result={result} />
       <div className="px-5 pt-5">
-        <section className="rounded-[24px] border border-[#24213F] bg-[#0B0B1D] px-6 py-9 text-center shadow-[0_18px_50px_rgba(0,0,0,0.28)]">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[22px] border border-[#2A2845] bg-[#121126]">
+        <section className="rounded-[24px] border border-[var(--battle-border)] bg-[var(--battle-surface)] px-6 py-9 text-center shadow-[var(--battle-card-shadow)]">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[22px] border border-[var(--battle-border-strong)] bg-[var(--battle-surface-soft)]">
             <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
               <rect x="6" y="23" width="7" height="9" rx="2" fill="#6B6890" />
               <rect x="16.5" y="15" width="7" height="17" rx="2" fill="#7C3AED" />
@@ -391,9 +391,9 @@ function EmptyBattleResult({ result }) {
               <path d="M5 34h30" stroke="#C084FC" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
-          <p className="mt-6 text-[10px] font-semibold tracking-[0.25em] text-[#8B7FC4]" style={MONO}>NO PARTICIPANTS</p>
-          <h2 className="mt-2 text-xl font-bold text-[#E2E0F0]">이번 배틀에는 참여자가 없어요</h2>
-          <p className="mt-3 text-sm leading-6 text-[#8B87AA]">오늘의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
+          <p className="mt-6 text-[10px] font-semibold tracking-[0.25em] text-[var(--battle-muted)]" style={MONO}>NO PARTICIPANTS</p>
+          <h2 className="mt-2 text-xl font-bold text-[var(--battle-text)]">이번 배틀에는 참여자가 없어요</h2>
+          <p className="mt-3 text-sm leading-6 text-[var(--battle-muted)]">오늘의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
           <div className="mx-auto mt-6 flex max-w-[250px] items-center justify-center gap-2 rounded-xl border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-4 py-3">
             <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
             <span className="text-xs font-semibold text-[#C084FC]">테스트 배틀 13:20 시작</span>
@@ -425,32 +425,32 @@ function BattleResult({ result }) {
   }
 
   return (
-    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[#060611] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehaviorY: "contain" }}>
+    <div className="battle-result-theme relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain bg-[var(--battle-bg)] pb-10" style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-y", overscrollBehaviorY: "contain" }}>
       <BattleResultHeader result={result} />
       <div className="space-y-4 px-5 pb-8">
         {!mine && (
-          <section className="rounded-[22px] border border-[#2D2949] bg-[#0E0D22] px-5 py-5 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
-            <h2 className="text-base font-bold text-[#F4F1FF]">이번 배틀에 참여하지 않았어요</h2>
-            <p className="mt-1.5 text-xs text-[#817C9E]">다음 배틀에 도전해 보세요.</p>
+          <section className="rounded-[22px] border border-[var(--battle-border-strong)] bg-[var(--battle-surface-soft)] px-5 py-5 shadow-[var(--battle-soft-shadow)]">
+            <h2 className="text-base font-bold text-[var(--battle-text)]">이번 배틀에 참여하지 않았어요</h2>
+            <p className="mt-1.5 text-xs text-[var(--battle-muted)]">다음 배틀에 도전해 보세요.</p>
           </section>
         )}
 
         {mine && incompleteMessage && (
-          <section className="rounded-[22px] border border-[#2D2949] bg-[#0E0D22] px-5 py-5 shadow-[0_12px_32px_rgba(0,0,0,0.2)]">
-            <h2 className="text-base font-bold text-[#F4F1FF]">배틀을 완료하지 못했어요</h2>
-            <p className="mt-1.5 text-xs leading-5 text-[#817C9E]">{incompleteMessage}</p>
+          <section className="rounded-[22px] border border-[var(--battle-border-strong)] bg-[var(--battle-surface-soft)] px-5 py-5 shadow-[var(--battle-soft-shadow)]">
+            <h2 className="text-base font-bold text-[var(--battle-text)]">배틀을 완료하지 못했어요</h2>
+            <p className="mt-1.5 text-xs leading-5 text-[var(--battle-muted)]">{incompleteMessage}</p>
           </section>
         )}
 
         {mine && completed && (
-          <section className="flex items-center gap-4 rounded-[22px] border border-[#5B2E91] bg-[#140C2A] px-5 py-5 shadow-[0_14px_38px_rgba(124,58,237,0.16)]">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[#32166B] text-2xl font-black text-[#C084FC] shadow-[inset_0_0_0_1px_rgba(192,132,252,0.12)]" style={MONO}>
+          <section className="flex items-center gap-4 rounded-[22px] border border-[var(--battle-accent-border)] bg-[var(--battle-accent-surface)] px-5 py-5 shadow-[var(--battle-accent-shadow)]">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--battle-accent-box)] text-2xl font-black text-[var(--cosmos-accent-text)] shadow-[inset_0_0_0_1px_rgba(124,58,237,0.12)]" style={MONO}>
               {mine.my_rank == null ? "✓" : `#${mine.my_rank}`}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-base font-bold text-[#F4F1FF]">{mine.my_rank == null ? "배틀 완료" : `${mine.my_rank}위 달성!`}</p>
-              <p className="mt-1 text-[11px] text-[#817C9E]">{user?.name || "사용자"} · {mine.all_correct ? "전체 정답" : "오답 포함"}</p>
-              {mine.elapsed_seconds != null && <p className="mt-1 text-xs font-bold text-[#C084FC]" style={MONO}>기록 {formatElapsed(mine.elapsed_seconds)}</p>}
+              <p className="truncate text-base font-bold text-[var(--battle-text)]">{mine.my_rank == null ? "배틀 완료" : `${mine.my_rank}위 달성!`}</p>
+              <p className="mt-1 text-[11px] text-[var(--battle-muted)]">{user?.name || "사용자"} · {mine.all_correct ? "전체 정답" : "오답 포함"}</p>
+              {mine.elapsed_seconds != null && <p className="mt-1 text-xs font-bold text-[var(--cosmos-accent-text)]" style={MONO}>기록 {formatElapsed(mine.elapsed_seconds)}</p>}
             </div>
           </section>
         )}
@@ -458,22 +458,22 @@ function BattleResult({ result }) {
         <ResultRankings rankings={rankings} currentUserId={user?.id} />
 
         {answers.length > 0 && (
-          <section className="rounded-[22px] border border-[#24213F] bg-[#0B0B1D] p-4 shadow-[0_16px_44px_rgba(0,0,0,0.22)]">
+          <section className="rounded-[22px] border border-[var(--battle-border)] bg-[var(--battle-surface)] p-4 shadow-[var(--battle-card-shadow)]">
             <div className="mb-4 flex items-center gap-2 px-1">
               <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.75)]" />
-              <h3 className="text-sm font-bold text-[#F4F1FF]">내 답안 확인</h3>
+              <h3 className="text-sm font-bold text-[var(--battle-text)]">내 답안 확인</h3>
             </div>
             <div className="space-y-3">
               {answers.map((answer) => (
-                <div key={answer.battle_case_id} className={`rounded-2xl border bg-[#070711] p-4 ${answer.is_correct ? "border-[#21483D]" : "border-[#54263A]"}`}>
+                <div key={answer.battle_case_id} className={`rounded-2xl border bg-[var(--battle-answer-bg)] p-4 ${answer.is_correct ? "border-[var(--battle-correct-border)]" : "border-[var(--battle-wrong-border)]"}`}>
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-[10px] font-semibold tracking-wider text-[#716C91]" style={MONO}>CASE {answer.display_order}</span>
-                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${answer.is_correct ? "bg-[#0E2E27] text-[#45D6A5]" : "bg-[#351522] text-[#FB7185]"}`}>{answer.is_correct ? "✓ 정답" : "× 오답"}</span>
+                    <span className="text-[10px] font-semibold tracking-wider text-[var(--battle-muted)]" style={MONO}>CASE {answer.display_order}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${answer.is_correct ? "bg-[var(--battle-correct-bg)] text-[var(--battle-correct-text)]" : "bg-[var(--battle-wrong-bg)] text-[var(--battle-wrong-text)]"}`}>{answer.is_correct ? "✓ 정답" : "× 오답"}</span>
                   </div>
                   <div className="grid grid-cols-[46px_minmax(0,1fr)] gap-x-3 gap-y-2 text-[11px] leading-5">
-                    <span className="text-[#575272]">입력</span><pre className="min-w-0 whitespace-pre-wrap break-words text-[#A9A3C4]" style={MONO}>{answer.input}</pre>
-                    <span className="text-[#575272]">정답</span><pre className="min-w-0 whitespace-pre-wrap break-words font-semibold text-[#C9B7F6]" style={MONO}>{answer.expected_output}</pre>
-                    <span className="text-[#575272]">내 답</span><pre className={`min-w-0 whitespace-pre-wrap break-words font-bold ${answer.is_correct ? "text-[#45D6A5]" : "text-[#FB7185]"}`} style={MONO}>{answer.submitted_output || "-"}</pre>
+                    <span className="text-[var(--battle-subtle)]">입력</span><pre className="min-w-0 whitespace-pre-wrap break-words text-[var(--battle-text-secondary)]" style={MONO}>{answer.input}</pre>
+                    <span className="text-[var(--battle-subtle)]">정답</span><pre className="min-w-0 whitespace-pre-wrap break-words font-semibold text-[var(--battle-answer-text)]" style={MONO}>{answer.expected_output}</pre>
+                    <span className="text-[var(--battle-subtle)]">내 답</span><pre className={`min-w-0 whitespace-pre-wrap break-words font-bold ${answer.is_correct ? "text-[var(--battle-correct-text)]" : "text-[var(--battle-wrong-text)]"}`} style={MONO}>{answer.submitted_output || "-"}</pre>
                   </div>
                 </div>
               ))}
@@ -481,7 +481,7 @@ function BattleResult({ result }) {
           </section>
         )}
 
-        <p className="py-6 text-center text-[11px] text-[#575272]">내일 또 다른 문제가 기다리고 있어요</p>
+        <p className="py-6 text-center text-[11px] text-[var(--battle-subtle)]">내일 또 다른 문제가 기다리고 있어요</p>
       </div>
     </div>
   );
@@ -507,13 +507,6 @@ export default function BattlePage() {
     submit,
     updateAnswer,
   } = useDailyBattlePage();
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const resultVisible = phase === "result";
-    root.classList.toggle("battle-result-active", resultVisible);
-    return () => root.classList.remove("battle-result-active");
-  }, [phase]);
 
   let content;
   if (phase === "loading") {
