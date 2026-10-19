@@ -20,7 +20,7 @@ function getSubmissionDeadline(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T14:00:00+09:00`);
+  return new Date(`${year}-${month}-${date}T14:30:00+09:00`);
 }
 
 function getRemainingSeconds(deadline, clockOffset) {
@@ -73,7 +73,7 @@ function accessIssueForError(error) {
   if (error?.status === 403) {
     return {
       title: "배틀 참여 시간이 아닙니다",
-      description: "현재 테스트 배틀은 오후 1시 20분부터 2시까지 참여할 수 있어요.",
+      description: "현재 테스트 배틀은 오후 1시 20분부터 2시 30분까지 참여할 수 있어요.",
     };
   }
   if (error?.status === 404) {
@@ -167,7 +167,7 @@ export function useDailyBattlePage() {
       rememberBattle(id, participation.battleDate);
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
-        submissionDeadlineRef.current = new Date(`${participation.battleDate}T14:00:00+09:00`);
+        submissionDeadlineRef.current = new Date(`${participation.battleDate}T14:30:00+09:00`);
       }
       setRemainingSeconds(getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current));
       setAnswers(Object.fromEntries(participation.cases.map((item) => [item.displayOrder, ""])));
