@@ -10,9 +10,24 @@ import {
 const RESULT_POLL_MS = 1000;
 const MAX_RESULT_FAILURES = 3;
 const STORAGE_KEY = "cosmos:last-daily-battle";
+const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 // 첫 데일리 배틀 공개 시각. 이 시각 이후에는 평소의 서버 상태 흐름만 사용한다.
 const FIRST_BATTLE_OPENS_AT = new Date("2026-10-19T12:00:00+09:00");
 const joinRequests = new Map();
+
+function getSubmissionDeadline(serverTime) {
+  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
+  const year = koreanTime.getUTCFullYear();
+  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
+  return new Date(`${year}-${month}-${date}T12:10:00+09:00`);
+}
+
+function getRemainingSeconds(deadline, clockOffset) {
+  if (!(deadline instanceof Date) || Number.isNaN(deadline.getTime())) return 0;
+  const serverNow = Date.now() + clockOffset;
+  return Math.max(0, Math.ceil((deadline.getTime() - serverNow) / 1000));
+}
 
 function joinOnce(battleId) {
   if (!joinRequests.has(battleId)) {
@@ -98,6 +113,7 @@ export function useDailyBattlePage() {
   const pollFailuresRef = useRef(0);
   const mountedRef = useRef(true);
   const clockOffsetRef = useRef(0);
+  const submissionDeadlineRef = useRef(null);
 
   const stopPolling = useCallback(() => {
     clearTimeout(pollTimerRef.current);
@@ -142,7 +158,10 @@ export function useDailyBattlePage() {
       if (!mountedRef.current) return;
       rememberBattle(id, participation.battleDate);
       setBattle(participation);
-      setRemainingSeconds(participation.remainingSeconds);
+      if (!submissionDeadlineRef.current && participation.battleDate) {
+        submissionDeadlineRef.current = new Date(`${participation.battleDate}T12:10:00+09:00`);
+      }
+      setRemainingSeconds(getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current));
       setAnswers(Object.fromEntries(participation.cases.map((item) => [item.displayOrder, ""])));
 
       if (participation.participationStatus === "IN_PROGRESS") {
@@ -196,6 +215,7 @@ export function useDailyBattlePage() {
       }
 
       if (nextAlarm.status === "OPEN" && nextAlarm.battleId) {
+        submissionDeadlineRef.current = getSubmissionDeadline(nextAlarm.serverTime);
         await enterBattle(nextAlarm.battleId);
         return;
       }
@@ -244,15 +264,22 @@ export function useDailyBattlePage() {
 
   useEffect(() => {
     if (phase !== "in-progress") return undefined;
-    if (remainingSeconds <= 0) {
-      setPhase("time-over");
-      if (battleId) pollResult(battleId, "time-over");
-      return undefined;
-    }
+    let deadlineHandled = false;
 
-    const timer = setTimeout(() => setRemainingSeconds((seconds) => Math.max(0, seconds - 1)), 1000);
-    return () => clearTimeout(timer);
-  }, [battleId, phase, pollResult, remainingSeconds]);
+    const updateTimer = () => {
+      const seconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
+      setRemainingSeconds(seconds);
+      if (seconds === 0 && !deadlineHandled) {
+        deadlineHandled = true;
+        setPhase("time-over");
+        if (battleId) pollResult(battleId, "time-over");
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [battleId, phase, pollResult]);
 
   useEffect(() => {
     if ((phase !== "waiting" && phase !== "launch-waiting") || !alarm?.opensAt) return undefined;

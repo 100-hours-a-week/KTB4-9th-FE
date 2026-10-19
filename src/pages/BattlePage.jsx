@@ -147,7 +147,7 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
   };
 
   return (
-    <div className="relative z-10 min-h-full overflow-y-auto pb-6">
+    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
       <PageHeader
         eyebrow="Daily Battle"
         title="오늘의 배틀"
@@ -158,8 +158,8 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
       <div className="px-5 pb-6">
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 px-4 py-3">
           <div>
-            <p className="text-[9px] tracking-widest text-[#8B7FC4]" style={MONO}>TIME LEFT</p>
-            <p className="mt-0.5 text-[11px] text-[#6B6890]">마감 이후에는 제출할 수 없어요</p>
+            <p className="text-[9px] tracking-widest text-[#8B7FC4]" style={MONO}>SUBMISSION TIME LEFT</p>
+            <p className="mt-0.5 text-[11px] text-[#6B6890]">12:09:59 제출 마감</p>
           </div>
           <p className={`text-2xl font-bold tracking-wider ${remainingSeconds <= 60 ? "text-[#F87171]" : "text-[#C084FC]"}`} style={MONO}>
             {formatBattleTime(remainingSeconds)}
@@ -284,6 +284,42 @@ function ResultRankings({ rankings }) {
   );
 }
 
+function EmptyBattleResult({ result }) {
+  const navigate = useNavigate();
+
+  return (
+    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
+      <PageHeader eyebrow="오늘의 배틀 종료" title={result?.title ?? "오늘의 데일리 배틀"} subtitle={result?.battle_date} action={<UserMenu />} />
+      <div className="px-5 pt-5">
+        <section className="rounded-[24px] border border-[#2A2845] bg-[#0D0D1F] px-6 py-9 text-center shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[22px] border border-[#2A2845] bg-[#121126]">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <rect x="6" y="23" width="7" height="9" rx="2" fill="#6B6890" />
+              <rect x="16.5" y="15" width="7" height="17" rx="2" fill="#7C3AED" />
+              <rect x="27" y="19" width="7" height="13" rx="2" fill="#A855F7" />
+              <path d="M5 34h30" stroke="#C084FC" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <p className="mt-6 text-[10px] font-semibold tracking-[0.25em] text-[#8B7FC4]" style={MONO}>NO PARTICIPANTS</p>
+          <h2 className="mt-2 text-xl font-bold text-[#E2E0F0]">이번 배틀에는 참여자가 없어요</h2>
+          <p className="mt-3 text-sm leading-6 text-[#8B87AA]">오늘의 TOP 5는 비어 있습니다.<br />내일 낮 12시에 첫 번째 기록을 남겨보세요!</p>
+          <div className="mx-auto mt-6 flex max-w-[250px] items-center justify-center gap-2 rounded-xl border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-4 py-3">
+            <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+            <span className="text-xs font-semibold text-[#C084FC]">매일 12:00 데일리 배틀</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="mt-6 rounded-xl bg-gradient-to-r from-[#7C3AED] to-[#A855F7] px-6 py-3 text-xs font-bold text-white shadow-[0_10px_24px_rgba(124,58,237,0.2)] active:scale-[0.98]"
+          >
+            홈으로 돌아가기
+          </button>
+        </section>
+      </div>
+    </div>
+  );
+}
+
 function BattleResult({ result }) {
   const { user } = useAuth();
   const mine = result?.my_result;
@@ -293,8 +329,12 @@ function BattleResult({ result }) {
   const rankings = result?.top5_rankings ?? [];
   const answers = mine?.answers ?? [];
 
+  if (!mine && rankings.length === 0) {
+    return <EmptyBattleResult result={result} />;
+  }
+
   return (
-    <div className="relative z-10 min-h-full overflow-y-auto pb-6">
+    <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
       <PageHeader eyebrow="오늘의 배틀 종료" title={result?.title ?? "오늘의 데일리 배틀"} subtitle={result?.battle_date} action={<UserMenu />} />
       <div className="space-y-4 px-5 pb-6">
         {!mine && (
