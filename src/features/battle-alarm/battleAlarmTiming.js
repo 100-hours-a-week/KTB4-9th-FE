@@ -78,7 +78,7 @@ export function msUntilNextCheckStart(nowMs, random = Math.random()) {
   return startKstMs - kstMs + random * POLL_JITTER_MAX_MS;
 }
 
-// 지금(서버 시각 기준)이 배너를 보여줘도 되는 테스트 시간대인지 확인한다.
+// 지금(서버 시각 기준)이 배너를 보여줘도 되는 배틀 시간대(12:45~13:05)인지 확인한다.
 export function isNearOpenWindow(serverNowMs) {
   const minutes = kstMinuteOfDay(serverNowMs);
   return minutes >= BANNER_START_MINUTE && minutes <= BANNER_END_MINUTE;
