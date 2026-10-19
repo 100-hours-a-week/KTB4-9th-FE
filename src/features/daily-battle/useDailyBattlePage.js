@@ -21,6 +21,14 @@ function getBattleOpenTime(serverTime) {
   return new Date(`${year}-${month}-${date}T12:50:00+09:00`);
 }
 
+function getBattleCountdownStartTime(serverTime) {
+  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
+  const year = koreanTime.getUTCFullYear();
+  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
+  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
+  return new Date(`${year}-${month}-${date}T12:30:00+09:00`);
+}
+
 function getSubmissionDeadline(serverTime) {
   const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
   const year = koreanTime.getUTCFullYear();
@@ -230,26 +238,31 @@ export function useDailyBattlePage() {
       clockOffsetRef.current = current.serverTime.getTime() - Date.now();
 
       const opensAt = getBattleOpenTime(current.serverTime);
+      const countdownStartsAt = getBattleCountdownStartTime(current.serverTime);
       const submissionDeadline = getSubmissionDeadline(current.serverTime);
       const resultAvailableAt = getResultAvailableAt(current.serverTime);
       const serverNow = current.serverTime.getTime();
 
       submissionDeadlineRef.current = submissionDeadline;
       resultAvailableAtRef.current = resultAvailableAt;
-      setNextOpenAt(opensAt);
-
-      // 오늘 배틀이 열리기 전에는 가장 최근에 공개된 배틀 결과를 유지한다.
+      // 12:30부터는 이전 결과 대신 오늘 배틀 시작 카운트다운을 보여준다.
       if (serverNow < opensAt.getTime()) {
         const secondsUntilOpen = Math.max(0, Math.ceil((opensAt.getTime() - serverNow) / 1000));
         setUntilOpenSeconds(secondsUntilOpen);
 
-        if (current.latestResultBattleId) {
+        if (serverNow >= countdownStartsAt.getTime()) {
+          setNextOpenAt(opensAt);
+          setViewingPreviousResult(false);
+          setPhase("waiting");
+        } else if (current.latestResultBattleId) {
+          setNextOpenAt(countdownStartsAt);
           setViewingPreviousResult(true);
           setBattleId(current.latestResultBattleId);
           resultAvailableAtRef.current = new Date(0);
           setPhase("result-loading");
           pollResult(current.latestResultBattleId);
         } else {
+          setNextOpenAt(opensAt);
           setViewingPreviousResult(false);
           setPhase("waiting");
         }
@@ -281,7 +294,7 @@ export function useDailyBattlePage() {
 
       // 13:00 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
       const resultBattleId = current.currentBattleId ?? current.latestResultBattleId;
-      setNextOpenAt(new Date(opensAt.getTime() + DAY_MS));
+      setNextOpenAt(new Date(countdownStartsAt.getTime() + DAY_MS));
       setViewingPreviousResult(true);
       if (resultBattleId) {
         setBattleId(resultBattleId);
