@@ -650,7 +650,7 @@ export default function BattlePage() {
   } else if (phase === "loading") {
     content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
   } else if (phase === "waiting") {
-    content = <CenterState title="오늘의 배틀을 기다리는 중" description={"오늘 낮 12시 50분에 모든 사용자가\n같은 세 문제로 경쟁합니다."} time={untilOpenSeconds} />;
+    content = <CenterState title="잠시 후 오늘의 배틀이 시작됩니다" description={"잠시 후 12시 50분에 모든 사용자가\n같은 세 문제로 경쟁합니다. TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
     content = <CenterState title="배틀 문제를 준비하고 있어요" description="잠시 후 다시 확인해 주세요." action={<ErrorButton onClick={load} />} />;
   } else if (phase === "closed") {
