@@ -481,7 +481,9 @@ function SolvePage() {
     const storedProblem = getCurrentProblem();
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
   });
-  const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId);
+  // 지금 풀고 있는 문제가 아니면 열 수 없음 (주소창에 다른 문제 id를 입력해 들어오는 것을 막음)
+  const [accessDenied] = useState(() => !!problemId && String(getCurrentProblem()?.id) !== String(problemId));
+  const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId && !accessDenied);
   const [initialResult] = useState(() => loadApproachResult(problemId ?? problem?.id));
   const [selectedCat, setSelectedCat] = useState(initialResult?.selectedCategory ?? null);
   const categoryKnown = initialResult?.categoryKnown ?? !!problem?.categoryKnown;
@@ -539,8 +541,8 @@ function SolvePage() {
     dragging.current = false;
   }, []);
   useEffect(() => {
-    // 1. 실제 문제 API 모드가 아니거나 문제 id가 없으면 하지 않음
-    if (!USE_REAL_PROBLEM || !problemId) return undefined;
+    // 1. 실제 문제 API 모드가 아니거나 문제 id가 없거나 열 수 없는 문제면 하지 않음
+    if (!USE_REAL_PROBLEM || !problemId || accessDenied) return undefined;
 
     let cancelled = false;
     getProblem(problemId)
@@ -551,7 +553,9 @@ function SolvePage() {
           ? {
               ...prev,
               ...loadedProblem,
-              categoryKnown: prev.categoryKnown ?? loadedProblem.categoryKnown,
+              category: loadedProblem.category ?? prev.category,
+              categoryKnown: !!(loadedProblem.category ?? prev.category)
+                && (prev.categoryKnown ?? loadedProblem.categoryKnown),
             }
           : loadedProblem);
         // 3. 이전에 제출한 접근 방식이 있으면 제출 직후와 같은 결과 화면으로 엶
@@ -598,7 +602,16 @@ function SolvePage() {
     return () => {
       cancelled = true;
     };
-  }, [problemId, initialResult?.answerRevealed]);
+  }, [problemId, accessDenied, initialResult?.answerRevealed]);
+  if (accessDenied) {
+    return <div className="h-full flex flex-col items-center justify-center gap-4 bg-[#05050F] px-6 text-center">
+        <p className="text-sm text-rose-400">접근할 수 없는 문제입니다.</p>
+        <p className="text-xs text-[#6B6890]">문제 생성이나 내 문제에서 문제를 열어 주세요.</p>
+        <button onClick={() => navigate("/")} className="rounded-xl bg-[#7C3AED] px-5 py-3 text-sm font-semibold text-white">
+          홈으로
+        </button>
+      </div>;
+  }
   if (problemLoading) {
     return <div className="h-full flex items-center justify-center bg-[#05050F] text-sm text-[#6B6890]">
         문제를 불러오고 있어요...
@@ -783,7 +796,7 @@ function SolvePage() {
               {p.category}
             </span>}
         </div>
-        <BookmarkButton key={p.id} problem={p} />
+        <BookmarkButton key={p.id} problem={p} categoryKnown={categoryKnown} />
       </div>
 
       {

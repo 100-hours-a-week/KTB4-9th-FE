@@ -22,7 +22,6 @@ export function normalizeParticipation(payload) {
     title: data.title ?? data.tilte ?? "오늘의 데일리 배틀",
     content: data.content ?? "",
     participationStatus: data.participationStatus ?? data.participation_status ?? "IN_PROGRESS",
-    remainingSeconds: Math.max(0, Number(data.remainingSecond ?? data.remaining_second ?? 0)),
     cases: (data.cases ?? []).map(normalizeCase).sort((a, b) => a.displayOrder - b.displayOrder),
   };
 }

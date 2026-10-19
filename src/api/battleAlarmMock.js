@@ -1,6 +1,6 @@
-// 개발 서버에서만 쓰는 가짜 배틀 알림 서버. 12시가 아니어도 모달 흐름을 볼 수 있다.
-// 주소 뒤에 아래 값을 붙여서 켠다. 예) /solve?alarmMock=11:59:50&alarmMockWindow=40
-//   alarmMock=11:59:50          가짜 서버 시각의 시작 (한국 시각, 이 시각부터 실제 시간만큼 흐른다)
+// 개발 서버에서만 쓰는 가짜 배틀 알림 서버. 운영 시간이 아니어도 모달 흐름을 볼 수 있다.
+// 주소 뒤에 아래 값을 붙여서 켠다. 예) /solve?alarmMock=12:49:50&alarmMockWindow=40
+//   alarmMock=12:49:50          가짜 서버 시각의 시작 (한국 시각, 이 시각부터 실제 시간만큼 흐른다)
 //   alarmMockWindow=600         배틀이 열려 있는 시간(초). 짧게 주면 마감도 금방 볼 수 있다 (기본 600)
 //   alarmMockReadyAfter=0       열린 뒤 배틀이 준비되기까지 걸리는 시간(초). never면 계속 준비 안 됨 (기본 0)
 //   alarmMockParticipated=1     이미 참여한 사용자로 응답
@@ -24,12 +24,12 @@ function toKstIso(ms) {
 function getState(params) {
   if (state) return state;
 
-  const [hour, minute = 0, second = 0] = (params.get("alarmMock") || "11:59:50").split(":").map(Number);
+  const [hour, minute = 0, second = 0] = (params.get("alarmMock") || "12:49:50").split(":").map(Number);
   const kstNow = new Date(Date.now() + KST_OFFSET_MS);
   const year = kstNow.getUTCFullYear();
   const month = kstNow.getUTCMonth();
   const day = kstNow.getUTCDate();
-  const openMs = Date.UTC(year, month, day, 12 - 9, 0, 0);
+  const openMs = Date.UTC(year, month, day, 12 - 9, 50, 0);
   const readyAfter = params.get("alarmMockReadyAfter");
 
   state = {
@@ -62,12 +62,13 @@ export async function mockStatusPayload(params) {
   else if (nowMs - mock.openMs < mock.readyAfterMs) status = "NO_BATTLE";
 
   const open = status === "OPEN";
+  const resultAvailable = status === "CLOSED";
   return {
     message: "battle_alarm_status_retrieval_success",
     data: {
       status,
       server_time: toKstIso(nowMs),
-      battle_id: open ? 1 : null,
+      battle_id: open || resultAvailable ? 1 : null,
       participated: open && mock.participated,
       dismissed: open && mock.dismissed,
       opens_at: toKstIso(mock.openMs),

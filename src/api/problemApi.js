@@ -70,7 +70,7 @@ function normalizeProblem(raw) {
       explanation: example.explanation ?? example.description ?? null,
     })),
     constraints: Array.isArray(raw.constraints) ? raw.constraints : [],
-    categoryKnown: true,
+    categoryKnown: !!raw.category,
     usedHintStage: raw.usedHintStage ?? raw.used_hint_stage ?? 0,
     saved: raw.saved === true,
     // 내가 이전에 제출한 접근 방식과 코드 (없으면 null)

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import UserMenu from "../components/common/UserMenu.jsx";
-import ProfileAvatar from "../components/common/ProfileAvatar.jsx";
-import { useAuth } from "../features/auth/authContext.js";
+import PageHeader from "../components/common/PageHeader.jsx";
 import DeleteSavedProblemModal from "../components/saved/DeleteSavedProblemModal.jsx";
 import SavedProblemCard from "../components/saved/SavedProblemCard.jsx";
 import { fetchSavedProblems, setProblemSaved } from "../api/savedProblemApi.js";
+import { USE_REAL_PROBLEM, getApiErrorMessage, getProblem } from "../api/problemApi.js";
+import { setCurrentProblem } from "../store.js";
 
 // 한 페이지에 보여줄 저장 문제 수
 const PAGE_SIZE = 5;
@@ -22,7 +23,6 @@ const LEVEL_COLORS = {
 
 export default function MyPage() {
   const navigate = useNavigate();
-  const { user = {} } = useAuth();
   const [filter, setFilter] = useState("전체");
   const [saved, setSaved] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -33,6 +33,9 @@ export default function MyPage() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState(false);
+  // 다시 풀기 상태: 문제를 여는 중 여부, 실패 메시지
+  const [retaking, setRetaking] = useState(false);
+  const [retakeError, setRetakeError] = useState("");
 
   // 1. 저장한 문제 목록을 불러옴 (처음 열 때와 "다시 시도"에서 사용)
   function loadSaved() {
@@ -67,6 +70,24 @@ export default function MyPage() {
     setExpandedId(null);
   }
 
+  async function handleRetake(item) {
+    if (retaking) return;
+    setRetaking(true);
+    setRetakeError("");
+    try {
+      // 1. 문제 상세를 불러와 지금 풀 문제로 저장 (풀이 화면은 지금 풀 문제만 열 수 있음)
+      const problem = USE_REAL_PROBLEM ? await getProblem(item.id) : item;
+      setCurrentProblem(problem);
+      // 2. 풀이 화면으로 이동
+      navigate(`/problems/${item.id}`);
+    } catch (error) {
+      // 3. 실패하면 목록에 안내를 보여줌
+      setRetakeError(getApiErrorMessage(error));
+    } finally {
+      setRetaking(false);
+    }
+  }
+
   function closeDeleteModal() {
     setDeleteTarget(null);
     setDeleteError(false);
@@ -91,28 +112,10 @@ export default function MyPage() {
   }
 
   return (
-    <div className="h-full overflow-y-auto bg-[#05050F] px-5 pb-8">
-      <header className="flex items-center gap-4 pb-7 pt-8">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[#7C3AED]/70 bg-[#24103F] text-xl font-bold text-[#C084FC]">
-          <ProfileAvatar
-            src={user.profileImageUrl}
-            name={user.name}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-lg font-semibold text-[#E2E0F0]">
-            {user.name || "사용자"}
-          </p>
-          <p className="mt-1 truncate text-sm text-[#77739A]">
-            {user.email || "로그인 계정"}
-          </p>
-        </div>
-        <UserMenu />
-      </header>
+    <div className="h-full overflow-y-auto bg-[#05050F] pb-8">
+      <PageHeader eyebrow="My Problems" title="내 문제" subtitle="저장한 문제를 모아보고 다시 풀어보세요" action={<UserMenu menuIcon />} />
 
-      <main className="space-y-5">
+      <main className="space-y-5 px-5">
         <section className="grid grid-cols-3 gap-2.5">
           {["전체", ...LEVELS].map((level) => (
             <div key={level} className="flex min-h-[86px] flex-col items-center justify-center rounded-2xl border border-[#252342] bg-[#0D0D1F]">
@@ -130,13 +133,13 @@ export default function MyPage() {
           ))}
         </section>
 
-        <section className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <section className="grid grid-cols-6 gap-2">
           {["전체", ...LEVELS].map((level) => (
             <button
               key={level}
               type="button"
               onClick={() => handleFilter(level)}
-              className={`shrink-0 rounded-full border px-4 py-2 text-xs font-medium transition-colors ${
+              className={`rounded-full border py-2 text-xs font-medium transition-colors ${
                 filter === level
                   ? "border-[#7C3AED] bg-[#351060] text-[#D8B4FE]"
                   : "border-[#252342] bg-[#0D0D1F] text-[#77739A]"
@@ -146,6 +149,8 @@ export default function MyPage() {
             </button>
           ))}
         </section>
+
+        {retakeError && <p className="text-center text-sm text-rose-400" role="alert">{retakeError}</p>}
 
         <section>
           {loading ? (
@@ -194,7 +199,7 @@ export default function MyPage() {
                     item={item}
                     expanded={expandedId === item.id}
                     onToggle={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                    onRetake={() => navigate(`/problems/${item.id}`)}
+                    onRetake={() => handleRetake(item)}
                     onDelete={() => setDeleteTarget(item)}
                   />
                 ))}

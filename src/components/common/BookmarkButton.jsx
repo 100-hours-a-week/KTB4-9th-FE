@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { readSavedFlag, setProblemSaved } from "../../api/savedProblemApi.js";
 
-export default function BookmarkButton({ problem }) {
+export default function BookmarkButton({ problem, categoryKnown = false }) {
   const [saved, setSaved] = useState(() => readSavedFlag(problem.id, problem.saved));
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState("");
@@ -28,8 +28,8 @@ export default function BookmarkButton({ problem }) {
     setSaved(next);
 
     try {
-      // 3. 서버에 저장 또는 해제를 요청
-      await setProblemSaved(problem, next);
+      // 3. 서버에 저장 또는 해제를 요청 (저장할 때는 카테고리를 알고 있었는지도 함께 보냄)
+      await setProblemSaved(problem, next, categoryKnown);
       showToast(next ? "저장했어요" : "저장을 해제했어요");
     } catch {
       // 4. 실패하면 아이콘을 원래대로 되돌림
@@ -54,7 +54,7 @@ export default function BookmarkButton({ problem }) {
         </svg>
       </button>
       {toast && (
-        <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg bg-[#1E1D35] px-3 py-1.5 text-xs text-[#E2E0F0] z-10">
+        <div className="absolute right-0 top-full mt-1 whitespace-nowrap rounded-lg border border-[var(--cosmos-border)] bg-[var(--cosmos-popover)] px-3 py-1.5 text-xs text-[var(--cosmos-text-primary)] z-10">
           {toast}
         </div>
       )}
