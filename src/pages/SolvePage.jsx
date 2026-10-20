@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useBlocker, useLocation, useNavigate, useParams } from "react-router";
 import {
   getApiErrorMessage,
+  getCategoryAnswer,
   getHintByStage,
   getProblem,
   submitApproach,
@@ -21,6 +22,7 @@ import { ProblemConditions } from "../components/ProblemSpecifications.jsx";
 import { APPROACH_KEYWORDS } from "../constants/approachKeywords.js";
 import {
   createMockApproachEvaluation,
+  mergeCategoryAnswer,
   normalizeApproachEvaluation,
 } from "../features/approach/approachEvaluation.js";
 import {
@@ -563,7 +565,12 @@ function SolvePage() {
           const mine = loadedProblem.myApproach;
           setApproach(mine.naturalSolution);
           setSelectedCat(mine.selectedCategory);
-          setEvaluation(normalizeApproachEvaluation(mine, { ...loadedProblem, categoryKnown: false }));
+          const loadedEvaluation = normalizeApproachEvaluation(mine, { ...loadedProblem, categoryKnown: false });
+          // 이미 정답을 확인했는데 서버가 아직 공개하지 않는 상태면, 저장해 둔 정답을 그대로 씀
+          const savedEvaluation = initialResult?.answerRevealed ? initialResult.evaluation : null;
+          setEvaluation(!loadedEvaluation.correctCategory && savedEvaluation?.correctCategory
+            ? { ...loadedEvaluation, correctCategory: savedEvaluation.correctCategory, categoryReason: savedEvaluation.categoryReason ?? null }
+            : loadedEvaluation);
           setAnswerRevealed(initialResult?.answerRevealed ?? false);
           setSubmitStage("done");
         }
@@ -602,7 +609,7 @@ function SolvePage() {
     return () => {
       cancelled = true;
     };
-  }, [problemId, accessDenied, initialResult?.answerRevealed]);
+  }, [problemId, accessDenied, initialResult?.answerRevealed, initialResult?.evaluation]);
   if (accessDenied) {
     return <div className="h-full flex flex-col items-center justify-center gap-4 bg-[#05050F] px-6 text-center">
         <p className="text-sm text-rose-400">접근할 수 없는 문제입니다.</p>
@@ -893,9 +900,21 @@ function SolvePage() {
                 categoryKnown={categoryKnown}
                 selectedCategory={selectedCat}
                 answerRevealed={answerRevealed}
-                onRevealAnswer={() => {
+                onRevealAnswer={async () => {
+                  // 1. 실제 API 모드면 서버에서 정답 카테고리와 선정 배경을 받아옴 (실패하면 잠금을 유지)
+                  let nextEvaluation = evaluation;
+                  if (USE_REAL_APPROACH) {
+                    try {
+                      nextEvaluation = mergeCategoryAnswer(evaluation, await getCategoryAnswer(p.id));
+                    } catch (error) {
+                      setApiError(getApiErrorMessage(error));
+                      return;
+                    }
+                  }
+                  // 2. 화면과 로컬 저장소에 반영
+                  setEvaluation(nextEvaluation);
                   setAnswerRevealed(true);
-                  markApproachAnswerRevealed(p.id);
+                  markApproachAnswerRevealed(p.id, undefined, nextEvaluation);
                 }}
                 showCode={showCode}
                 onWriteCode={() => setShowCode((value) => !value)}

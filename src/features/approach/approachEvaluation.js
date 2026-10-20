@@ -89,3 +89,12 @@ export function createMockApproachEvaluation(problem, selectedCategory, approach
       : "문제의 입력과 목표를 다시 살펴보고 사용할 자료 구조와 처리 순서를 적어 보세요.",
   };
 }
+
+// 정답 조회 API 결과를 평가 결과에 합침
+export function mergeCategoryAnswer(evaluation, answer) {
+  return {
+    ...evaluation,
+    correctCategory: CATEGORY_FROM_API[answer.correctCategory] ?? answer.correctCategory,
+    categoryReason: answer.categorySelectReason ?? null,
+  };
+}

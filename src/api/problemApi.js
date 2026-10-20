@@ -137,6 +137,13 @@ export async function submitApproach(
   return payload.data
 }
 
+// 제출한 적 있는 문제의 정답 카테고리와 선정 배경을 가져옴
+export async function getCategoryAnswer(problemId) {
+  const payload = await request(`/problems/${problemId}/solution-submissions/category-answer`)
+
+  return payload.data
+}
+
 export async function submitCode(problemId, { language, sourceCode }, requestId) {
   const payload = await request(`/problems/${problemId}/code-submissions`, {
     method: 'POST',

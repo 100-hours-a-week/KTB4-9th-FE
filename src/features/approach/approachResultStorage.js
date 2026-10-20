@@ -38,9 +38,9 @@ export function saveApproachResult(problemId, result, storage = globalThis.local
   }
 }
 
-export function markApproachAnswerRevealed(problemId, storage = globalThis.localStorage) {
+export function markApproachAnswerRevealed(problemId, storage = globalThis.localStorage, evaluation = null) {
   const saved = loadApproachResult(problemId, storage);
   if (saved) {
-    saveApproachResult(problemId, { ...saved, answerRevealed: true }, storage);
+    saveApproachResult(problemId, { ...saved, evaluation: evaluation ?? saved.evaluation, answerRevealed: true }, storage);
   }
 }
