@@ -8,6 +8,7 @@ import MyPage from "./pages/MyPage.jsx";
 import ProblemGenerationPage from "./pages/ProblemGenerationPage.jsx";
 import RankingPage from "./pages/RankingPage.jsx";
 import SolvePage from "./pages/SolvePage.jsx";
+import SolveRoute from "./pages/SolveRoute.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -24,7 +25,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "/problems/:problemId",
-        Component: SolvePage,
+        Component: SolveRoute,
       },
       {
         path: "/",

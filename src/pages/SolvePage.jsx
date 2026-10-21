@@ -13,6 +13,7 @@ import {
   USE_REAL_HINT,
   USE_REAL_PROBLEM
 } from "../api/problemApi.js";
+import { getDailyProblems } from "../api/dailyProblemApi.js";
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
@@ -34,7 +35,9 @@ import {
   saveApproachResult,
 } from "../features/approach/approachResultStorage.js";
 import { markDailyProblemSolved } from "../features/home/dailyProgress.js";
+import { announceEvaluationSubmitted } from "../features/notification/notificationPolling.js";
 import {
+  CATEGORY_FROM_API,
   DIFFICULTY_BADGE_CLASSES,
   PROBLEM_CATEGORIES,
 } from "../constants/problemOptions.js";
@@ -478,9 +481,16 @@ function getAnswer(category, lang) {
 `;
 }
 const INITIAL_LANG = "Python";
-// 임시: 평가 결과를 알림으로 알려주기 전까지, 풀이 화면에서 주기적으로 평가 상태를 조회함
-const EVALUATION_POLL_INTERVAL_MS = 2000;
-const EVALUATION_POLL_TIMEOUT_MS = 3 * 60 * 1000;
+// 결과 화면에 정답으로 나온 오늘의 문제를 홈 진행도에 기록 (평가가 끝난 순간이 아니라 결과를 열어 볼 때 기록함)
+async function recordDailyProgress(evaluation, problemId) {
+  if (evaluation.status !== "completed" || !evaluation.categoryCorrect || evaluation.approachScore < 85) return;
+  try {
+    const { problems } = await getDailyProblems();
+    if (problems.some((daily) => String(daily.id) === String(problemId))) markDailyProblemSolved(problemId);
+  } catch {
+    // 오늘의 문제 목록을 못 가져와도 결과 화면은 그대로 보여줌
+  }
+}
 function SolvePage() {
   const navigate = useNavigate();
   const { problemId } = useParams();
@@ -489,8 +499,11 @@ function SolvePage() {
     const storedProblem = getCurrentProblem();
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
   });
-  // 지금 풀고 있는 문제가 아니면 열 수 없음 (주소창에 다른 문제 id를 입력해 들어오는 것을 막음)
-  const [accessDenied] = useState(() => !!problemId && String(getCurrentProblem()?.id) !== String(problemId));
+  // 알림에서 평가 결과를 보러 들어온 경우, 알림이 알려 준 평가 작업 id (아니면 null)
+  const notifiedTaskId = location.state?.evaluationTaskId ?? null;
+  // 지금 풀고 있는 문제가 아니면 열 수 없음 (주소창에 다른 문제 id를 입력해 들어오는 것을 막음, 알림에서 들어온 경우는 허용)
+  const [accessDenied] = useState(() => !!problemId && !location.state?.fromNotification
+    && String(getCurrentProblem()?.id) !== String(problemId));
   const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId && !accessDenied);
   const [initialResult] = useState(() => loadApproachResult(problemId ?? problem?.id));
   const [selectedCat, setSelectedCat] = useState(initialResult?.selectedCategory ?? null);
@@ -512,10 +525,6 @@ function SolvePage() {
   const [hintLoading, setHintLoading] = useState(false);
   const resultRef = useRef(null);
   const approachInputRef = useRef(null);
-  // 진행 중인 평가 작업의 id (있고 평가가 pending이면 상태를 주기적으로 조회)
-  const [evaluationTaskId, setEvaluationTaskId] = useState(null);
-  // 폴링이 항상 최신 화면 값으로 결과를 반영하도록 매 렌더링마다 최신 함수를 담아 둠
-  const finalizeEvaluationRef = useRef(null);
   // 문제 생성으로 들어왔고 아직 풀이를 제출하지 않았을 때만 이탈을 막음
   const shouldConfirmLeave = !!location.state?.generated && submitStage === "idle";
   // 1. 화면 안 이동(뒤로가기, 홈 이동 등)은 다른 경로로 갈 때 막고 모달을 띄움
@@ -552,67 +561,6 @@ function SolvePage() {
   const onDragEnd = useCallback(() => {
     dragging.current = false;
   }, []);
-  // 평가가 끝났을 때 결과를 저장하고 화면을 정리 (오늘의 문제를 맞혔으면 홈 진행도에도 반영)
-  useEffect(() => {
-    finalizeEvaluationRef.current = (finalEvaluation) => {
-      setAnswerRevealed(false);
-      saveApproachResult(problem.id, {
-        selectedCategory: categoryKnown ? problem.category : selectedCat,
-        categoryKnown,
-        approach,
-        evaluation: finalEvaluation,
-        answerRevealed: false,
-      });
-      if (
-        problem.isDailyProblem &&
-        finalEvaluation.status === "completed" &&
-        finalEvaluation.categoryCorrect &&
-        finalEvaluation.approachScore >= 85
-      ) {
-        markDailyProblemSolved(problem.id);
-      }
-      setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    };
-  });
-  // 평가가 진행 중이면 2초마다 평가 상태를 조회 (끝나면 결과를 반영하고 멈춤)
-  useEffect(() => {
-    if (!USE_REAL_APPROACH || !evaluationTaskId || evaluation?.status !== "pending") return undefined;
-    if (evaluation.taskStatus === "STALLED") return undefined;
-
-    let cancelled = false;
-    const startedAt = Date.now();
-    const timer = setInterval(async () => {
-      // 1. 너무 오래 걸리면 조회를 멈춤 (이 문제를 다시 열면 진행 중인 평가를 이어서 확인함)
-      if (Date.now() - startedAt > EVALUATION_POLL_TIMEOUT_MS) {
-        clearInterval(timer);
-        setEvaluation((prev) => ({ ...prev, taskStatus: "STALLED" }));
-        return;
-      }
-      try {
-        const task = await getEvaluation(evaluationTaskId);
-        if (cancelled) return;
-        // 2. 더 최근 작업이 생겼으면 그 작업을 따라감
-        if (task.isLatest === false && task.latestEvaluation) {
-          setEvaluationTaskId(task.latestEvaluation.evaluationTaskId);
-          return;
-        }
-        // 3. 진행 중이면 상태만 갱신하고, 끝났으면 결과를 반영하고 조회를 멈춤
-        const next = normalizeEvaluationTask(task, problem);
-        setEvaluation(next);
-        if (next.status !== "pending") {
-          clearInterval(timer);
-          finalizeEvaluationRef.current(next);
-        }
-      } catch {
-        // 일시적인 오류는 다음 주기에 다시 조회함
-      }
-    }, EVALUATION_POLL_INTERVAL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [evaluationTaskId, evaluation?.status, evaluation?.taskStatus, problem]);
   useEffect(() => {
     // 1. 실제 문제 API 모드가 아니거나 문제 id가 없거나 열 수 없는 문제면 하지 않음
     if (!USE_REAL_PROBLEM || !problemId || accessDenied) return undefined;
@@ -644,19 +592,37 @@ function SolvePage() {
             : loadedEvaluation);
           setAnswerRevealed(initialResult?.answerRevealed ?? false);
           setSubmitStage("done");
+          recordDailyProgress(loadedEvaluation, loadedProblem.id);
         }
-        // 3-1. 진행 중인 평가가 있으면 그 평가를 이어서 보여주고 상태 조회를 다시 시작 (이전 결과보다 우선)
+        // 3-1. 진행 중인 평가가 있으면 평가 중 카드로 보여줌 (결과는 알림으로 받음, 이전 결과보다 우선)
         if (loadedProblem.activeEvaluation) {
           const active = loadedProblem.activeEvaluation;
           setApproach(active.naturalSolution);
           setSelectedCat(active.selectedCategory);
-          setEvaluationTaskId(active.evaluationTaskId);
           setEvaluation({
             status: "pending",
             taskStatus: active.status,
             usage: toUsage(loadedProblem.myApproach?.submissionUsage),
           });
           setSubmitStage("done");
+        }
+        // 3-2. 알림에서 들어왔으면 그 평가 작업의 결과를 한 번 조회해 보여줌 (더 최근 제출이 있으면 최근 결과를 그대로 둠)
+        if (USE_REAL_APPROACH && notifiedTaskId) {
+          try {
+            const task = await getEvaluation(notifiedTaskId);
+            if (!cancelled && task.isLatest !== false) {
+              setApproach(task.naturalSolution ?? "");
+              // 평가 작업 조회는 카테고리를 서버 값(ARRAY)으로 주므로, 화면의 카테고리 버튼 이름(Array)으로 바꿔서 선택함
+              setSelectedCat(CATEGORY_FROM_API[task.selectedCategory] ?? task.selectedCategory);
+              const opened = normalizeEvaluationTask(task, { ...loadedProblem, categoryKnown: false });
+              setEvaluation(opened);
+              setAnswerRevealed(false);
+              setSubmitStage("done");
+              recordDailyProgress(opened, loadedProblem.id);
+            }
+          } catch {
+            // 조회에 실패하면 문제 화면만 보여줌
+          }
         }
         // 4. 이전에 제출한 코드가 있으면 에디터, 코드 제출 횟수, 마지막 채점 요약을 채움
         if (loadedProblem.myCode) {
@@ -693,7 +659,7 @@ function SolvePage() {
     return () => {
       cancelled = true;
     };
-  }, [problemId, accessDenied, initialResult?.answerRevealed, initialResult?.evaluation]);
+  }, [problemId, accessDenied, notifiedTaskId, initialResult?.answerRevealed, initialResult?.evaluation]);
   if (accessDenied) {
     return <div className="h-full flex flex-col items-center justify-center gap-4 bg-[#05050F] px-6 text-center">
         <p className="text-sm text-rose-400">접근할 수 없는 문제입니다.</p>
@@ -743,13 +709,14 @@ function SolvePage() {
         await new Promise((r) => setTimeout(r, 1400));
         nextEvaluation = createMockApproachEvaluation(p, selectedCat, approach, keywords);
       } else {
-        const submission = await submitApproach(p.id, {
+        await submitApproach(p.id, {
           selectedCategory: categoryKnown ? p.category : selectedCat,
           approach
         }, crypto.randomUUID());
-        // 202: 접수만 된 상태이므로 작업 id를 저장하고 평가 중으로 표시함 (결과는 상태를 조회해서 받음)
-        setEvaluationTaskId(submission.evaluationTaskId);
-        nextEvaluation = normalizeEvaluationTask(submission, p);
+        // 202: 접수만 된 상태. 결과는 알림으로 받으므로 홈으로 보내고 알림 확인을 빠르게 시작시킴
+        announceEvaluationSubmitted();
+        navigate("/");
+        return;
       }
       setEvaluation(nextEvaluation);
       setAnswerRevealed(false);
@@ -774,11 +741,10 @@ function SolvePage() {
       setSubmitStage("done");
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch (error) {
-      // 이미 평가가 진행 중이면 에러로 보여주지 않고 그 평가를 이어서 지켜봄
-      if (error.code === "solution_evaluation_already_in_progress" && error.data?.evaluationTaskId) {
-        setEvaluationTaskId(error.data.evaluationTaskId);
-        setEvaluation({ status: "pending", taskStatus: error.data.status, usage: null });
-        setSubmitStage("done");
+      // 이미 평가가 진행 중이면 에러로 보여주지 않고, 결과는 알림으로 받으므로 홈으로 보냄
+      if (error.code === "solution_evaluation_already_in_progress") {
+        announceEvaluationSubmitted();
+        navigate("/");
         return;
       }
       setApiError(getApiErrorMessage(error));

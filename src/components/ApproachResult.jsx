@@ -18,7 +18,6 @@ const PENDING_MESSAGES = {
   PENDING: "평가 대기 중이에요. 곧 시작해요.",
   PROCESSING: "AI가 풀이를 평가하고 있어요. 보통 몇 초 걸려요.",
   RETRY_WAIT: "평가를 다시 시도하고 있어요. 잠시만 기다려 주세요.",
-  STALLED: "평가가 오래 걸리고 있어요. 잠시 후 이 문제를 다시 열어 확인해 주세요.",
 };
 
 function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem, retryDisabled = false, retryText = null }) {
@@ -79,7 +78,7 @@ export default function ApproachResult({
           <p className="mt-1 text-xs text-[#6B6890]">
             {PENDING_MESSAGES[evaluation.taskStatus] ?? PENDING_MESSAGES.PENDING}
           </p>
-          <p className="mt-2 text-[11px] text-[#6B6890]">제출 횟수는 평가가 완료되면 반영돼요.</p>
+          <p className="mt-2 text-[11px] text-[#6B6890]">평가가 끝나면 알림으로 알려드려요. 제출 횟수는 그때 반영돼요.</p>
         </div>
         <ResultActions
           showCode={showCode}
