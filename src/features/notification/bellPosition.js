@@ -8,8 +8,8 @@ const PANEL_GAP = 10;
 const PANEL_SIDE_MARGIN = 12;
 const TOAST_MAX_WIDTH = 340;
 const TOAST_SIDE_MARGIN = 16;
-// 토스트를 움직일 수 있는 영역의 아래 끝에서 띄우는 높이 (기본 위치의 종이 가려지지 않게 종 높이만큼 더 띄움)
-const TOAST_LIFT = BELL_SIZE + 24;
+// 토스트를 움직일 수 있는 영역의 아래 끝에서 띄우는 높이 (하단 내비게이션 윗면에서 12px 위)
+const TOAST_LIFT = 4;
 const HINT_GAP = 12;
 // 말풍선이 종 위에 들어갈 수 있는지 볼 때 필요한 높이
 const HINT_ROOM = 50;
@@ -59,7 +59,7 @@ export function panelPlacement({ bell, frame, area, viewportHeight }) {
     : { left, width, bottom: viewportHeight - bell.y + PANEL_GAP };
 }
 
-// 제출 안내 토스트의 위치와 최대 폭. 앱 화면 가운데, 하단 내비게이션 위(기본 위치의 종보다 위)에 놓는다.
+// 제출 안내 토스트의 위치와 최대 폭. 앱 화면 가운데, 하단 내비게이션 바로 위에 놓는다.
 export function toastPlacement({ frame, area, viewportHeight }) {
   return {
     left: (frame.left + frame.right) / 2,
