@@ -14,6 +14,50 @@ import {
 const FONT = { fontFamily: "'Outfit', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
+const TOP_FIVE_PREVIEW_RESULT = {
+  title: "폭죽 미리보기 배틀",
+  battle_date: "2026-10-21",
+  my_result: {
+    participation_status: "GRADING_COMPLETED",
+    my_rank: 3,
+    all_correct: true,
+    elapsed_seconds: 42,
+    answers: [
+      {
+        battle_case_id: "preview-1",
+        display_order: 1,
+        input: "5\n10 20 30 40 50",
+        expected_output: "120",
+        submitted_output: "120",
+        is_correct: true,
+      },
+      {
+        battle_case_id: "preview-2",
+        display_order: 2,
+        input: "4\n5 12 3 8",
+        expected_output: "25",
+        submitted_output: "25",
+        is_correct: true,
+      },
+      {
+        battle_case_id: "preview-3",
+        display_order: 3,
+        input: "6\n100 1 50 25 75 10",
+        expected_output: "225",
+        submitted_output: "225",
+        is_correct: true,
+      },
+    ],
+  },
+  top5_rankings: [
+    { rank: 1, user_id: "preview-1", name: "코스모", profile_image_url: null, elapsed_seconds: 28 },
+    { rank: 2, user_id: "preview-2", name: "은하", profile_image_url: null, elapsed_seconds: 35 },
+    { rank: 3, user_id: "preview-3", name: "미리보기 사용자", profile_image_url: null, elapsed_seconds: 42 },
+    { rank: 4, user_id: "preview-4", name: "오로라", profile_image_url: null, elapsed_seconds: 51 },
+    { rank: 5, user_id: "preview-5", name: "혜성", profile_image_url: null, elapsed_seconds: 65 },
+  ],
+};
+
 function BattleBackdrop() {
   return (
     <div
@@ -664,7 +708,7 @@ function BattleResult({ result }) {
   );
 }
 
-export default function BattlePage() {
+function LiveBattlePage() {
   const {
     accessIssue,
     answers,
@@ -714,6 +758,24 @@ export default function BattlePage() {
       <span className="sr-only" aria-live="polite">{phase}</span>
     </div>
   );
+}
+
+export default function BattlePage() {
+  const previewHosts = new Set(["localhost", "127.0.0.1", "dev.cosmoscode.site"]);
+  const showTopFivePreview = typeof window !== "undefined"
+    && previewHosts.has(window.location.hostname)
+    && new URLSearchParams(window.location.search).get("preview") === "top5";
+
+  if (showTopFivePreview) {
+    return (
+      <div className="relative h-full overflow-hidden bg-[#05050F]">
+        <BattleBackdrop />
+        <BattleResult result={TOP_FIVE_PREVIEW_RESULT} />
+      </div>
+    );
+  }
+
+  return <LiveBattlePage />;
 }
 
 export function InvalidBattleRoutePage() {
