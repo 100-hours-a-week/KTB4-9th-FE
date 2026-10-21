@@ -134,6 +134,10 @@ body {
   border-radius: 2px;
 }
 
+:root[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: #CBC3DC;
+}
+
 textarea:focus, input:focus, button:focus {
   outline: none;
 }
@@ -197,6 +201,7 @@ button:disabled { cursor: default; }
 }
 
 :root[data-theme='light'] .theme-retry-button:disabled {
+  background-color: #E4DEF1 !important;
   color: var(--cosmos-text-muted) !important;
 }
 
@@ -358,8 +363,73 @@ button:disabled { cursor: default; }
   }
 }
 
+.battle-ranked-card {
+  animation: battle-ranked-card-glow 1.05s ease-out 3 both;
+}
+
+.battle-celebration-particle {
+  --battle-confetti-x: 0px;
+  --battle-confetti-y: 0px;
+  --battle-confetti-rotate: 180deg;
+  --battle-confetti-color: #A855F7;
+  --battle-confetti-delay: 0ms;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 13px;
+  border-radius: 2px;
+  background: var(--battle-confetti-color);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--battle-confetti-color) 70%, transparent);
+  opacity: 0;
+  animation: battle-confetti-burst 1.05s cubic-bezier(0.18, 0.72, 0.25, 1) var(--battle-confetti-delay) 3 both;
+}
+
+.battle-celebration-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+}
+
+@keyframes battle-ranked-card-glow {
+  0% {
+    box-shadow: 0 0 0 rgba(168, 85, 247, 0), var(--battle-accent-shadow);
+  }
+  35% {
+    box-shadow: 0 0 36px rgba(168, 85, 247, 0.42), var(--battle-accent-shadow);
+  }
+  100% {
+    box-shadow: var(--battle-accent-shadow);
+  }
+}
+
+@keyframes battle-confetti-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
+  }
+  14% {
+    opacity: 1;
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+      calc(-50% + var(--battle-confetti-x)),
+      calc(-50% + var(--battle-confetti-y))
+    ) scale(1) rotate(var(--battle-confetti-rotate));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .battle-skeleton::after {
+    animation: none;
+  }
+
+  .battle-ranked-card,
+  .battle-celebration-particle {
     animation: none;
   }
 }
@@ -373,4 +443,95 @@ button:disabled { cursor: default; }
 
 .katex {
   font-size: 1.1em !important;
+}
+
+/* 평가 알림 종·목록·안내의 색. 다크가 기본이고 라이트 모드에서 아래 값이 바뀐다. */
+:root {
+  --cosmos-bell-border: #4C3A9A;
+  --cosmos-bell-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --cosmos-notice-bg: #2A1B5C;
+  --cosmos-notice-border: #7C3AED;
+  --cosmos-notice-text: #E2E0F0;
+  --cosmos-notice-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --cosmos-panel-border: #3B2F7A;
+  --cosmos-panel-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --cosmos-unread-bg: #1A1838;
+  --cosmos-read-text: #8A86A8;
+}
+
+:root[data-theme='light'] {
+  --cosmos-bell-border: #6D28D9;
+  --cosmos-bell-shadow: 0 4px 14px rgba(76, 29, 149, 0.28);
+  --cosmos-notice-bg: #F0E8FD;
+  --cosmos-notice-border: #A78BFA;
+  --cosmos-notice-text: #2E1065;
+  --cosmos-notice-shadow: 0 8px 24px rgba(76, 29, 149, 0.18);
+  --cosmos-panel-border: #CBC3DC;
+  --cosmos-panel-shadow: 0 12px 32px rgba(54, 34, 82, 0.2);
+  --cosmos-unread-bg: #F3EDFD;
+  --cosmos-read-text: #70677F;
+}
+
+.cosmos-bell {
+  border: 1px solid var(--cosmos-bell-border);
+  background: #7C3AED;
+  color: #FFFFFF;
+  box-shadow: var(--cosmos-bell-shadow);
+}
+
+.cosmos-bell-badge {
+  border: 1.5px solid var(--cosmos-background);
+  background: #E24B4A;
+  color: #FFFFFF;
+}
+
+/* 말풍선과 제출 안내 토스트 */
+.cosmos-notice {
+  border: 1px solid var(--cosmos-notice-border);
+  background: var(--cosmos-notice-bg);
+  color: var(--cosmos-notice-text);
+  box-shadow: var(--cosmos-notice-shadow);
+}
+
+/* 말풍선 꼬리: 말풍선과 같은 색, 테두리는 두 변만 인라인으로 지정 */
+.cosmos-notice-tail {
+  border-style: solid;
+  border-color: var(--cosmos-notice-border);
+  background: var(--cosmos-notice-bg);
+}
+
+.cosmos-panel {
+  border: 1px solid var(--cosmos-panel-border);
+  background: var(--cosmos-popover);
+  color: var(--cosmos-text-primary);
+  box-shadow: var(--cosmos-panel-shadow);
+}
+
+.cosmos-panel-item.is-unread {
+  background: var(--cosmos-unread-bg);
+}
+
+.cosmos-panel-item.is-read {
+  color: var(--cosmos-read-text);
+}
+
+/* 새 알림이 오면 종이 한 번 흔들린다 */
+@keyframes cosmos-bell-ring {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(14deg); }
+  40% { transform: rotate(-12deg); }
+  60% { transform: rotate(8deg); }
+  80% { transform: rotate(-6deg); }
+}
+
+.cosmos-bell-ring {
+  display: inline-flex;
+  transform-origin: top center;
+  animation: cosmos-bell-ring 0.7s ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cosmos-bell-ring {
+    animation: none;
+  }
 }

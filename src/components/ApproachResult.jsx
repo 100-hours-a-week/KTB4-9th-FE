@@ -13,13 +13,20 @@ function isLimitReached(usage) {
   return !!usage && usage.remainingCount <= 0;
 }
 
-function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem }) {
+// 평가 진행 단계별 안내 문구
+const PENDING_MESSAGES = {
+  PENDING: "평가 대기 중이에요. 곧 시작해요.",
+  PROCESSING: "AI가 풀이를 평가하고 있어요. 보통 몇 초 걸려요.",
+  RETRY_WAIT: "평가를 다시 시도하고 있어요. 잠시만 기다려 주세요.",
+};
+
+function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem, retryDisabled = false, retryText = null }) {
   const limitReached = isLimitReached(usage);
-  const retryLabel = !usage
+  const retryLabel = retryText ?? (!usage
     ? "다시 풀기"
     : limitReached
       ? `재제출불가(${usage.usedCount}/${usage.limit})`
-      : `재제출하기(${usage.usedCount}/${usage.limit})`;
+      : `재제출하기(${usage.usedCount}/${usage.limit})`);
 
   return (
     <>
@@ -35,7 +42,7 @@ function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem }) 
         <button
           type="button"
           onClick={onRetry}
-          disabled={limitReached}
+          disabled={limitReached || retryDisabled}
           className="theme-retry-button w-full rounded-2xl bg-[#7C3AED] py-4 text-sm font-bold text-white transition-all active:scale-95 disabled:bg-[#2A2845] disabled:text-[#6B6890] disabled:active:scale-100"
         >
           {retryLabel}
@@ -63,20 +70,45 @@ export default function ApproachResult({
   onRetry,
   onNewProblem,
 }) {
-  if (evaluation.status === "pending" || evaluation.status === "failed") {
+  if (evaluation.status === "pending") {
     return (
       <div className="flex flex-col gap-3 animate-fadeIn">
         <div className="rounded-2xl border border-[#2A2845] bg-[#0D0D1F] p-5">
-          <p className="text-sm font-semibold text-[#E2E0F0]">
-            {evaluation.status === "failed" ? "AI 평가를 완료하지 못했어요" : "제출 완료"}
-          </p>
+          <p className="text-sm font-semibold text-[#E2E0F0]">제출 완료</p>
           <p className="mt-1 text-xs text-[#6B6890]">
-            {evaluation.status === "failed"
-              ? "평가 결과를 표시할 수 없지만 코드 풀이를 계속할 수 있어요."
-              : "AI 평가가 진행 중이에요. 아직 점수와 피드백이 도착하지 않았어요."}
+            {PENDING_MESSAGES[evaluation.taskStatus] ?? PENDING_MESSAGES.PENDING}
+          </p>
+          <p className="mt-2 text-[11px] text-[#6B6890]">평가가 끝나면 알림으로 알려드려요. 제출 횟수는 그때 반영돼요.</p>
+        </div>
+        <ResultActions
+          showCode={showCode}
+          onWriteCode={onWriteCode}
+          usage={evaluation.usage}
+          retryDisabled
+          retryText={evaluation.usage ? null : "평가 중..."}
+          onRetry={onRetry}
+          onNewProblem={onNewProblem}
+        />
+      </div>
+    );
+  }
+
+  if (evaluation.status === "failed") {
+    return (
+      <div className="flex flex-col gap-3 animate-fadeIn">
+        <div className="rounded-2xl border border-[#2A2845] bg-[#0D0D1F] p-5">
+          <p className="text-sm font-semibold text-[#E2E0F0]">AI 평가를 완료하지 못했어요</p>
+          <p className="mt-1 text-xs text-[#6B6890]">
+            잠시 문제가 생겼어요. 다시 제출해 주세요. 제출 횟수는 차감되지 않았어요.
           </p>
         </div>
-        <ResultActions showCode={showCode} onWriteCode={onWriteCode} onRetry={onRetry} onNewProblem={onNewProblem} />
+        <ResultActions
+          showCode={showCode}
+          onWriteCode={onWriteCode}
+          retryText="다시 제출하기"
+          onRetry={onRetry}
+          onNewProblem={onNewProblem}
+        />
       </div>
     );
   }

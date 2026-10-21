@@ -14,6 +14,50 @@ import {
 const FONT = { fontFamily: "'Outfit', sans-serif" };
 const MONO = { fontFamily: "'JetBrains Mono', monospace" };
 
+const TOP_FIVE_PREVIEW_RESULT = {
+  title: "폭죽 미리보기 배틀",
+  battle_date: "2026-10-21",
+  my_result: {
+    participation_status: "GRADING_COMPLETED",
+    my_rank: 3,
+    all_correct: true,
+    elapsed_seconds: 42,
+    answers: [
+      {
+        battle_case_id: "preview-1",
+        display_order: 1,
+        input: "5\n10 20 30 40 50",
+        expected_output: "120",
+        submitted_output: "120",
+        is_correct: true,
+      },
+      {
+        battle_case_id: "preview-2",
+        display_order: 2,
+        input: "4\n5 12 3 8",
+        expected_output: "25",
+        submitted_output: "25",
+        is_correct: true,
+      },
+      {
+        battle_case_id: "preview-3",
+        display_order: 3,
+        input: "6\n100 1 50 25 75 10",
+        expected_output: "225",
+        submitted_output: "225",
+        is_correct: true,
+      },
+    ],
+  },
+  top5_rankings: [
+    { rank: 1, user_id: "preview-1", name: "코스모", profile_image_url: null, elapsed_seconds: 28 },
+    { rank: 2, user_id: "preview-2", name: "은하", profile_image_url: null, elapsed_seconds: 35 },
+    { rank: 3, user_id: "preview-3", name: "미리보기 사용자", profile_image_url: null, elapsed_seconds: 42 },
+    { rank: 4, user_id: "preview-4", name: "오로라", profile_image_url: null, elapsed_seconds: 51 },
+    { rank: 5, user_id: "preview-5", name: "혜성", profile_image_url: null, elapsed_seconds: 65 },
+  ],
+};
+
 function BattleBackdrop() {
   return (
     <div
@@ -453,6 +497,48 @@ function BattleResultSkeleton({ onRefresh }) {
   );
 }
 
+const CELEBRATION_PARTICLES = [
+  { origin: "18%", x: "-72px", y: "-48px", rotate: "-210deg", color: "#A855F7", delay: "0ms" },
+  { origin: "18%", x: "-42px", y: "-76px", rotate: "155deg", color: "#FBBF24", delay: "45ms" },
+  { origin: "18%", x: "18px", y: "-68px", rotate: "245deg", color: "#22D3EE", delay: "85ms" },
+  { origin: "18%", x: "54px", y: "-24px", rotate: "-170deg", color: "#C084FC", delay: "20ms" },
+  { origin: "18%", x: "38px", y: "54px", rotate: "220deg", color: "#34D399", delay: "70ms" },
+  { origin: "18%", x: "-52px", y: "58px", rotate: "-190deg", color: "#F472B6", delay: "35ms" },
+  { origin: "50%", x: "-76px", y: "-34px", rotate: "260deg", color: "#FBBF24", delay: "55ms" },
+  { origin: "50%", x: "-36px", y: "-72px", rotate: "-230deg", color: "#A855F7", delay: "10ms" },
+  { origin: "50%", x: "28px", y: "-74px", rotate: "185deg", color: "#22D3EE", delay: "75ms" },
+  { origin: "50%", x: "74px", y: "-22px", rotate: "-250deg", color: "#34D399", delay: "30ms" },
+  { origin: "50%", x: "48px", y: "58px", rotate: "205deg", color: "#F472B6", delay: "90ms" },
+  { origin: "50%", x: "-46px", y: "62px", rotate: "-195deg", color: "#FBBF24", delay: "45ms" },
+  { origin: "82%", x: "-56px", y: "-26px", rotate: "235deg", color: "#C084FC", delay: "25ms" },
+  { origin: "82%", x: "-24px", y: "-70px", rotate: "-215deg", color: "#22D3EE", delay: "80ms" },
+  { origin: "82%", x: "42px", y: "-74px", rotate: "195deg", color: "#F472B6", delay: "40ms" },
+  { origin: "82%", x: "72px", y: "-34px", rotate: "-245deg", color: "#FBBF24", delay: "95ms" },
+  { origin: "82%", x: "52px", y: "52px", rotate: "225deg", color: "#A855F7", delay: "15ms" },
+  { origin: "82%", x: "-36px", y: "60px", rotate: "-185deg", color: "#34D399", delay: "65ms" },
+];
+
+function RankCelebration() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-visible" aria-hidden="true">
+      {CELEBRATION_PARTICLES.map((particle, index) => (
+        <span
+          key={`${particle.x}-${particle.y}`}
+          className={`battle-celebration-particle ${index % 3 === 0 ? "battle-celebration-dot" : ""}`}
+          style={{
+            left: particle.origin,
+            "--battle-confetti-x": particle.x,
+            "--battle-confetti-y": particle.y,
+            "--battle-confetti-rotate": particle.rotate,
+            "--battle-confetti-color": particle.color,
+            "--battle-confetti-delay": particle.delay,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const INCOMPLETE_STATUS = {
   DROPPED_OUT: "중도 이탈한 배틀은 순위에 반영되지 않습니다.",
   TIME_OVER: "제출 시간이 초과되어 순위에 반영되지 않습니다.",
@@ -556,6 +642,8 @@ function BattleResult({ result }) {
   const incompleteMessage = INCOMPLETE_STATUS[status];
   const rankings = result?.top5_rankings ?? [];
   const answers = mine?.answers ?? [];
+  const myRank = Number(mine?.my_rank);
+  const rankedInTopFive = completed && Number.isFinite(myRank) && myRank >= 1 && myRank <= 5;
 
   if (!mine && rankings.length === 0) {
     return <EmptyBattleResult result={result} />;
@@ -580,11 +668,12 @@ function BattleResult({ result }) {
         )}
 
         {mine && completed && (
-          <section className="flex items-center gap-4 rounded-[22px] border border-[var(--battle-accent-border)] bg-[var(--battle-accent-surface)] px-5 py-5 shadow-[var(--battle-accent-shadow)]">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--battle-accent-box)] text-2xl font-black text-[var(--cosmos-accent-text)] shadow-[inset_0_0_0_1px_rgba(124,58,237,0.12)]" style={MONO}>
+          <section className={`relative isolate flex items-center gap-4 rounded-[22px] border border-[var(--battle-accent-border)] bg-[var(--battle-accent-surface)] px-5 py-5 shadow-[var(--battle-accent-shadow)] ${rankedInTopFive ? "battle-ranked-card" : ""}`}>
+            {rankedInTopFive && <RankCelebration />}
+            <div className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--battle-accent-box)] text-2xl font-black text-[var(--cosmos-accent-text)] shadow-[inset_0_0_0_1px_rgba(124,58,237,0.12)]" style={MONO}>
               {mine.my_rank == null ? "✓" : `#${mine.my_rank}`}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="relative z-10 min-w-0 flex-1">
               <p className="truncate text-base font-bold text-[var(--battle-text)]">{mine.my_rank == null ? "배틀 완료" : `${mine.my_rank}위 달성!`}</p>
               <p className="mt-1 text-[11px] text-[var(--battle-muted)]">{user?.name || "사용자"} · {mine.all_correct ? "전체 정답" : "오답 포함"}</p>
               {mine.elapsed_seconds != null && <p className="mt-1 text-xs font-bold text-[var(--cosmos-accent-text)]" style={MONO}>기록 {formatElapsed(mine.elapsed_seconds)}</p>}
@@ -624,7 +713,7 @@ function BattleResult({ result }) {
   );
 }
 
-export default function BattlePage() {
+function LiveBattlePage() {
   const {
     accessIssue,
     answers,
@@ -645,10 +734,8 @@ export default function BattlePage() {
   } = useDailyBattlePage();
 
   let content;
-  if (phase === "result-loading") {
-    content = <BattleResultSkeleton onRefresh={retryResult} />;
-  } else if (phase === "loading") {
-    content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
+  if (phase === "result-loading" || phase === "loading") {
+    content = <BattleResultSkeleton onRefresh={phase === "result-loading" ? retryResult : load} />;
   } else if (phase === "waiting") {
     content = <CenterState title="잠시 후 오늘의 배틀이 시작됩니다" description={"잠시 후 12시 50분에 모든 사용자가\n같은 세 문제로 경쟁합니다. TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
@@ -676,6 +763,24 @@ export default function BattlePage() {
       <span className="sr-only" aria-live="polite">{phase}</span>
     </div>
   );
+}
+
+export default function BattlePage() {
+  const previewHosts = new Set(["localhost", "127.0.0.1", "dev.cosmoscode.site"]);
+  const showTopFivePreview = typeof window !== "undefined"
+    && previewHosts.has(window.location.hostname)
+    && new URLSearchParams(window.location.search).get("preview") === "top5";
+
+  if (showTopFivePreview) {
+    return (
+      <div className="relative h-full overflow-hidden bg-[#05050F]">
+        <BattleBackdrop />
+        <BattleResult result={TOP_FIVE_PREVIEW_RESULT} />
+      </div>
+    );
+  }
+
+  return <LiveBattlePage />;
 }
 
 export function InvalidBattleRoutePage() {

@@ -19,6 +19,41 @@ const CATEGORY_REASONS = {
   Math: "수의 성질과 계산 규칙을 이용하는 문제입니다.",
 };
 
+const ACTIVE_TASK_STATUSES = ["PENDING", "PROCESSING", "RETRY_WAIT"];
+
+// 서버의 제출 사용 현황을 화면 형식으로 바꿈 (값이 올바르지 않으면 null)
+export function toUsage(rawUsage) {
+  return Number.isFinite(rawUsage?.limit) && Number.isFinite(rawUsage?.usedCount)
+    ? {
+        limit: rawUsage.limit,
+        usedCount: rawUsage.usedCount,
+        remainingCount: Number.isFinite(rawUsage.remainingCount)
+          ? rawUsage.remainingCount
+          : rawUsage.limit - rawUsage.usedCount,
+      }
+    : null;
+}
+
+// 평가가 아직 진행 중인 작업 상태인지 (대기, 처리 중, 재시도 대기)
+export function isActiveTaskStatus(status) {
+  return ACTIVE_TASK_STATUSES.includes(status);
+}
+
+// 평가 작업 조회·접수 응답을 화면 형식으로 바꿈 (진행 중이면 pending, 성공이면 기존 결과 형식)
+export function normalizeEvaluationTask(task, problem) {
+  if (isActiveTaskStatus(task?.status)) {
+    return { status: "pending", taskStatus: task.status, usage: toUsage(task.submissionUsage) };
+  }
+  if (task?.status === "FAILED") {
+    return { status: "failed" };
+  }
+  return normalizeApproachEvaluation({
+    evaluationStatus: "COMPLETED",
+    result: task?.result,
+    submissionUsage: task?.submissionUsage,
+  }, problem);
+}
+
 // 화면은 이 형식만 사용합니다. 백엔드 응답 필드가 확정되면 여기만 조정하면 됩니다.
 export function normalizeApproachEvaluation(submission, problem) {
   const result = submission?.result;
@@ -44,16 +79,7 @@ export function normalizeApproachEvaluation(submission, problem) {
 
   const rawCategory = result.correctCategory ?? problem.category;
 
-  const rawUsage = submission.submissionUsage;
-  const usage = Number.isFinite(rawUsage?.limit) && Number.isFinite(rawUsage?.usedCount)
-    ? {
-        limit: rawUsage.limit,
-        usedCount: rawUsage.usedCount,
-        remainingCount: Number.isFinite(rawUsage.remainingCount)
-          ? rawUsage.remainingCount
-          : rawUsage.limit - rawUsage.usedCount,
-      }
-    : null;
+  const usage = toUsage(submission.submissionUsage);
 
   return {
     status: "completed",
@@ -87,5 +113,14 @@ export function createMockApproachEvaluation(problem, selectedCategory, approach
     aiFeedback: matchedCount
       ? "맞게 짚은 핵심 요소를 바탕으로, 빠진 조건과 예외 상황도 다시 확인해 보세요."
       : "문제의 입력과 목표를 다시 살펴보고 사용할 자료 구조와 처리 순서를 적어 보세요.",
+  };
+}
+
+// 정답 조회 API 결과를 평가 결과에 합침
+export function mergeCategoryAnswer(evaluation, answer) {
+  return {
+    ...evaluation,
+    correctCategory: CATEGORY_FROM_API[answer.correctCategory] ?? answer.correctCategory,
+    categoryReason: answer.categorySelectReason ?? null,
   };
 }

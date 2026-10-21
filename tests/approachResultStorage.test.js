@@ -50,6 +50,30 @@ test("a new result for the same problem starts hidden again", () => {
   assert.equal(loadApproachResult(1, storage).approach, "재제출");
 });
 
+test("a pending evaluation is neither restored nor trusted from storage", () => {
+  const storage = createStorage();
+  saveApproachResult(1, {
+    selectedCategory: "Array",
+    approach: "평가 중인 풀이",
+    evaluation: { status: "pending", taskStatus: "PROCESSING" },
+    answerRevealed: false,
+  }, storage);
+
+  assert.equal(loadApproachResult(1, storage), null);
+});
+
+test("a failed evaluation is still restored", () => {
+  const storage = createStorage();
+  saveApproachResult(1, {
+    selectedCategory: "Array",
+    approach: "실패한 풀이",
+    evaluation: { status: "failed" },
+    answerRevealed: false,
+  }, storage);
+
+  assert.equal(loadApproachResult(1, storage).evaluation.status, "failed");
+});
+
 test("invalid stored data is ignored", () => {
   const storage = createStorage();
   storage.setItem("cosmos_approach_result_v1:1", "not JSON");

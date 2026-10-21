@@ -62,6 +62,8 @@ export default function BottomNavigation() {
   return (
     <nav
       aria-label="주요 메뉴"
+      data-bottom-nav
+
       className="relative z-[100] flex shrink-0 items-center justify-around border-t border-[#1E1D35] bg-[#08081A]/95 px-1 pt-2.5 backdrop-blur-md"
       style={{ paddingBottom: "calc(0.75rem + var(--sab))" }}
     >

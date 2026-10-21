@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useBlocker, useLocation, useNavigate, useParams } from "react-router";
 import {
   getApiErrorMessage,
+  getCategoryAnswer,
+  getEvaluation,
   getHintByStage,
   getProblem,
   submitApproach,
@@ -11,6 +13,7 @@ import {
   USE_REAL_HINT,
   USE_REAL_PROBLEM
 } from "../api/problemApi.js";
+import { getDailyProblems } from "../api/dailyProblemApi.js";
 import { getCurrentProblem } from "../store.js";
 import CodeEditor from "../components/CodeEditor.jsx";
 import ApproachResult from "../components/ApproachResult.jsx";
@@ -21,7 +24,10 @@ import { ProblemConditions } from "../components/ProblemSpecifications.jsx";
 import { APPROACH_KEYWORDS } from "../constants/approachKeywords.js";
 import {
   createMockApproachEvaluation,
+  mergeCategoryAnswer,
   normalizeApproachEvaluation,
+  normalizeEvaluationTask,
+  toUsage,
 } from "../features/approach/approachEvaluation.js";
 import {
   loadApproachResult,
@@ -29,7 +35,9 @@ import {
   saveApproachResult,
 } from "../features/approach/approachResultStorage.js";
 import { markDailyProblemSolved } from "../features/home/dailyProgress.js";
+import { announceEvaluationSubmitted } from "../features/notification/notificationPolling.js";
 import {
+  CATEGORY_FROM_API,
   DIFFICULTY_BADGE_CLASSES,
   PROBLEM_CATEGORIES,
 } from "../constants/problemOptions.js";
@@ -473,6 +481,16 @@ function getAnswer(category, lang) {
 `;
 }
 const INITIAL_LANG = "Python";
+// 결과 화면에 정답으로 나온 오늘의 문제를 홈 진행도에 기록 (평가가 끝난 순간이 아니라 결과를 열어 볼 때 기록함)
+async function recordDailyProgress(evaluation, problemId) {
+  if (evaluation.status !== "completed" || !evaluation.categoryCorrect || evaluation.approachScore < 85) return;
+  try {
+    const { problems } = await getDailyProblems();
+    if (problems.some((daily) => String(daily.id) === String(problemId))) markDailyProblemSolved(problemId);
+  } catch {
+    // 오늘의 문제 목록을 못 가져와도 결과 화면은 그대로 보여줌
+  }
+}
 function SolvePage() {
   const navigate = useNavigate();
   const { problemId } = useParams();
@@ -481,8 +499,11 @@ function SolvePage() {
     const storedProblem = getCurrentProblem();
     return !problemId || String(storedProblem?.id) === String(problemId) ? storedProblem : null;
   });
-  // 지금 풀고 있는 문제가 아니면 열 수 없음 (주소창에 다른 문제 id를 입력해 들어오는 것을 막음)
-  const [accessDenied] = useState(() => !!problemId && String(getCurrentProblem()?.id) !== String(problemId));
+  // 알림에서 평가 결과를 보러 들어온 경우, 알림이 알려 준 평가 작업 id (아니면 null)
+  const notifiedTaskId = location.state?.evaluationTaskId ?? null;
+  // 지금 풀고 있는 문제가 아니면 열 수 없음 (주소창에 다른 문제 id를 입력해 들어오는 것을 막음, 알림에서 들어온 경우는 허용)
+  const [accessDenied] = useState(() => !!problemId && !location.state?.fromNotification
+    && String(getCurrentProblem()?.id) !== String(problemId));
   const [problemLoading, setProblemLoading] = useState(!problem && USE_REAL_PROBLEM && !!problemId && !accessDenied);
   const [initialResult] = useState(() => loadApproachResult(problemId ?? problem?.id));
   const [selectedCat, setSelectedCat] = useState(initialResult?.selectedCategory ?? null);
@@ -563,9 +584,45 @@ function SolvePage() {
           const mine = loadedProblem.myApproach;
           setApproach(mine.naturalSolution);
           setSelectedCat(mine.selectedCategory);
-          setEvaluation(normalizeApproachEvaluation(mine, { ...loadedProblem, categoryKnown: false }));
+          const loadedEvaluation = normalizeApproachEvaluation(mine, { ...loadedProblem, categoryKnown: false });
+          // 이미 정답을 확인했는데 서버가 아직 공개하지 않는 상태면, 저장해 둔 정답을 그대로 씀
+          const savedEvaluation = initialResult?.answerRevealed ? initialResult.evaluation : null;
+          setEvaluation(!loadedEvaluation.correctCategory && savedEvaluation?.correctCategory
+            ? { ...loadedEvaluation, correctCategory: savedEvaluation.correctCategory, categoryReason: savedEvaluation.categoryReason ?? null }
+            : loadedEvaluation);
           setAnswerRevealed(initialResult?.answerRevealed ?? false);
           setSubmitStage("done");
+          recordDailyProgress(loadedEvaluation, loadedProblem.id);
+        }
+        // 3-1. 진행 중인 평가가 있으면 평가 중 카드로 보여줌 (결과는 알림으로 받음, 이전 결과보다 우선)
+        if (loadedProblem.activeEvaluation) {
+          const active = loadedProblem.activeEvaluation;
+          setApproach(active.naturalSolution);
+          setSelectedCat(active.selectedCategory);
+          setEvaluation({
+            status: "pending",
+            taskStatus: active.status,
+            usage: toUsage(loadedProblem.myApproach?.submissionUsage),
+          });
+          setSubmitStage("done");
+        }
+        // 3-2. 알림에서 들어왔으면 그 평가 작업의 결과를 한 번 조회해 보여줌 (더 최근 제출이 있으면 최근 결과를 그대로 둠)
+        if (USE_REAL_APPROACH && notifiedTaskId) {
+          try {
+            const task = await getEvaluation(notifiedTaskId);
+            if (!cancelled && task.isLatest !== false) {
+              setApproach(task.naturalSolution ?? "");
+              // 평가 작업 조회는 카테고리를 서버 값(ARRAY)으로 주므로, 화면의 카테고리 버튼 이름(Array)으로 바꿔서 선택함
+              setSelectedCat(CATEGORY_FROM_API[task.selectedCategory] ?? task.selectedCategory);
+              const opened = normalizeEvaluationTask(task, { ...loadedProblem, categoryKnown: false });
+              setEvaluation(opened);
+              setAnswerRevealed(false);
+              setSubmitStage("done");
+              recordDailyProgress(opened, loadedProblem.id);
+            }
+          } catch {
+            // 조회에 실패하면 문제 화면만 보여줌
+          }
         }
         // 4. 이전에 제출한 코드가 있으면 에디터, 코드 제출 횟수, 마지막 채점 요약을 채움
         if (loadedProblem.myCode) {
@@ -602,7 +659,7 @@ function SolvePage() {
     return () => {
       cancelled = true;
     };
-  }, [problemId, accessDenied, initialResult?.answerRevealed]);
+  }, [problemId, accessDenied, notifiedTaskId, initialResult?.answerRevealed, initialResult?.evaluation]);
   if (accessDenied) {
     return <div className="h-full flex flex-col items-center justify-center gap-4 bg-[#05050F] px-6 text-center">
         <p className="text-sm text-rose-400">접근할 수 없는 문제입니다.</p>
@@ -652,21 +709,27 @@ function SolvePage() {
         await new Promise((r) => setTimeout(r, 1400));
         nextEvaluation = createMockApproachEvaluation(p, selectedCat, approach, keywords);
       } else {
-        const submission = await submitApproach(p.id, {
+        await submitApproach(p.id, {
           selectedCategory: categoryKnown ? p.category : selectedCat,
           approach
         }, crypto.randomUUID());
-        nextEvaluation = normalizeApproachEvaluation(submission, p);
+        // 202: 접수만 된 상태. 결과는 알림으로 받으므로 홈으로 보내고 알림 확인을 빠르게 시작시킴
+        announceEvaluationSubmitted();
+        navigate("/");
+        return;
       }
       setEvaluation(nextEvaluation);
       setAnswerRevealed(false);
-      saveApproachResult(p.id, {
-        selectedCategory: categoryKnown ? p.category : selectedCat,
-        categoryKnown,
-        approach,
-        evaluation: nextEvaluation,
-        answerRevealed: false,
-      });
+      // 평가 중인 상태는 저장하지 않음 (서버의 진행 중인 평가로 다시 알아냄)
+      if (nextEvaluation.status !== "pending") {
+        saveApproachResult(p.id, {
+          selectedCategory: categoryKnown ? p.category : selectedCat,
+          categoryKnown,
+          approach,
+          evaluation: nextEvaluation,
+          answerRevealed: false,
+        });
+      }
       if (
         p.isDailyProblem &&
         nextEvaluation.status === "completed" &&
@@ -678,6 +741,12 @@ function SolvePage() {
       setSubmitStage("done");
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch (error) {
+      // 이미 평가가 진행 중이면 에러로 보여주지 않고, 결과는 알림으로 받으므로 홈으로 보냄
+      if (error.code === "solution_evaluation_already_in_progress") {
+        announceEvaluationSubmitted();
+        navigate("/");
+        return;
+      }
       setApiError(getApiErrorMessage(error));
       setSubmitStage("idle");
     }
@@ -893,9 +962,21 @@ function SolvePage() {
                 categoryKnown={categoryKnown}
                 selectedCategory={selectedCat}
                 answerRevealed={answerRevealed}
-                onRevealAnswer={() => {
+                onRevealAnswer={async () => {
+                  // 1. 실제 API 모드면 서버에서 정답 카테고리와 선정 배경을 받아옴 (실패하면 잠금을 유지)
+                  let nextEvaluation = evaluation;
+                  if (USE_REAL_APPROACH) {
+                    try {
+                      nextEvaluation = mergeCategoryAnswer(evaluation, await getCategoryAnswer(p.id));
+                    } catch (error) {
+                      setApiError(getApiErrorMessage(error));
+                      return;
+                    }
+                  }
+                  // 2. 화면과 로컬 저장소에 반영
+                  setEvaluation(nextEvaluation);
                   setAnswerRevealed(true);
-                  markApproachAnswerRevealed(p.id);
+                  markApproachAnswerRevealed(p.id, undefined, nextEvaluation);
                 }}
                 showCode={showCode}
                 onWriteCode={() => setShowCode((value) => !value)}

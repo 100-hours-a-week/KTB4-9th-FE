@@ -86,6 +86,13 @@ function normalizeProblem(raw) {
           language: LANGUAGE_FROM_API[raw.myCode.language] ?? raw.myCode.language,
         }
       : null,
+    // 지금 진행 중인 자연어 풀이 평가 작업 (없으면 null)
+    activeEvaluation: raw.activeEvaluation
+      ? {
+          ...raw.activeEvaluation,
+          selectedCategory: CATEGORY_FROM_API[raw.activeEvaluation.selectedCategory] ?? raw.activeEvaluation.selectedCategory,
+        }
+      : null,
   }
 }
 
@@ -120,6 +127,13 @@ export async function getProblem(problemId) {
   return normalizeProblem(payload.data.problem)
 }
 
+// 평가 작업의 진행 상태와 결과를 조회 (임시: 풀이 화면에서 주기적으로 조회해서 씀)
+export async function getEvaluation(evaluationTaskId) {
+  const payload = await request(`/solution-evaluations/${evaluationTaskId}`)
+
+  return payload.data
+}
+
 export async function submitApproach(
   problemId,
   { selectedCategory, approach },
@@ -133,6 +147,13 @@ export async function submitApproach(
       natural_solution: approach,
     }),
   })
+
+  return payload.data
+}
+
+// 제출한 적 있는 문제의 정답 카테고리와 선정 배경을 가져옴
+export async function getCategoryAnswer(problemId) {
+  const payload = await request(`/problems/${problemId}/solution-submissions/category-answer`)
 
   return payload.data
 }
@@ -202,6 +223,9 @@ export function getApiErrorMessage(error) {
     judge_server_unavailable: '채점 서버를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
     ai_server_unavailable: '채점 요청을 처리하지 못했습니다. 다시 시도해 주세요.',
     evaluation_timeout: '채점 시간이 초과되었습니다. 다시 시도해 주세요.',
+    solution_evaluation_already_in_progress: '이미 평가가 진행 중이에요. 잠시만 기다려 주세요.',
+    solution_evaluation_not_found: '평가 정보를 찾을 수 없어요.',
+    invalid_evaluation_task_id: '잘못된 평가 번호입니다.',
     access_token_expired: '로그인이 만료되었습니다.',
     access_token_missing: '로그인이 필요합니다.',
     access_token_invalid: '로그인 정보가 올바르지 않습니다.',
