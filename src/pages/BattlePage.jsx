@@ -498,20 +498,24 @@ function BattleResultSkeleton({ onRefresh }) {
 }
 
 const CELEBRATION_PARTICLES = [
-  { x: "-142px", y: "-74px", rotate: "-210deg", color: "#A855F7", delay: "0ms" },
-  { x: "-108px", y: "-108px", rotate: "155deg", color: "#FBBF24", delay: "45ms" },
-  { x: "-62px", y: "-122px", rotate: "245deg", color: "#22D3EE", delay: "90ms" },
-  { x: "-18px", y: "-132px", rotate: "-170deg", color: "#C084FC", delay: "20ms" },
-  { x: "35px", y: "-126px", rotate: "220deg", color: "#34D399", delay: "110ms" },
-  { x: "82px", y: "-108px", rotate: "-190deg", color: "#F472B6", delay: "65ms" },
-  { x: "128px", y: "-76px", rotate: "260deg", color: "#FBBF24", delay: "130ms" },
-  { x: "145px", y: "-25px", rotate: "-230deg", color: "#A855F7", delay: "35ms" },
-  { x: "132px", y: "42px", rotate: "185deg", color: "#22D3EE", delay: "95ms" },
-  { x: "92px", y: "78px", rotate: "-250deg", color: "#34D399", delay: "140ms" },
-  { x: "42px", y: "92px", rotate: "205deg", color: "#F472B6", delay: "55ms" },
-  { x: "-34px", y: "94px", rotate: "-195deg", color: "#FBBF24", delay: "125ms" },
-  { x: "-92px", y: "78px", rotate: "235deg", color: "#C084FC", delay: "75ms" },
-  { x: "-136px", y: "42px", rotate: "-215deg", color: "#22D3EE", delay: "150ms" },
+  { origin: "18%", x: "-72px", y: "-48px", rotate: "-210deg", color: "#A855F7", delay: "0ms" },
+  { origin: "18%", x: "-42px", y: "-76px", rotate: "155deg", color: "#FBBF24", delay: "45ms" },
+  { origin: "18%", x: "18px", y: "-68px", rotate: "245deg", color: "#22D3EE", delay: "85ms" },
+  { origin: "18%", x: "54px", y: "-24px", rotate: "-170deg", color: "#C084FC", delay: "20ms" },
+  { origin: "18%", x: "38px", y: "54px", rotate: "220deg", color: "#34D399", delay: "70ms" },
+  { origin: "18%", x: "-52px", y: "58px", rotate: "-190deg", color: "#F472B6", delay: "35ms" },
+  { origin: "50%", x: "-76px", y: "-34px", rotate: "260deg", color: "#FBBF24", delay: "55ms" },
+  { origin: "50%", x: "-36px", y: "-72px", rotate: "-230deg", color: "#A855F7", delay: "10ms" },
+  { origin: "50%", x: "28px", y: "-74px", rotate: "185deg", color: "#22D3EE", delay: "75ms" },
+  { origin: "50%", x: "74px", y: "-22px", rotate: "-250deg", color: "#34D399", delay: "30ms" },
+  { origin: "50%", x: "48px", y: "58px", rotate: "205deg", color: "#F472B6", delay: "90ms" },
+  { origin: "50%", x: "-46px", y: "62px", rotate: "-195deg", color: "#FBBF24", delay: "45ms" },
+  { origin: "82%", x: "-56px", y: "-26px", rotate: "235deg", color: "#C084FC", delay: "25ms" },
+  { origin: "82%", x: "-24px", y: "-70px", rotate: "-215deg", color: "#22D3EE", delay: "80ms" },
+  { origin: "82%", x: "42px", y: "-74px", rotate: "195deg", color: "#F472B6", delay: "40ms" },
+  { origin: "82%", x: "72px", y: "-34px", rotate: "-245deg", color: "#FBBF24", delay: "95ms" },
+  { origin: "82%", x: "52px", y: "52px", rotate: "225deg", color: "#A855F7", delay: "15ms" },
+  { origin: "82%", x: "-36px", y: "60px", rotate: "-185deg", color: "#34D399", delay: "65ms" },
 ];
 
 function RankCelebration() {
@@ -522,6 +526,7 @@ function RankCelebration() {
           key={`${particle.x}-${particle.y}`}
           className={`battle-celebration-particle ${index % 3 === 0 ? "battle-celebration-dot" : ""}`}
           style={{
+            left: particle.origin,
             "--battle-confetti-x": particle.x,
             "--battle-confetti-y": particle.y,
             "--battle-confetti-rotate": particle.rotate,

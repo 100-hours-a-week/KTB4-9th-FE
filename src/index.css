@@ -359,7 +359,7 @@ button:disabled { cursor: default; }
 }
 
 .battle-ranked-card {
-  animation: battle-ranked-card-glow 1.2s ease-out both;
+  animation: battle-ranked-card-glow 1.05s ease-out 3 both;
 }
 
 .battle-celebration-particle {
@@ -377,7 +377,7 @@ button:disabled { cursor: default; }
   background: var(--battle-confetti-color);
   box-shadow: 0 0 10px color-mix(in srgb, var(--battle-confetti-color) 70%, transparent);
   opacity: 0;
-  animation: battle-confetti-burst 1.45s cubic-bezier(0.18, 0.72, 0.25, 1) var(--battle-confetti-delay) both;
+  animation: battle-confetti-burst 1.05s cubic-bezier(0.18, 0.72, 0.25, 1) var(--battle-confetti-delay) 3 both;
 }
 
 .battle-celebration-dot {
