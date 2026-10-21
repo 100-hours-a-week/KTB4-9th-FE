@@ -453,6 +453,43 @@ function BattleResultSkeleton({ onRefresh }) {
   );
 }
 
+const CELEBRATION_PARTICLES = [
+  { x: "-142px", y: "-74px", rotate: "-210deg", color: "#A855F7", delay: "0ms" },
+  { x: "-108px", y: "-108px", rotate: "155deg", color: "#FBBF24", delay: "45ms" },
+  { x: "-62px", y: "-122px", rotate: "245deg", color: "#22D3EE", delay: "90ms" },
+  { x: "-18px", y: "-132px", rotate: "-170deg", color: "#C084FC", delay: "20ms" },
+  { x: "35px", y: "-126px", rotate: "220deg", color: "#34D399", delay: "110ms" },
+  { x: "82px", y: "-108px", rotate: "-190deg", color: "#F472B6", delay: "65ms" },
+  { x: "128px", y: "-76px", rotate: "260deg", color: "#FBBF24", delay: "130ms" },
+  { x: "145px", y: "-25px", rotate: "-230deg", color: "#A855F7", delay: "35ms" },
+  { x: "132px", y: "42px", rotate: "185deg", color: "#22D3EE", delay: "95ms" },
+  { x: "92px", y: "78px", rotate: "-250deg", color: "#34D399", delay: "140ms" },
+  { x: "42px", y: "92px", rotate: "205deg", color: "#F472B6", delay: "55ms" },
+  { x: "-34px", y: "94px", rotate: "-195deg", color: "#FBBF24", delay: "125ms" },
+  { x: "-92px", y: "78px", rotate: "235deg", color: "#C084FC", delay: "75ms" },
+  { x: "-136px", y: "42px", rotate: "-215deg", color: "#22D3EE", delay: "150ms" },
+];
+
+function RankCelebration() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-visible" aria-hidden="true">
+      {CELEBRATION_PARTICLES.map((particle, index) => (
+        <span
+          key={`${particle.x}-${particle.y}`}
+          className={`battle-celebration-particle ${index % 3 === 0 ? "battle-celebration-dot" : ""}`}
+          style={{
+            "--battle-confetti-x": particle.x,
+            "--battle-confetti-y": particle.y,
+            "--battle-confetti-rotate": particle.rotate,
+            "--battle-confetti-color": particle.color,
+            "--battle-confetti-delay": particle.delay,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 const INCOMPLETE_STATUS = {
   DROPPED_OUT: "중도 이탈한 배틀은 순위에 반영되지 않습니다.",
   TIME_OVER: "제출 시간이 초과되어 순위에 반영되지 않습니다.",
@@ -556,6 +593,8 @@ function BattleResult({ result }) {
   const incompleteMessage = INCOMPLETE_STATUS[status];
   const rankings = result?.top5_rankings ?? [];
   const answers = mine?.answers ?? [];
+  const myRank = Number(mine?.my_rank);
+  const rankedInTopFive = completed && Number.isFinite(myRank) && myRank >= 1 && myRank <= 5;
 
   if (!mine && rankings.length === 0) {
     return <EmptyBattleResult result={result} />;
@@ -580,11 +619,12 @@ function BattleResult({ result }) {
         )}
 
         {mine && completed && (
-          <section className="flex items-center gap-4 rounded-[22px] border border-[var(--battle-accent-border)] bg-[var(--battle-accent-surface)] px-5 py-5 shadow-[var(--battle-accent-shadow)]">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--battle-accent-box)] text-2xl font-black text-[var(--cosmos-accent-text)] shadow-[inset_0_0_0_1px_rgba(124,58,237,0.12)]" style={MONO}>
+          <section className={`relative isolate flex items-center gap-4 rounded-[22px] border border-[var(--battle-accent-border)] bg-[var(--battle-accent-surface)] px-5 py-5 shadow-[var(--battle-accent-shadow)] ${rankedInTopFive ? "battle-ranked-card" : ""}`}>
+            {rankedInTopFive && <RankCelebration />}
+            <div className="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-[var(--battle-accent-box)] text-2xl font-black text-[var(--cosmos-accent-text)] shadow-[inset_0_0_0_1px_rgba(124,58,237,0.12)]" style={MONO}>
               {mine.my_rank == null ? "✓" : `#${mine.my_rank}`}
             </div>
-            <div className="min-w-0 flex-1">
+            <div className="relative z-10 min-w-0 flex-1">
               <p className="truncate text-base font-bold text-[var(--battle-text)]">{mine.my_rank == null ? "배틀 완료" : `${mine.my_rank}위 달성!`}</p>
               <p className="mt-1 text-[11px] text-[var(--battle-muted)]">{user?.name || "사용자"} · {mine.all_correct ? "전체 정답" : "오답 포함"}</p>
               {mine.elapsed_seconds != null && <p className="mt-1 text-xs font-bold text-[var(--cosmos-accent-text)]" style={MONO}>기록 {formatElapsed(mine.elapsed_seconds)}</p>}
@@ -645,10 +685,8 @@ export default function BattlePage() {
   } = useDailyBattlePage();
 
   let content;
-  if (phase === "result-loading") {
-    content = <BattleResultSkeleton onRefresh={retryResult} />;
-  } else if (phase === "loading") {
-    content = <CenterState title="배틀 정보를 확인하고 있어요" description="서버 시간과 오늘의 배틀을 확인합니다." busy />;
+  if (phase === "result-loading" || phase === "loading") {
+    content = <BattleResultSkeleton onRefresh={phase === "result-loading" ? retryResult : load} />;
   } else if (phase === "waiting") {
     content = <CenterState title="잠시 후 오늘의 배틀이 시작됩니다" description={"잠시 후 12시 50분에 모든 사용자가\n같은 세 문제로 경쟁합니다. TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
