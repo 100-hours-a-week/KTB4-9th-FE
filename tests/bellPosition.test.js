@@ -76,14 +76,12 @@ test("the panel never leaves the app frame, even when the frame is narrow", () =
   assert.ok(placement.left + placement.width <= 288);
 });
 
-test("the toast is centered in the app frame and floats above the navigation and the default bell", () => {
+test("the toast is centered in the app frame, just above the bottom navigation", () => {
   const placement = toastPlacement({ frame, area, viewportHeight: 760 });
   assert.equal(placement.left, 315);
   assert.equal(placement.maxWidth, 340);
-  // 토스트 아래 끝은 종의 윗면보다 위에 있어야 함
-  const bellTop = defaultBellPosition(area).y;
-  assert.ok(760 - placement.bottom <= bellTop);
-  assert.ok(placement.bottom >= 760 - area.bottom + BELL_SIZE);
+  // 내비게이션 윗면(700)에서 12px 위에 토스트의 아래 끝이 놓임
+  assert.equal(760 - placement.bottom, 700 - 12);
 });
 
 test("the toast shrinks to fit a narrow app frame", () => {
