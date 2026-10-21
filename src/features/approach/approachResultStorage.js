@@ -9,7 +9,8 @@ export function loadApproachResult(problemId, storage = globalThis.localStorage)
 
   try {
     const saved = JSON.parse(storage.getItem(storageKey(problemId)) || "null");
-    if (!saved || !["pending", "failed", "completed"].includes(saved.evaluation?.status)) {
+    // 평가 중(pending)은 저장·복원하지 않음 (진행 상태는 서버의 진행 중인 평가로 다시 알아냄)
+    if (!saved || !["failed", "completed"].includes(saved.evaluation?.status)) {
       return null;
     }
     if (saved.evaluation.status === "completed" && !Array.isArray(saved.evaluation.keywords)) {
