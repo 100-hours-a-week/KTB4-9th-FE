@@ -2,13 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getNotifications, markNotificationRead } from "../../api/notificationApi.js";
 import {
   EVALUATION_SUBMITTED_EVENT,
-  FAST_POLL_DURATION_MS,
   hasNewUnread,
   maxNotificationId,
   nextPollDelay,
 } from "./notificationPolling.js";
 
-// 알림 목록과 안 읽은 개수를 주기적으로 확인하고, 읽음 처리를 맡는다.
+// 알림 목록과 안 읽은 개수를 확인하고, 평가가 진행 중일 때만 주기적으로 반복한다. 읽음 처리도 맡는다.
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -20,7 +19,7 @@ export function useNotifications() {
   const timerRef = useRef(null);
   const generationRef = useRef(0);
   const failuresRef = useRef(0);
-  const fastUntilRef = useRef(0);
+  const hasPendingRef = useRef(false);
   const knownMaxIdRef = useRef(null);
 
   // 서버에서 알림을 가져와 반영하고 다음 확인을 예약한다. (이전 요청의 응답은 번호로 걸러낸다.)
@@ -34,13 +33,13 @@ export function useNotifications() {
       const next = await getNotifications();
       if (generation !== generationRef.current) return;
 
-      // 3. 처음 보는 안 읽은 알림이 생겼으면 새 알림 도착으로 보고 빠른 확인을 끝낸다
+      // 3. 처음 보는 안 읽은 알림이 생겼으면 새 알림 도착으로 알리고, 진행 중인 평가 여부를 기억한다
       failuresRef.current = 0;
       if (knownMaxIdRef.current !== null && hasNewUnread(knownMaxIdRef.current, next.notifications)) {
         setArrival((count) => count + 1);
-        fastUntilRef.current = 0;
       }
       knownMaxIdRef.current = maxNotificationId(next.notifications, knownMaxIdRef.current);
+      hasPendingRef.current = next.hasPendingEvaluation;
 
       // 4. 화면 상태에 반영한다
       setNotifications(next.notifications);
@@ -54,17 +53,16 @@ export function useNotifications() {
       failuresRef.current += 1;
     }
 
-    // 5. 다음 확인을 예약한다
+    // 5. 평가가 진행 중이거나 실패 중일 때만 다음 확인을 예약한다
     const delay = nextPollDelay({
       failures: failuresRef.current,
-      fastUntil: fastUntilRef.current,
-      now: Date.now(),
+      hasPending: hasPendingRef.current,
     });
-    timerRef.current = setTimeout(run, delay);
+    if (delay !== null) timerRef.current = setTimeout(run, delay);
   }, []);
 
   useEffect(() => {
-    // 1. 화면이 열리면 바로 확인하고 이후 주기적으로 반복한다
+    // 1. 화면이 열리면 바로 확인한다. (진행 중인 평가가 있으면 끝날 때까지 반복)
     check();
 
     // 2. 탭이 숨겨지면 멈추고, 다시 보이면 바로 확인한다
@@ -76,9 +74,8 @@ export function useNotifications() {
         clearTimeout(timerRef.current);
       }
     };
-    // 3. 평가를 제출하면 60초 동안 빠르게 확인한다
+    // 3. 평가를 제출하면 바로 확인한다. (서버가 진행 중이라고 답하면 반복이 시작됨)
     const onSubmitted = () => {
-      fastUntilRef.current = Date.now() + FAST_POLL_DURATION_MS;
       check();
     };
 

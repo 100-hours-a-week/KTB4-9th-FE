@@ -13,12 +13,13 @@ function normalizeNotification(item) {
   };
 }
 
-// 내 최근 알림(읽음 포함)과 안 읽은 전체 개수를 가져온다.
+// 내 최근 알림(읽음 포함), 안 읽은 전체 개수, 진행 중인 평가 여부를 가져온다.
 export async function getNotifications() {
   const payload = await request("/notifications");
   const data = payload?.data ?? {};
   return {
     unreadCount: Number.isFinite(data.unreadCount) ? data.unreadCount : 0,
+    hasPendingEvaluation: data.hasPendingEvaluation === true,
     notifications: (data.notifications ?? []).map(normalizeNotification),
   };
 }

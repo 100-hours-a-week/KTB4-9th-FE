@@ -1,32 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  FAST_POLL_INTERVAL_MS,
   MAX_BACKOFF_MS,
-  POLL_INTERVAL_MS,
+  PENDING_POLL_INTERVAL_MS,
   hasNewUnread,
   maxNotificationId,
   nextPollDelay,
 } from "../src/features/notification/notificationPolling.js";
 
-test("polls at the normal interval when nothing special is happening", () => {
-  assert.equal(nextPollDelay({ failures: 0, fastUntil: 0, now: 1000 }), POLL_INTERVAL_MS);
+test("stops polling when no evaluation is pending", () => {
+  assert.equal(nextPollDelay({ failures: 0, hasPending: false }), null);
 });
 
-test("polls faster only while the fast period after a submission lasts", () => {
-  assert.equal(nextPollDelay({ failures: 0, fastUntil: 5000, now: 1000 }), FAST_POLL_INTERVAL_MS);
-  assert.equal(nextPollDelay({ failures: 0, fastUntil: 5000, now: 5000 }), POLL_INTERVAL_MS);
+test("polls fast while an evaluation is pending", () => {
+  assert.equal(nextPollDelay({ failures: 0, hasPending: true }), PENDING_POLL_INTERVAL_MS);
 });
 
 test("backs off after consecutive failures and stops at the cap", () => {
-  assert.equal(nextPollDelay({ failures: 1, fastUntil: 0, now: 0 }), 20_000);
-  assert.equal(nextPollDelay({ failures: 2, fastUntil: 0, now: 0 }), 40_000);
-  assert.equal(nextPollDelay({ failures: 3, fastUntil: 0, now: 0 }), MAX_BACKOFF_MS);
-  assert.equal(nextPollDelay({ failures: 10, fastUntil: 0, now: 0 }), MAX_BACKOFF_MS);
+  assert.equal(nextPollDelay({ failures: 1, hasPending: false }), 20_000);
+  assert.equal(nextPollDelay({ failures: 2, hasPending: false }), 40_000);
+  assert.equal(nextPollDelay({ failures: 3, hasPending: false }), MAX_BACKOFF_MS);
+  assert.equal(nextPollDelay({ failures: 10, hasPending: false }), MAX_BACKOFF_MS);
 });
 
-test("failures win over the fast period", () => {
-  assert.equal(nextPollDelay({ failures: 1, fastUntil: 99_999, now: 0 }), 20_000);
+test("failures win over a pending evaluation", () => {
+  assert.equal(nextPollDelay({ failures: 1, hasPending: true }), 20_000);
 });
 
 test("maxNotificationId keeps the largest id seen", () => {
