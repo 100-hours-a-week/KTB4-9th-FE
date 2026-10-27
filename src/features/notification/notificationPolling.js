@@ -6,15 +6,39 @@ export const BACKOFF_BASE_MS = 10_000;
 export const MAX_BACKOFF_MS = 60_000;
 // 평가를 제출했다는 것을 화면 전체에 알리는 이벤트 이름
 export const EVALUATION_SUBMITTED_EVENT = "cosmos:evaluation-submitted";
+// 평가 결과를 이 화면에서 기다리기 시작했다는 이벤트 이름
+export const EVALUATION_WAIT_STARTED_EVENT = "cosmos:evaluation-wait-started";
+const NOTIFICATION_POLLING_ENABLED_KEY = "cosmos:evaluation-notification-polling-enabled";
 
-// 평가를 제출했다고 알린다. (알림 확인이 시작되고 안내 토스트가 뜬다)
+// 알림으로 받기를 선택했다고 알린다. (알림 확인이 시작되고 안내 토스트가 뜬다)
 export function announceEvaluationSubmitted() {
+  window.sessionStorage.setItem(NOTIFICATION_POLLING_ENABLED_KEY, "true");
   window.dispatchEvent(new Event(EVALUATION_SUBMITTED_EVENT));
+}
+
+// 현재 화면에서 결과를 기다리므로 평가 완료 알림의 반복 조회를 멈춘다.
+export function announceEvaluationWaitStarted() {
+  window.sessionStorage.removeItem(NOTIFICATION_POLLING_ENABLED_KEY);
+  window.dispatchEvent(new Event(EVALUATION_WAIT_STARTED_EVENT));
+}
+
+// 같은 탭에서 새로고침해도 알림으로 받기 선택을 이어 간다.
+export function isEvaluationNotificationPollingEnabled() {
+  if (typeof window === "undefined") return false;
+  return window.sessionStorage.getItem(NOTIFICATION_POLLING_ENABLED_KEY) === "true";
+}
+
+export function clearEvaluationNotificationPolling() {
+  if (typeof window !== "undefined") {
+    window.sessionStorage.removeItem(NOTIFICATION_POLLING_ENABLED_KEY);
+  }
 }
 
 // 다음 확인까지 기다릴 시간. 평가가 진행 중일 때만 반복하고, 실패가 이어지면 늘린다.
 // 더 확인할 필요가 없으면 null.
-export function nextPollDelay({ failures, hasPending }) {
+export function nextPollDelay({ failures, hasPending, enabled = true }) {
+  // 화면에서 결과를 기다리는 동안에는 알림을 반복 조회하지 않는다
+  if (!enabled) return null;
   // 1. 연속 실패 중이면 20초, 40초, 60초(상한)
   if (failures > 0) return Math.min(BACKOFF_BASE_MS * 2 ** failures, MAX_BACKOFF_MS);
   // 2. 평가가 진행 중이면 4초

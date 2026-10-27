@@ -16,6 +16,10 @@ test("polls fast while an evaluation is pending", () => {
   assert.equal(nextPollDelay({ failures: 0, hasPending: true }), PENDING_POLL_INTERVAL_MS);
 });
 
+test("does not poll notifications while the result is awaited on the solve screen", () => {
+  assert.equal(nextPollDelay({ failures: 0, hasPending: true, enabled: false }), null);
+});
+
 test("backs off after consecutive failures and stops at the cap", () => {
   assert.equal(nextPollDelay({ failures: 1, hasPending: false }), 20_000);
   assert.equal(nextPollDelay({ failures: 2, hasPending: false }), 40_000);
