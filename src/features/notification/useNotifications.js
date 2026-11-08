@@ -2,13 +2,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getNotifications, markNotificationRead } from "../../api/notificationApi.js";
 import {
   EVALUATION_SUBMITTED_EVENT,
-  FAST_POLL_DURATION_MS,
+  EVALUATION_WAIT_STARTED_EVENT,
+  clearEvaluationNotificationPolling,
   hasNewUnread,
+  isEvaluationNotificationPollingEnabled,
   maxNotificationId,
   nextPollDelay,
 } from "./notificationPolling.js";
 
-// 알림 목록과 안 읽은 개수를 주기적으로 확인하고, 읽음 처리를 맡는다.
+// 알림 목록과 안 읽은 개수를 확인하고, 평가가 진행 중일 때만 주기적으로 반복한다. 읽음 처리도 맡는다.
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -20,8 +22,9 @@ export function useNotifications() {
   const timerRef = useRef(null);
   const generationRef = useRef(0);
   const failuresRef = useRef(0);
-  const fastUntilRef = useRef(0);
+  const hasPendingRef = useRef(false);
   const knownMaxIdRef = useRef(null);
+  const pendingPollingEnabledRef = useRef(isEvaluationNotificationPollingEnabled());
 
   // 서버에서 알림을 가져와 반영하고 다음 확인을 예약한다. (이전 요청의 응답은 번호로 걸러낸다.)
   const check = useCallback(async function run() {
@@ -34,13 +37,17 @@ export function useNotifications() {
       const next = await getNotifications();
       if (generation !== generationRef.current) return;
 
-      // 3. 처음 보는 안 읽은 알림이 생겼으면 새 알림 도착으로 보고 빠른 확인을 끝낸다
+      // 3. 처음 보는 안 읽은 알림이 생겼으면 새 알림 도착으로 알리고, 진행 중인 평가 여부를 기억한다
       failuresRef.current = 0;
       if (knownMaxIdRef.current !== null && hasNewUnread(knownMaxIdRef.current, next.notifications)) {
         setArrival((count) => count + 1);
-        fastUntilRef.current = 0;
       }
       knownMaxIdRef.current = maxNotificationId(next.notifications, knownMaxIdRef.current);
+      hasPendingRef.current = next.hasPendingEvaluation;
+      if (pendingPollingEnabledRef.current && !next.hasPendingEvaluation) {
+        pendingPollingEnabledRef.current = false;
+        clearEvaluationNotificationPolling();
+      }
 
       // 4. 화면 상태에 반영한다
       setNotifications(next.notifications);
@@ -54,17 +61,17 @@ export function useNotifications() {
       failuresRef.current += 1;
     }
 
-    // 5. 다음 확인을 예약한다
+    // 5. 평가가 진행 중이거나 실패 중일 때만 다음 확인을 예약한다
     const delay = nextPollDelay({
       failures: failuresRef.current,
-      fastUntil: fastUntilRef.current,
-      now: Date.now(),
+      hasPending: hasPendingRef.current,
+      enabled: pendingPollingEnabledRef.current,
     });
-    timerRef.current = setTimeout(run, delay);
+    if (delay !== null) timerRef.current = setTimeout(run, delay);
   }, []);
 
   useEffect(() => {
-    // 1. 화면이 열리면 바로 확인하고 이후 주기적으로 반복한다
+    // 1. 화면이 열리면 바로 확인한다. (진행 중인 평가가 있으면 끝날 때까지 반복)
     check();
 
     // 2. 탭이 숨겨지면 멈추고, 다시 보이면 바로 확인한다
@@ -76,17 +83,25 @@ export function useNotifications() {
         clearTimeout(timerRef.current);
       }
     };
-    // 3. 평가를 제출하면 60초 동안 빠르게 확인한다
+    // 3. 알림으로 받기를 선택하면 바로 확인한다. (서버가 진행 중이라고 답하면 반복이 시작됨)
     const onSubmitted = () => {
-      fastUntilRef.current = Date.now() + FAST_POLL_DURATION_MS;
+      pendingPollingEnabledRef.current = true;
       check();
+    };
+    // 4. 이 화면에서 기다리기로 하면 예약된 알림 반복 조회를 즉시 멈춘다
+    const onWaitStarted = () => {
+      pendingPollingEnabledRef.current = false;
+      generationRef.current += 1;
+      clearTimeout(timerRef.current);
     };
 
     document.addEventListener("visibilitychange", onVisibilityChange);
     window.addEventListener(EVALUATION_SUBMITTED_EVENT, onSubmitted);
+    window.addEventListener(EVALUATION_WAIT_STARTED_EVENT, onWaitStarted);
     return () => {
       document.removeEventListener("visibilitychange", onVisibilityChange);
       window.removeEventListener(EVALUATION_SUBMITTED_EVENT, onSubmitted);
+      window.removeEventListener(EVALUATION_WAIT_STARTED_EVENT, onWaitStarted);
       generationRef.current += 1;
       clearTimeout(timerRef.current);
     };

@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
+  cancelAccountWithdrawal,
   clearStoredUser,
   fetchCurrentUser,
 } from "../../services/auth.js";
@@ -10,6 +11,20 @@ export function useAuthSession() {
     user: null,
   });
 
+  const loadSession = useCallback(async () => {
+    const user = await fetchCurrentUser();
+    setSession({
+      status: user.withdrawalPending ? "withdrawal-pending" : "authenticated",
+      user,
+    });
+    return user;
+  }, []);
+
+  const recoverWithdrawal = useCallback(async () => {
+    await cancelAccountWithdrawal();
+    return loadSession();
+  }, [loadSession]);
+
   useEffect(() => {
     let active = true;
     clearStoredUser();
@@ -17,7 +32,10 @@ export function useAuthSession() {
     fetchCurrentUser()
       .then((user) => {
         if (!active) return;
-        setSession({ status: "authenticated", user });
+        setSession({
+          status: user.withdrawalPending ? "withdrawal-pending" : "authenticated",
+          user,
+        });
       })
       .catch(() => {
         if (!active) return;
@@ -30,5 +48,8 @@ export function useAuthSession() {
     };
   }, []);
 
-  return session;
+  return {
+    ...session,
+    recoverWithdrawal,
+  };
 }

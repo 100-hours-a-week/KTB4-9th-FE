@@ -15,9 +15,9 @@ function isLimitReached(usage) {
 
 // 평가 진행 단계별 안내 문구
 const PENDING_MESSAGES = {
-  PENDING: "평가 대기 중이에요. 곧 시작해요.",
-  PROCESSING: "AI가 풀이를 평가하고 있어요. 보통 몇 초 걸려요.",
-  RETRY_WAIT: "평가를 다시 시도하고 있어요. 잠시만 기다려 주세요.",
+  PENDING: "평가를 시작할 준비를 하고 있어요.",
+  PROCESSING: "작성한 접근 방식을 살펴보고 있어요.",
+  RETRY_WAIT: "평가를 다시 시도하고 있어요.",
 };
 
 function ResultActions({ showCode, onWriteCode, usage, onRetry, onNewProblem, retryDisabled = false, retryText = null }) {
@@ -67,28 +67,38 @@ export default function ApproachResult({
   onRevealAnswer,
   showCode,
   onWriteCode,
+  onNotifyLater,
   onRetry,
   onNewProblem,
 }) {
   if (evaluation.status === "pending") {
     return (
-      <div className="flex flex-col gap-3 animate-fadeIn">
-        <div className="rounded-2xl border border-[#2A2845] bg-[#0D0D1F] p-5">
-          <p className="text-sm font-semibold text-[#E2E0F0]">제출 완료</p>
-          <p className="mt-1 text-xs text-[#6B6890]">
-            {PENDING_MESSAGES[evaluation.taskStatus] ?? PENDING_MESSAGES.PENDING}
-          </p>
-          <p className="mt-2 text-[11px] text-[#6B6890]">평가가 끝나면 알림으로 알려드려요. 제출 횟수는 그때 반영돼요.</p>
+      <div className="animate-fadeIn rounded-2xl border border-[var(--cosmos-border)] bg-[var(--cosmos-surface)] px-4 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span
+              className="h-5 w-5 shrink-0 animate-spin rounded-full border-2 border-[var(--cosmos-border-strong)] border-t-[var(--cosmos-accent-text)]"
+              aria-hidden="true"
+            />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[var(--cosmos-text-primary)]">AI 평가 중</p>
+              <p className="mt-0.5 text-[11px] text-[var(--cosmos-text-muted)]">
+                {PENDING_MESSAGES[evaluation.taskStatus] ?? PENDING_MESSAGES.PENDING}
+              </p>
+            </div>
+          </div>
         </div>
-        <ResultActions
-          showCode={showCode}
-          onWriteCode={onWriteCode}
-          usage={evaluation.usage}
-          retryDisabled
-          retryText={evaluation.usage ? null : "평가 중..."}
-          onRetry={onRetry}
-          onNewProblem={onNewProblem}
-        />
+
+        <button
+          type="button"
+          onClick={onNotifyLater}
+          className="mt-4 w-full rounded-xl border border-[var(--cosmos-border-strong)] bg-[var(--cosmos-surface-soft)] px-4 py-3 text-xs font-semibold text-[var(--cosmos-text-primary)] transition-all hover:brightness-95 active:scale-[0.99]"
+        >
+          알림으로 확인
+        </button>
+        <p className="mt-2 text-center text-[9px] text-[var(--cosmos-text-subtle)]">
+          기다리면 바로 보여드리고, 알림은 나중에 확인할 수 있어요.
+        </p>
       </div>
     );
   }

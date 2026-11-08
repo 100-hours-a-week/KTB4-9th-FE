@@ -113,7 +113,7 @@ export default function MyPage() {
 
   return (
     <div className="h-full overflow-y-auto bg-[#05050F] pb-8">
-      <PageHeader eyebrow="My Problems" title="내 문제" subtitle="저장한 문제를 모아보고 다시 풀어보세요" action={<UserMenu menuIcon />} />
+      <PageHeader eyebrow="My Problems" title="내 문제" subtitle="저장한 문제를 모아보고 다시 풀어보세요" action={<UserMenu menuIcon accountMenu />} />
 
       <main className="space-y-5 px-5">
         <section className="grid grid-cols-3 gap-2.5">
