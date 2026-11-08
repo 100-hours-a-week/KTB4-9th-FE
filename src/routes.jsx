@@ -7,8 +7,10 @@ import LoginPage from "./pages/LoginPage.jsx";
 import MyPage from "./pages/MyPage.jsx";
 import ProblemGenerationPage from "./pages/ProblemGenerationPage.jsx";
 import RankingPage from "./pages/RankingPage.jsx";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage.jsx";
 import SolvePage from "./pages/SolvePage.jsx";
 import SolveRoute from "./pages/SolveRoute.jsx";
+import TermsPage from "./pages/TermsPage.jsx";
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +20,14 @@ export const router = createBrowserRouter([
       {
         path: "/login",
         Component: LoginPage,
+      },
+      {
+        path: "/privacy",
+        Component: PrivacyPolicyPage,
+      },
+      {
+        path: "/terms",
+        Component: TermsPage,
       },
       {
         path: "/solve",

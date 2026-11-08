@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router";
 import BottomNavigation from "./BottomNavigation.jsx";
+import WithdrawalRecoveryModal from "../auth/WithdrawalRecoveryModal.jsx";
 import AuthProvider from "../../features/auth/AuthProvider.jsx";
 import { useAuthSession } from "../../features/auth/useAuthSession.js";
 
@@ -15,6 +16,15 @@ export default function AppShell() {
   }
 
   if (session.status !== "authenticated") {
+    if (session.status === "withdrawal-pending") {
+      return (
+        <AuthProvider value={session}>
+          <div className="h-full w-full bg-[var(--cosmos-background)]">
+            <WithdrawalRecoveryModal user={session.user} onRecover={session.recoverWithdrawal} />
+          </div>
+        </AuthProvider>
+      );
+    }
     return <Navigate to="/login" replace />;
   }
 

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router";
 import CosmosLogo from "../components/common/CosmosLogo.jsx";
 import { useLoginPage } from "../features/auth/useLoginPage.js";
 export default function LoginPage() {
@@ -195,8 +196,8 @@ export default function LoginPage() {
           <span className="text-[15px] font-medium text-black/85" style={{ fontFamily: "'Pretendard', 'Outfit', sans-serif" }}>카카오 로그인</span>
         </button>
 
-        <p className="mt-6 text-xs text-[#3A3860]" style={{ fontFamily: "'Outfit', sans-serif" }}>
-          계속하면 이용약관 및 개인정보처리방침에 동의하는 것으로 간주됩니다
+        <p className="mt-6 text-center text-xs leading-5 text-[#4A4870]" style={{ fontFamily: "'Outfit', sans-serif" }}>
+          계속하면 <Link to="/terms" className="text-[#817CA8] underline underline-offset-2">이용약관</Link> 및 <Link to="/privacy" className="text-[#817CA8] underline underline-offset-2">개인정보처리방침</Link>에<br />동의하는 것으로 간주됩니다
         </p>
       </div>
 

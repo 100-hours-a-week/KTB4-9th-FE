@@ -4,6 +4,7 @@ const USER_KEY = "cosmos_user";
 
 function normalizeUser(payload) {
   const source = payload?.data?.user ?? payload?.user ?? payload?.data ?? payload;
+  const accountStatus = source?.accountStatus ?? source?.account_status ?? "ACTIVE";
 
   return {
     id: source?.userId == null ? null : String(source.userId),
@@ -14,6 +15,23 @@ function normalizeUser(payload) {
       source?.profile_image_url ??
       source?.thumbnailImageUrl ??
       source?.thumbnail_image_url ??
+      null,
+    accountStatus,
+    withdrawalPending:
+      source?.withdrawalPending === true ||
+      source?.withdrawal_pending === true ||
+      accountStatus === "WITHDRAWAL_PENDING",
+    withdrawalRequestedAt:
+      source?.withdrawalRequestedAt ??
+      source?.withdrawal_requested_at ??
+      source?.deletedAt ??
+      source?.deleted_at ??
+      null,
+    scheduledDeletionAt:
+      source?.scheduledDeletionAt ??
+      source?.scheduled_deletion_at ??
+      source?.deletionScheduledAt ??
+      source?.deletion_scheduled_at ??
       null,
   };
 }
@@ -38,4 +56,20 @@ export async function logoutCurrentUser() {
   } finally {
     clearStoredUser();
   }
+}
+
+export async function requestAccountWithdrawal() {
+  const payload = await request("/auth/me", {
+    method: "DELETE",
+  });
+  clearStoredUser();
+  return payload?.data ?? payload ?? null;
+}
+
+export async function cancelAccountWithdrawal() {
+  const payload = await request("/auth/withdrawal/cancel", {
+    method: "POST",
+    skipAuthRefresh: true,
+  });
+  return payload?.data ?? payload ?? null;
 }

@@ -9,7 +9,8 @@ export default function BattleAlarmRoot() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const alarmEnabled = pathname !== "/login" && !pathname.startsWith("/daily-battles");
+  const isPublicPage = ["/login", "/privacy", "/terms"].includes(pathname);
+  const alarmEnabled = !isPublicPage && !pathname.startsWith("/daily-battles");
   const { view, banner, retry, dismiss, challenge } = useBattleAlarm(alarmEnabled);
 
   // 1. 서버에 다시 확인한다.
