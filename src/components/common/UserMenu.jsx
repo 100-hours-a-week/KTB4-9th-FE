@@ -83,10 +83,16 @@ export default function UserMenu({ rounded = "rounded-xl", menuIcon = false, acc
               </button>
               <div className="border-t border-[var(--cosmos-border)] py-1.5">
                 <button type="button" onClick={() => moveToDocument("/privacy")} className="flex w-full items-center justify-between px-4 py-2.5 text-xs text-[var(--cosmos-text-muted)] active:bg-[#7C3AED]/8">
-                  개인정보처리방침 <span aria-hidden="true">›</span>
+                  개인정보처리방침
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </button>
                 <button type="button" onClick={() => moveToDocument("/terms")} className="flex w-full items-center justify-between px-4 py-2.5 text-xs text-[var(--cosmos-text-muted)] active:bg-[#7C3AED]/8">
-                  이용약관 <span aria-hidden="true">›</span>
+                  이용약관
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="m6 3.5 4.5 4.5L6 12.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
                 </button>
               </div>
             </>
