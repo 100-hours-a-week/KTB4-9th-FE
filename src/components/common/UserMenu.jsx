@@ -60,7 +60,7 @@ export default function UserMenu({ rounded = "rounded-xl", menuIcon = false, acc
         )}
       </button>
       {open && (
-        <div className={`absolute right-0 top-12 z-[200] overflow-hidden rounded-2xl border border-[var(--cosmos-border-strong)] ${accountMenu ? "min-w-[220px]" : "min-w-[168px]"}`} style={{ background: "var(--cosmos-popover)", boxShadow: "0 12px 40px rgba(37,24,61,0.22), 0 0 0 1px rgba(168,85,247,0.06)" }}>
+        <div className={`absolute right-0 top-12 z-[200] overflow-hidden rounded-2xl border border-[var(--cosmos-border-strong)] ${accountMenu ? "w-[180px]" : "min-w-[168px]"}`} style={{ background: "var(--cosmos-popover)", boxShadow: "0 12px 40px rgba(37,24,61,0.22), 0 0 0 1px rgba(168,85,247,0.06)" }}>
           <div className="flex items-center gap-3 border-b border-[#1E1D35] px-4 py-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#7C3AED]/25 text-xs font-bold text-[#C084FC]">
               <ProfileAvatar
