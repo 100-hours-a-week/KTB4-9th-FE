@@ -53,7 +53,7 @@ export function useBattleAlarm(enabled) {
       const generation = ++generationRef.current;
       clearTimeout(timerRef.current);
 
-      // 배틀 확인 시간대(15:05~15:25)가 아니면 서버에 묻지 않고 다음 확인 시작까지 기다린다.
+      // 배틀 확인 시간대(17:35~17:55)가 아니면 서버에 묻지 않고 다음 확인 시작까지 기다린다.
       if (!isBattleAlarmMocked() && !isInCheckWindow(toServerNow(offsetRef.current))) {
         setBanner(null);
         timerRef.current = setTimeout(() => run(0), msUntilNextCheckStart(toServerNow(offsetRef.current)));
@@ -75,7 +75,7 @@ export function useBattleAlarm(enabled) {
         setBanner(null);
         applyStatus(next);
 
-        // 더 확인할 필요가 없으면 다음 날 15:05에 다시 확인한다.
+        // 더 확인할 필요가 없으면 다음 날 17:35에 다시 확인한다.
         const serverNow = toServerNow(offsetRef.current);
         const delay = nextCheckDelay(next.status, serverNow, next.opensAt?.getTime()) ?? msUntilNextCheckStart(serverNow);
         timerRef.current = setTimeout(() => run(0), delay);

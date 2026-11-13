@@ -136,7 +136,7 @@ function AccessDeniedState({
             </span>
             <div>
               <p className="text-xs font-semibold text-[#E2E0F0]">배틀 참여 안내</p>
-              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">데일리 배틀은 15:10–15:19:59에 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
+              <p className="mt-1 text-[11px] leading-5 text-[#6B6890]">데일리 배틀은 17:40–17:49:59에 참여할 수 있으며, 배틀 페이지 진입 시 자동으로 참여가 시작됩니다.</p>
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
         <div className="mb-4 flex items-center justify-between rounded-2xl border border-[#7C3AED]/30 bg-[#7C3AED]/10 px-4 py-3">
           <div>
             <p className="text-[9px] tracking-widest text-[#8B7FC4]" style={MONO}>SUBMISSION TIME LEFT</p>
-            <p className="mt-0.5 text-[11px] text-[#6B6890]">15:19:59 제출 마감</p>
+            <p className="mt-0.5 text-[11px] text-[#6B6890]">17:49:59 제출 마감</p>
           </div>
           <p className={`text-2xl font-bold tracking-wider ${remainingSeconds <= 60 ? "text-[#F87171]" : "text-[#C084FC]"}`} style={MONO}>
             {formatBattleTime(remainingSeconds)}
@@ -619,7 +619,7 @@ function EmptyBattleResult({ result }) {
           <p className="mt-3 text-sm leading-6 text-[var(--battle-muted)]">해당 배틀의 TOP 5는 비어 있습니다.<br />다음 배틀에서 첫 번째 기록을 남겨보세요!</p>
           <div className="mx-auto mt-6 flex max-w-[250px] items-center justify-center gap-2 rounded-xl border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-4 py-3">
             <span className="h-2 w-2 rounded-full bg-[#A855F7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-            <span className="text-xs font-semibold text-[#C084FC]">매일 15:10 배틀 시작</span>
+            <span className="text-xs font-semibold text-[#C084FC]">매일 17:40 배틀 시작</span>
           </div>
           <button
             type="button"
@@ -737,7 +737,7 @@ function LiveBattlePage() {
   if (phase === "result-loading" || phase === "loading") {
     content = <BattleResultSkeleton onRefresh={phase === "result-loading" ? retryResult : load} />;
   } else if (phase === "waiting") {
-    content = <CenterState title="잠시 후 오늘의 배틀이 시작됩니다" description={"잠시 후 15시 10분에 모든 사용자가\n같은 세 문제로 경쟁합니다. TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
+    content = <CenterState title="잠시 후 오늘의 배틀이 시작됩니다" description={"잠시 후 17시 40분에 모든 사용자가\n같은 세 문제로 경쟁합니다. TOP 5에 도전하세요!"} time={untilOpenSeconds} />;
   } else if (phase === "no-battle") {
     content = <CenterState title="배틀 문제를 준비하고 있어요" description="잠시 후 다시 확인해 주세요." action={<ErrorButton onClick={load} />} />;
   } else if (phase === "closed") {

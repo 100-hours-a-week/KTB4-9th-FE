@@ -18,7 +18,7 @@ function getBattleOpenTime(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T15:10:00+09:00`);
+  return new Date(`${year}-${month}-${date}T17:40:00+09:00`);
 }
 
 function getBattleCountdownStartTime(serverTime) {
@@ -26,7 +26,7 @@ function getBattleCountdownStartTime(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T14:50:00+09:00`);
+  return new Date(`${year}-${month}-${date}T17:20:00+09:00`);
 }
 
 function getSubmissionDeadline(serverTime) {
@@ -34,7 +34,7 @@ function getSubmissionDeadline(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T15:19:59+09:00`);
+  return new Date(`${year}-${month}-${date}T17:49:59+09:00`);
 }
 
 function getResultAvailableAt(serverTime) {
@@ -42,7 +42,7 @@ function getResultAvailableAt(serverTime) {
   const year = koreanTime.getUTCFullYear();
   const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
   const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T15:20:00+09:00`);
+  return new Date(`${year}-${month}-${date}T17:50:00+09:00`);
 }
 
 function getRemainingSeconds(deadline, clockOffset) {
@@ -85,7 +85,7 @@ function accessIssueForError(error) {
   if (error?.status === 403) {
     return {
       title: "배틀 참여 시간이 아닙니다",
-      description: "데일리 배틀은 매일 오후 3시 10분부터 3시 19분 59초까지 참여할 수 있어요.",
+      description: "데일리 배틀은 매일 오후 5시 40분부터 5시 49분 59초까지 참여할 수 있어요.",
     };
   }
   if (error?.status === 404) {
@@ -137,7 +137,7 @@ export function useDailyBattlePage() {
   const pollResult = useCallback(async function poll(id) {
     stopPolling();
 
-    // 제출은 15:19:59에 닫지만 결과는 15:20부터 조회한다.
+    // 제출은 17:49:59에 닫지만 결과는 17:50부터 조회한다.
     const secondsUntilResult = getRemainingSeconds(resultAvailableAtRef.current, clockOffsetRef.current);
     if (secondsUntilResult > 0) {
       setRemainingSeconds(secondsUntilResult);
@@ -196,10 +196,10 @@ export function useDailyBattlePage() {
       if (!mountedRef.current) return;
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
-        submissionDeadlineRef.current = new Date(`${participation.battleDate}T15:19:59+09:00`);
+        submissionDeadlineRef.current = new Date(`${participation.battleDate}T17:49:59+09:00`);
       }
       if (!resultAvailableAtRef.current && participation.battleDate) {
-        resultAvailableAtRef.current = new Date(`${participation.battleDate}T15:20:00+09:00`);
+        resultAvailableAtRef.current = new Date(`${participation.battleDate}T17:50:00+09:00`);
       }
       const submissionSeconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
       setRemainingSeconds(submissionSeconds);
@@ -245,7 +245,7 @@ export function useDailyBattlePage() {
 
       submissionDeadlineRef.current = submissionDeadline;
       resultAvailableAtRef.current = resultAvailableAt;
-      // 14:50부터는 이전 결과 대신 오늘 배틀 시작 카운트다운을 보여준다.
+      // 17:20부터는 이전 결과 대신 오늘 배틀 시작 카운트다운을 보여준다.
       if (serverNow < opensAt.getTime()) {
         const secondsUntilOpen = Math.max(0, Math.ceil((opensAt.getTime() - serverNow) / 1000));
         setUntilOpenSeconds(secondsUntilOpen);
@@ -271,7 +271,7 @@ export function useDailyBattlePage() {
 
       setViewingPreviousResult(false);
 
-      // 15:10부터 제출 마감 전까지는 오늘 배틀에 참여한다.
+      // 17:40부터 제출 마감 전까지는 오늘 배틀에 참여한다.
       if (serverNow < submissionDeadline.getTime()) {
         if (current.currentBattleId) {
           await enterBattle(current.currentBattleId);
@@ -281,7 +281,7 @@ export function useDailyBattlePage() {
         return;
       }
 
-      // 15:19:59부터 15:20까지는 제출을 막고 오늘 결과 공개를 기다린다.
+      // 17:49:59부터 17:50까지는 제출을 막고 오늘 결과 공개를 기다린다.
       if (serverNow < resultAvailableAt.getTime()) {
         if (current.currentBattleId) {
           setBattleId(current.currentBattleId);
@@ -292,7 +292,7 @@ export function useDailyBattlePage() {
         return;
       }
 
-      // 15:20 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
+      // 17:50 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
       const resultBattleId = current.currentBattleId ?? current.latestResultBattleId;
       setNextOpenAt(new Date(countdownStartsAt.getTime() + DAY_MS));
       setViewingPreviousResult(true);
