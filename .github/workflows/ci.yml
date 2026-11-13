@@ -39,7 +39,7 @@ jobs:
           VITE_API_BASE_URL: https://api.example.com
         run: npm run build
 
-      - name: Verify V1 development deployment configuration
+      - name: Verify V1 apex deployment configuration
         if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
@@ -47,12 +47,12 @@ jobs:
           VITE_KAKAO_REDIRECT_URI: ${{ vars.KAKAO_REDIRECT_URI }}
         run: |
           set -euo pipefail
-          if [[ "${VITE_API_BASE_URL}" != "https://dev.cosmoscode.site/api" ]]; then
-            echo "::error::VITE_API_BASE_URL must target the V1 development API"
+          if [[ "${VITE_API_BASE_URL}" != "https://cosmoscode.site/api" ]]; then
+            echo "::error::VITE_API_BASE_URL must target the V1 apex API"
             exit 1
           fi
-          if [[ "${VITE_KAKAO_REDIRECT_URI}" != "https://dev.cosmoscode.site/api/auth/oauth/kakao/callback" ]]; then
-            echo "::error::VITE_KAKAO_REDIRECT_URI must target the V1 development callback"
+          if [[ "${VITE_KAKAO_REDIRECT_URI}" != "https://cosmoscode.site/api/auth/oauth/kakao/callback" ]]; then
+            echo "::error::VITE_KAKAO_REDIRECT_URI must target the V1 apex callback"
             exit 1
           fi
           if [[ "${VITE_USE_MOCKS}" != "false" ]]; then
