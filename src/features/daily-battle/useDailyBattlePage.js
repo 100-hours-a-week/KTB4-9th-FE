@@ -13,6 +13,7 @@ import {
 } from "../../constants/dailyBattleSchedule.js";
 
 const RESULT_POLL_MS = 1000;
+const RESULT_POLL_TIMEOUT_MS = 30 * 1000;
 const MAX_RESULT_FAILURES = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const joinRequests = new Map();
@@ -111,6 +112,7 @@ export function useDailyBattlePage() {
   const [submitting, setSubmitting] = useState(false);
   const [droppingOut, setDroppingOut] = useState(false);
   const pollTimerRef = useRef(null);
+  const pollStartedAtRef = useRef(null);
   const pollFailuresRef = useRef(0);
   const mountedRef = useRef(true);
   const clockOffsetRef = useRef(0);
@@ -139,6 +141,15 @@ export function useDailyBattlePage() {
 
       if (response.pending) {
         pollFailuresRef.current = 0;
+        const startedAt = pollStartedAtRef.current ?? Date.now();
+        pollStartedAtRef.current = startedAt;
+
+        if (Date.now() - startedAt >= RESULT_POLL_TIMEOUT_MS) {
+          pollStartedAtRef.current = null;
+          setPhase("result-delayed");
+          return;
+        }
+
         // 결과 공개 시각 이후에는 참여 확인/채점 화면으로 되돌아가지 않고
         // 하나의 결과 로딩 화면을 유지한다.
         setPhase("result-loading");
@@ -147,6 +158,7 @@ export function useDailyBattlePage() {
       }
 
       setResult(response.result);
+      pollStartedAtRef.current = null;
       setPhase("result");
       setErrorMessage("");
     } catch (error) {
@@ -156,10 +168,20 @@ export function useDailyBattlePage() {
         pollTimerRef.current = setTimeout(() => poll(id), RESULT_POLL_MS);
         return;
       }
+      pollStartedAtRef.current = null;
       setErrorMessage(messageForError(error));
       setPhase("result-error");
     }
   }, [stopPolling]);
+
+  const startResultPolling = useCallback((id) => {
+    stopPolling();
+    pollFailuresRef.current = 0;
+    pollStartedAtRef.current = Date.now();
+    setErrorMessage("");
+    setPhase("result-loading");
+    return pollResult(id);
+  }, [pollResult, stopPolling]);
 
   const waitUntilDeadlineOrPoll = useCallback((id) => {
     const seconds = getRemainingSeconds(resultAvailableAtRef.current, clockOffsetRef.current);
@@ -171,9 +193,8 @@ export function useDailyBattlePage() {
       return;
     }
 
-    setPhase("result-loading");
-    pollResult(id);
-  }, [pollResult]);
+    startResultPolling(id);
+  }, [startResultPolling]);
 
   const enterBattle = useCallback(async (id) => {
     setBattleId(id);
@@ -253,8 +274,7 @@ export function useDailyBattlePage() {
           setViewingPreviousResult(true);
           setBattleId(current.latestResultBattleId);
           resultAvailableAtRef.current = new Date(0);
-          setPhase("result-loading");
-          pollResult(current.latestResultBattleId);
+          startResultPolling(current.latestResultBattleId);
         } else {
           setNextOpenAt(opensAt);
           setViewingPreviousResult(false);
@@ -292,8 +312,7 @@ export function useDailyBattlePage() {
       setViewingPreviousResult(true);
       if (resultBattleId) {
         setBattleId(resultBattleId);
-        setPhase("result-loading");
-        pollResult(resultBattleId);
+        startResultPolling(resultBattleId);
       } else {
         setPhase("closed");
       }
@@ -302,7 +321,7 @@ export function useDailyBattlePage() {
       setErrorMessage(messageForError(error));
       setPhase("error");
     }
-  }, [enterBattle, pollResult, stopPolling, waitUntilDeadlineOrPoll]);
+  }, [enterBattle, startResultPolling, stopPolling, waitUntilDeadlineOrPoll]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -329,14 +348,14 @@ export function useDailyBattlePage() {
           if (battleId) waitUntilDeadlineOrPoll(battleId);
           return;
         }
-        if (battleId) pollResult(battleId);
+        if (battleId) startResultPolling(battleId);
       }
     };
 
     updateTimer();
     const timer = setInterval(updateTimer, 1000);
     return () => clearInterval(timer);
-  }, [battleId, phase, pollResult, waitUntilDeadlineOrPoll]);
+  }, [battleId, phase, startResultPolling, waitUntilDeadlineOrPoll]);
 
   useEffect(() => {
     if ((!viewingPreviousResult && phase !== "waiting") || !nextOpenAt) return undefined;
@@ -428,10 +447,8 @@ export function useDailyBattlePage() {
 
   const retryResult = useCallback(() => {
     if (!battleId) return load();
-    pollFailuresRef.current = 0;
-    setErrorMessage("");
-    return waitUntilDeadlineOrPoll(battleId);
-  }, [battleId, load, waitUntilDeadlineOrPoll]);
+    return startResultPolling(battleId);
+  }, [battleId, load, startResultPolling]);
 
   return {
     accessIssue,

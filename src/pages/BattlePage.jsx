@@ -751,6 +751,8 @@ function LiveBattlePage() {
     content = <PendingBattleResult battle={battle} remainingSeconds={remainingSeconds} />;
   } else if (phase === "result" && result) {
     content = <BattleResult result={result} />;
+  } else if (phase === "result-delayed") {
+    content = <CenterState eyebrow="GRADING IN PROGRESS" title="아직 채점 작업 진행 중입니다" description="잠시 후 다시 시도해 주세요." action={<ErrorButton onClick={retryResult} />} />;
   } else if (phase === "result-error") {
     content = <CenterState title="결과를 불러오지 못했습니다" description={errorMessage} action={<ErrorButton onClick={retryResult} />} />;
   } else {
@@ -768,15 +770,29 @@ function LiveBattlePage() {
 
 export default function BattlePage() {
   const previewHosts = new Set(["localhost", "127.0.0.1", "dev.cosmoscode.site"]);
-  const showTopFivePreview = typeof window !== "undefined"
-    && previewHosts.has(window.location.hostname)
-    && new URLSearchParams(window.location.search).get("preview") === "top5";
+  const preview = typeof window !== "undefined" && previewHosts.has(window.location.hostname)
+    ? new URLSearchParams(window.location.search).get("preview")
+    : null;
 
-  if (showTopFivePreview) {
+  if (preview === "top5") {
     return (
       <div className="relative h-full overflow-hidden bg-[#05050F]">
         <BattleBackdrop />
         <BattleResult result={TOP_FIVE_PREVIEW_RESULT} />
+      </div>
+    );
+  }
+
+  if (preview === "grading-delayed") {
+    return (
+      <div className="relative h-full overflow-hidden bg-[#05050F]">
+        <BattleBackdrop />
+        <CenterState
+          eyebrow="GRADING IN PROGRESS"
+          title="아직 채점 작업 진행 중입니다"
+          description="잠시 후 다시 시도해 주세요."
+          action={<ErrorButton onClick={() => {}} />}
+        />
       </div>
     );
   }
