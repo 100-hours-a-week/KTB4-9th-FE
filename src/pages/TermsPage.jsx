@@ -5,7 +5,6 @@ const CONTACT_EMAIL = import.meta.env.VITE_PRIVACY_CONTACT_EMAIL || "cosmosktb4@
 export default function TermsPage() {
   return (
     <LegalDocumentLayout
-      eyebrow="Terms of Service"
       title="이용약관"
       description="COSMOS가 제공하는 알고리즘 학습, 문제 생성, 코드 채점, 데일리 배틀 서비스를 이용할 때 필요한 기준을 안내합니다."
       effectiveDate="2026년 11월 9일"

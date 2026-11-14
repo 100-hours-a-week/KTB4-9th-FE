@@ -5,7 +5,6 @@ const CONTACT_EMAIL = import.meta.env.VITE_PRIVACY_CONTACT_EMAIL || "cosmosktb4@
 export default function PrivacyPolicyPage() {
   return (
     <LegalDocumentLayout
-      eyebrow="Privacy Policy"
       title="개인정보처리방침"
       description="COSMOS는 알고리즘 학습 서비스를 제공하는 데 필요한 최소한의 개인정보만 처리하고, 이용자의 권리를 보호합니다."
       effectiveDate="2026년 11월 9일"

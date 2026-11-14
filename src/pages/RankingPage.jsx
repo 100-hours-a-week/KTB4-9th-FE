@@ -19,7 +19,7 @@ export default function RankingPage() {
 	return <div className="h-full flex flex-col bg-[#05050F] overflow-hidden">
       <div className="absolute inset-x-0 top-0 h-44 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 80% at 50% 0%, rgba(124,58,237,0.1) 0%, transparent 65%)" }} />
 
-      <PageHeader eyebrow="Global Ranking" title="랭킹" subtitle="문제를 풀고 순위를 올려보세요" />
+      <PageHeader title="랭킹" subtitle="문제를 풀고 순위를 올려보세요" />
 
       <div className="relative z-10 flex-1 overflow-y-auto px-5 pb-8">
 

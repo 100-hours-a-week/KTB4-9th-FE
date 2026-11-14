@@ -76,13 +76,15 @@ function BattleLogo() {
   );
 }
 
-function CenterState({ eyebrow = "DAILY BATTLE", title, description, time, action, busy = false }) {
+function CenterState({ title, description, time, action, busy = false, showTitleDot = true }) {
   return (
     <div className="relative z-10 flex min-h-full items-center justify-center px-6 py-10 text-center">
       <section className="flex w-full max-w-sm flex-col items-center">
         <BattleLogo />
-        <p className="mb-3 text-[10px] font-semibold tracking-[0.3em] text-[#8B7FC4]" style={MONO}>{eyebrow}</p>
-        <h1 className="text-2xl font-bold text-[#F2F0FA]" style={FONT}>{title}</h1>
+        <div className="flex items-center justify-center gap-2">
+          {showTitleDot && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />}
+          <h1 className="text-2xl font-bold text-[#F2F0FA]" style={FONT}>{title}</h1>
+        </div>
         {description && <p className="mt-3 whitespace-pre-line text-sm leading-6 text-[#8B87AA]" style={FONT}>{description}</p>}
         {time != null && (
           <div className="mt-6 rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-7 py-4">
@@ -106,7 +108,6 @@ function ErrorButton({ onClick, children = "다시 시도" }) {
 }
 
 function AccessDeniedState({
-  eyebrow = "BATTLE ACCESS",
   title = "배틀에 참여할 수 없어요",
   description = "배틀 참여 시간과 주소를 다시 확인해 주세요.",
   showBattleGuide = false,
@@ -123,8 +124,10 @@ function AccessDeniedState({
             <circle cx="21" cy="28" r="1.5" fill="var(--cosmos-accent-text)" />
           </svg>
         </div>
-        <p className="mb-3 text-[10px] font-semibold tracking-[0.3em] text-[#8B7FC4]" style={MONO}>{eyebrow}</p>
-        <h1 className="text-2xl font-bold text-[#F2F0FA]" style={FONT}>{title}</h1>
+        <div className="flex items-center justify-center gap-2">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
+          <h1 className="text-2xl font-bold text-[#F2F0FA]" style={FONT}>{title}</h1>
+        </div>
         <p className="mx-auto mt-3 max-w-[290px] whitespace-pre-line text-sm leading-6 text-[#8B87AA]" style={FONT}>{description}</p>
 
         <div className="mt-7 rounded-2xl border border-[#2A2845] bg-[#0D0D1F] px-4 py-3.5 text-left">
@@ -182,7 +185,6 @@ function BattleForm({ battle, answers, remainingSeconds, errorMessage, canSubmit
   return (
     <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
       <PageHeader
-        eyebrow="Daily Battle"
         title="오늘의 배틀"
         subtitle="세 문제의 답을 모두 작성해 한 번에 제출하세요"
         action={<UserMenu />}
@@ -341,7 +343,7 @@ function BlurredResultPreview() {
 function PendingBattleResult({ battle, remainingSeconds }) {
   return (
     <div className="relative z-10 h-full min-h-0 overflow-y-auto overscroll-contain pb-8" style={{ WebkitOverflowScrolling: "touch" }}>
-      <PageHeader eyebrow="오늘의 배틀" title={battle?.title ?? "오늘의 데일리 배틀"} />
+      <PageHeader title={battle?.title ?? "오늘의 데일리 배틀"} />
       <div className="space-y-5 px-5 pb-6">
         <section className="flex items-center gap-4 rounded-2xl border border-[#7C3AED]/40 bg-[#7C3AED]/10 px-4 py-4 shadow-[0_14px_36px_rgba(124,58,237,0.12)]">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#7C3AED]/25 text-[#C084FC]">
@@ -549,11 +551,10 @@ const INCOMPLETE_STATUS = {
 function BattleResultHeader({ result }) {
   return (
     <header className="px-5 pt-12 pb-4">
-      <div className="mb-1.5 flex items-center gap-1.5">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
-        <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--battle-muted)]" style={MONO}>데일리 배틀 결과</span>
+      <div className="flex items-center gap-2">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
+        <h1 className="text-xl font-bold leading-tight text-[var(--battle-text)]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
       </div>
-      <h1 className="text-xl font-bold leading-tight text-[var(--battle-text)]" style={FONT}>{result?.title ?? "오늘의 데일리 배틀"}</h1>
       {result?.battle_date && <p className="mt-1.5 text-xs leading-relaxed text-[var(--battle-muted)]" style={MONO}>{result.battle_date}</p>}
     </header>
   );
@@ -752,7 +753,7 @@ function LiveBattlePage() {
   } else if (phase === "result" && result) {
     content = <BattleResult result={result} />;
   } else if (phase === "result-delayed") {
-    content = <CenterState eyebrow="GRADING IN PROGRESS" title="아직 채점 작업 진행 중입니다" description="잠시 후 다시 시도해 주세요." action={<ErrorButton onClick={retryResult} />} />;
+    content = <CenterState title="아직 채점 작업 진행 중입니다" description="잠시 후 다시 시도해 주세요." action={<ErrorButton onClick={retryResult} />} showTitleDot={false} />;
   } else if (phase === "result-error") {
     content = <CenterState title="결과를 불러오지 못했습니다" description={errorMessage} action={<ErrorButton onClick={retryResult} />} />;
   } else {
@@ -788,10 +789,10 @@ export default function BattlePage() {
       <div className="relative h-full overflow-hidden bg-[#05050F]">
         <BattleBackdrop />
         <CenterState
-          eyebrow="GRADING IN PROGRESS"
           title="아직 채점 작업 진행 중입니다"
           description="잠시 후 다시 시도해 주세요."
           action={<ErrorButton onClick={() => {}} />}
+          showTitleDot={false}
         />
       </div>
     );
@@ -805,7 +806,6 @@ export function InvalidBattleRoutePage() {
     <div className="relative h-full overflow-hidden bg-[#05050F]">
       <BattleBackdrop />
       <AccessDeniedState
-        eyebrow="INVALID BATTLE"
         title="잘못된 배틀 접근입니다"
         description={"주소로 직접 참여할 수 없는 배틀이에요.\n현재 진행 중인 배틀은 배틀 메뉴에서 확인해 주세요."}
         showBattleGuide

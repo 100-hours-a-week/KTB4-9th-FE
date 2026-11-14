@@ -15,7 +15,7 @@ export function LegalSection({ number, title, children }) {
   );
 }
 
-export default function LegalDocumentLayout({ eyebrow, title, description, effectiveDate, children }) {
+export default function LegalDocumentLayout({ title, description, effectiveDate, children }) {
   const navigate = useNavigate();
 
   return (
@@ -33,8 +33,10 @@ export default function LegalDocumentLayout({ eyebrow, title, description, effec
       </header>
 
       <main className="px-5 pt-8">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--cosmos-text-purple)]">{eyebrow}</p>
-        <h1 className="mt-2 text-2xl font-bold text-[var(--cosmos-text-primary)]">{title}</h1>
+        <div className="flex items-center gap-2">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#A855F7] shadow-[0_0_5px_rgba(168,85,247,0.9)]" />
+          <h1 className="text-2xl font-bold text-[var(--cosmos-text-primary)]">{title}</h1>
+        </div>
         <p className="mt-3 text-sm leading-6 text-[var(--cosmos-text-secondary)]">{description}</p>
         <div className="mt-5 inline-flex rounded-full border border-[#7C3AED]/25 bg-[#7C3AED]/10 px-3 py-1.5 text-[10px] font-semibold text-[var(--cosmos-accent-text)]">
           시행일 {effectiveDate}
