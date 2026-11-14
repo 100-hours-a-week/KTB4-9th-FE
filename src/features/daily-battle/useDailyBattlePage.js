@@ -6,43 +6,31 @@ import {
   participateDailyBattle,
   submitDailyBattle,
 } from "../../api/dailyBattleApi.js";
+import {
+  DAILY_BATTLE_SCHEDULE,
+  getKstDateTime,
+  getKstDateTimeForDate,
+} from "../../constants/dailyBattleSchedule.js";
 
 const RESULT_POLL_MS = 1000;
 const MAX_RESULT_FAILURES = 3;
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const joinRequests = new Map();
 
 function getBattleOpenTime(serverTime) {
-  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
-  const year = koreanTime.getUTCFullYear();
-  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
-  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T20:20:00+09:00`);
+  return getKstDateTime(serverTime, DAILY_BATTLE_SCHEDULE.startTime);
 }
 
 function getBattleCountdownStartTime(serverTime) {
-  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
-  const year = koreanTime.getUTCFullYear();
-  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
-  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T20:00:00+09:00`);
+  return getKstDateTime(serverTime, DAILY_BATTLE_SCHEDULE.countdownStartTime);
 }
 
 function getSubmissionDeadline(serverTime) {
-  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
-  const year = koreanTime.getUTCFullYear();
-  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
-  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T20:29:59+09:00`);
+  return getKstDateTime(serverTime, DAILY_BATTLE_SCHEDULE.submissionDeadlineTime);
 }
 
 function getResultAvailableAt(serverTime) {
-  const koreanTime = new Date(serverTime.getTime() + KST_OFFSET_MS);
-  const year = koreanTime.getUTCFullYear();
-  const month = String(koreanTime.getUTCMonth() + 1).padStart(2, "0");
-  const date = String(koreanTime.getUTCDate()).padStart(2, "0");
-  return new Date(`${year}-${month}-${date}T20:30:00+09:00`);
+  return getKstDateTime(serverTime, DAILY_BATTLE_SCHEDULE.resultAvailableTime);
 }
 
 function getRemainingSeconds(deadline, clockOffset) {
@@ -85,7 +73,7 @@ function accessIssueForError(error) {
   if (error?.status === 403) {
     return {
       title: "배틀 참여 시간이 아닙니다",
-      description: "데일리 배틀은 매일 오후 8시 20분부터 8시 29분 59초까지 참여할 수 있어요.",
+      description: `데일리 배틀은 매일 ${DAILY_BATTLE_SCHEDULE.labels.startKorean}부터 ${DAILY_BATTLE_SCHEDULE.labels.submissionDeadlineKorean}까지 참여할 수 있어요.`,
     };
   }
   if (error?.status === 404) {
@@ -137,7 +125,7 @@ export function useDailyBattlePage() {
   const pollResult = useCallback(async function poll(id) {
     stopPolling();
 
-    // 제출은 20:29:59에 닫지만 결과는 20:30부터 조회한다.
+    // 제출 마감 전에는 결과 API를 호출하지 않는다.
     const secondsUntilResult = getRemainingSeconds(resultAvailableAtRef.current, clockOffsetRef.current);
     if (secondsUntilResult > 0) {
       setRemainingSeconds(secondsUntilResult);
@@ -196,10 +184,16 @@ export function useDailyBattlePage() {
       if (!mountedRef.current) return;
       setBattle(participation);
       if (!submissionDeadlineRef.current && participation.battleDate) {
-        submissionDeadlineRef.current = new Date(`${participation.battleDate}T20:29:59+09:00`);
+        submissionDeadlineRef.current = getKstDateTimeForDate(
+          participation.battleDate,
+          DAILY_BATTLE_SCHEDULE.submissionDeadlineTime,
+        );
       }
       if (!resultAvailableAtRef.current && participation.battleDate) {
-        resultAvailableAtRef.current = new Date(`${participation.battleDate}T20:30:00+09:00`);
+        resultAvailableAtRef.current = getKstDateTimeForDate(
+          participation.battleDate,
+          DAILY_BATTLE_SCHEDULE.resultAvailableTime,
+        );
       }
       const submissionSeconds = getRemainingSeconds(submissionDeadlineRef.current, clockOffsetRef.current);
       setRemainingSeconds(submissionSeconds);
@@ -245,7 +239,7 @@ export function useDailyBattlePage() {
 
       submissionDeadlineRef.current = submissionDeadline;
       resultAvailableAtRef.current = resultAvailableAt;
-      // 20:00부터는 이전 결과 대신 오늘 배틀 시작 카운트다운을 보여준다.
+      // 카운트다운 시작부터는 이전 결과 대신 오늘 배틀 시작 화면을 보여준다.
       if (serverNow < opensAt.getTime()) {
         const secondsUntilOpen = Math.max(0, Math.ceil((opensAt.getTime() - serverNow) / 1000));
         setUntilOpenSeconds(secondsUntilOpen);
@@ -271,7 +265,7 @@ export function useDailyBattlePage() {
 
       setViewingPreviousResult(false);
 
-      // 20:20부터 제출 마감 전까지는 오늘 배틀에 참여한다.
+      // 배틀 시작부터 제출 마감 전까지는 오늘 배틀에 참여한다.
       if (serverNow < submissionDeadline.getTime()) {
         if (current.currentBattleId) {
           await enterBattle(current.currentBattleId);
@@ -281,7 +275,7 @@ export function useDailyBattlePage() {
         return;
       }
 
-      // 20:29:59부터 20:30까지는 제출을 막고 오늘 결과 공개를 기다린다.
+      // 제출 마감부터 결과 공개까지는 제출을 막고 결과를 기다린다.
       if (serverNow < resultAvailableAt.getTime()) {
         if (current.currentBattleId) {
           setBattleId(current.currentBattleId);
@@ -292,7 +286,7 @@ export function useDailyBattlePage() {
         return;
       }
 
-      // 20:30 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
+      // 결과 공개 이후에는 오늘 결과를, 오늘 배틀이 없다면 가장 최근 결과를 보여준다.
       const resultBattleId = current.currentBattleId ?? current.latestResultBattleId;
       setNextOpenAt(new Date(countdownStartsAt.getTime() + DAY_MS));
       setViewingPreviousResult(true);

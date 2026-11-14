@@ -1,8 +1,9 @@
 // 배틀 알림 확인 주기와 시간 계산. 화면과 상관없는 값과 계산만 모아 둔다.
+import { DAILY_BATTLE_SCHEDULE, KST_OFFSET_MS } from "../../constants/dailyBattleSchedule.js";
 
 // 아직 안 열렸거나 배틀이 준비 안 됐을 때 다시 확인하는 간격(ms)
 export const POLL_INTERVAL_MS = 2000;
-// 열리기 이만큼(ms) 전부터 확인을 시작한다. (20:20 기준 20:19:58)
+// 열리기 이만큼(ms) 전부터 확인을 시작한다.
 export const POLL_LEAD_MS = 2000;
 // 사용자마다 확인 시작을 어긋나게 하는 최대 무작위 지연(ms). 요청이 한꺼번에 몰리지 않게 한다.
 export const POLL_JITTER_MAX_MS = 2000;
@@ -13,14 +14,8 @@ export const MAX_RETRIES = 3;
 export const CHECKING_BANNER_DELAY_MS = 500;
 // 열리는 시각을 알 수 없을 때 다음 확인까지 기다리는 시간(ms)
 const UNKNOWN_OPEN_WAIT_MS = 60 * 1000;
-// 배틀 전후(한국 시각 20:15~20:35)에만 배너를 보여준다.
-const BANNER_START_MINUTE = 20 * 60 + 15;
-const BANNER_END_MINUTE = 20 * 60 + 35;
-// 서버에 물어보는 시간대(한국 시각 20:15~20:35).
-const CHECK_START_MINUTE = 20 * 60 + 15;
-const CHECK_END_MINUTE = 20 * 60 + 35;
-
-const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+const CHECK_START_MINUTE = DAILY_BATTLE_SCHEDULE.alarmWindowStartMinute;
+const CHECK_END_MINUTE = DAILY_BATTLE_SCHEDULE.alarmWindowEndMinute;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
 
@@ -64,13 +59,13 @@ export function nextCheckDelay(status, serverNowMs, opensAtMs, random = Math.ran
   return POLL_INTERVAL_MS;
 }
 
-// 지금이 서버에 물어봐도 되는 배틀 확인 시간대(20:15~20:35)인지 확인한다.
+// 지금이 서버에 물어봐도 되는 배틀 확인 시간대인지 확인한다.
 export function isInCheckWindow(nowMs) {
   const minute = kstMinuteOfDay(nowMs);
   return minute >= CHECK_START_MINUTE && minute <= CHECK_END_MINUTE;
 }
 
-// 다음 20:15(한국 시각)까지 남은 시간(ms). 사용자마다 어긋나게 무작위 지연을 더한다.
+// 다음 배틀 확인 시작까지 남은 시간(ms). 사용자마다 어긋나게 무작위 지연을 더한다.
 export function msUntilNextCheckStart(nowMs, random = Math.random()) {
   const kstMs = nowMs + KST_OFFSET_MS;
   let startKstMs = Math.floor(kstMs / DAY_MS) * DAY_MS + CHECK_START_MINUTE * MINUTE_MS;
@@ -78,8 +73,8 @@ export function msUntilNextCheckStart(nowMs, random = Math.random()) {
   return startKstMs - kstMs + random * POLL_JITTER_MAX_MS;
 }
 
-// 지금(서버 시각 기준)이 배너를 보여줘도 되는 배틀 시간대(20:15~20:35)인지 확인한다.
+// 지금(서버 시각 기준)이 배너를 보여줘도 되는 배틀 시간대인지 확인한다.
 export function isNearOpenWindow(serverNowMs) {
   const minutes = kstMinuteOfDay(serverNowMs);
-  return minutes >= BANNER_START_MINUTE && minutes <= BANNER_END_MINUTE;
+  return minutes >= CHECK_START_MINUTE && minutes <= CHECK_END_MINUTE;
 }

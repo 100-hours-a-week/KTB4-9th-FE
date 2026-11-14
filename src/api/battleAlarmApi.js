@@ -1,7 +1,5 @@
 import { request } from "./httpClient.js";
-
-// 배틀이 열려 있는 시간(20:20~20:30)의 길이. 서버가 열리는 시각을 주지 않아서 마감 시각에서 거꾸로 계산한다.
-const BATTLE_WINDOW_MS = 10 * 60 * 1000;
+import { DAILY_BATTLE_SCHEDULE } from "../constants/dailyBattleSchedule.js";
 
 // 개발 서버에서 주소에 alarmMock이 있으면 가짜 서버를 쓴다. 운영 빌드에서는 이 값이 항상 false다.
 // 화면을 옮기면 주소의 ?뒷부분이 지워질 수 있어서, 페이지가 열릴 때 옵션을 한 번에 읽어 둔다.
@@ -27,7 +25,7 @@ function normalizeStatus(payload) {
   const opensAt = data.opens_at
     ? new Date(data.opens_at)
     : closesAt
-      ? new Date(closesAt.getTime() - BATTLE_WINDOW_MS)
+      ? new Date(closesAt.getTime() - DAILY_BATTLE_SCHEDULE.battleWindowMs)
       : null;
 
   return {
