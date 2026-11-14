@@ -13,7 +13,7 @@ import {
 } from "../../constants/dailyBattleSchedule.js";
 
 const RESULT_POLL_MS = 1000;
-const RESULT_POLL_TIMEOUT_MS = 30 * 1000;
+const RESULT_POLL_TIMEOUT_MS = 10 * 1000;
 const MAX_RESULT_FAILURES = 3;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const joinRequests = new Map();
