@@ -1,6 +1,6 @@
 // 배틀 시간을 바꿀 때는 아래 시작 시각만 수정하면 됩니다.
-const START_HOUR = 0;
-const START_MINUTE = 0;
+const START_HOUR = 2;
+const START_MINUTE = 20;
 
 const BATTLE_DURATION_MINUTES = 10;
 const COUNTDOWN_LEAD_MINUTES = 20;
